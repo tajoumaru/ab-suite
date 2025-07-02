@@ -1,6 +1,6 @@
 import path from "node:path";
 import preact from "@preact/preset-vite";
-import { defineConfig } from "vite";
+import { defineConfig } from "rolldown-vite";
 import monkey from "vite-plugin-monkey";
 
 export default defineConfig({
@@ -17,7 +17,7 @@ export default defineConfig({
         name: "AnimeBytes Suite",
         description: "A suite of userscripts for AnimeBytes.",
         author: "tajoumaru",
-        version: "1.0.0",
+        version: "0.1.0",
         icon: "https://animebytes.tv/favicon.ico",
         namespace: "https://github.com/tajoumaru",
         match: ["https://animebytes.tv/*", "https://anilist.co/*", "https://releases.moe/*"],
