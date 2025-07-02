@@ -34,6 +34,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     showRegionColumn,
     showDualAudioColumn,
     mediainfoParserEnabled,
+    interactiveSearchEnabled,
     toggleSetting,
   } = useSettingsStore();
 
@@ -87,7 +88,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       | "compactResolutionMode"
       | "showRegionColumn"
       | "showDualAudioColumn"
-      | "mediainfoParserEnabled",
+      | "mediainfoParserEnabled"
+      | "interactiveSearchEnabled",
   ) => {
     toggleSetting(key);
 
@@ -99,7 +101,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       key === "compactResolutionMode" ||
       key === "showRegionColumn" ||
       key === "showDualAudioColumn" ||
-      key === "mediainfoParserEnabled"
+      key === "mediainfoParserEnabled" ||
+      key === "interactiveSearchEnabled"
     ) {
       // Could add a toast notification here in the future
       console.log("AB Suite: Setting updated. Some changes may require a page reload.");
@@ -215,6 +218,22 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             className={`ab-settings-toggle ${mediainfoParserEnabled ? "active" : ""}`}
             onClick={() => handleToggle("mediainfoParserEnabled")}
             aria-label={`Toggle MediaInfo parser ${mediainfoParserEnabled ? "off" : "on"}`}
+            type="button"
+          />
+        </div>
+
+        <div className="ab-settings-option">
+          <div className="ab-settings-option-content">
+            <strong>Interactive Search Categories</strong>
+            <div>
+              Highlights current categories and preserves search parameters when switching between Anime and Music
+              sections.
+            </div>
+          </div>
+          <button
+            className={`ab-settings-toggle ${interactiveSearchEnabled ? "active" : ""}`}
+            onClick={() => handleToggle("interactiveSearchEnabled")}
+            aria-label={`Toggle interactive search ${interactiveSearchEnabled ? "off" : "on"}`}
             type="button"
           />
         </div>

@@ -2,7 +2,7 @@ import { render } from "preact";
 import { useEffect } from "preact/hooks";
 // Components
 import { AnimeBytesButton } from "@/modules/anilist";
-import { ExternalLinks, SettingsButton, TableRestructure } from "@/modules/animebytes";
+import { ExternalLinks, InteractiveSearch, SettingsButton, TableRestructure } from "@/modules/animebytes";
 import { ReleasesIntegration, SeaDexIntegration } from "@/modules/seadex";
 // Hooks and utilities
 import { useSettingsStore } from "@/stores/settings";
@@ -60,6 +60,7 @@ function AnimeBytesApp() {
   return (
     <>
       <ExternalLinks />
+      <InteractiveSearch />
       <SeaDexIntegration />
       <TableRestructure />
     </>

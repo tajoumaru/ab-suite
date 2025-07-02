@@ -1,10 +1,10 @@
 import { useSettingsStore } from "@/stores/settings";
 import "@/styles/animebytes.css";
 import { Check, ChevronDown, ChevronsUpDown, ChevronUp, Download, Flag, X } from "lucide-preact";
+import { parseMediaInfo } from "mi-parser";
 import { useEffect, useMemo, useState } from "preact/hooks";
 import type { ParsedTorrentRow } from "@/types";
 import { mountComponent } from "@/utils/dom";
-import { parseMediaInfo } from "mi-parser";
 
 // Extend Window interface for AnimeBytes site functions
 declare global {
@@ -37,7 +37,7 @@ type SortColumn =
 type SortDirection = "asc" | "desc";
 
 function ModernTorrentTable({ torrents }: TableRestructureProps) {
-  const { compactResolutionMode, showRegionColumn, showDualAudioColumn, mediainfoParserEnabled } = useSettingsStore();
+  const { compactResolutionMode, showRegionColumn, showDualAudioColumn } = useSettingsStore();
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [sortColumn, setSortColumn] = useState<SortColumn>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
