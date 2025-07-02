@@ -1,6 +1,6 @@
 import path from "node:path";
 import preact from "@preact/preset-vite";
-import { defineConfig } from "rolldown-vite";
+import { defineConfig } from "vite";
 import monkey from "vite-plugin-monkey";
 
 export default defineConfig({
