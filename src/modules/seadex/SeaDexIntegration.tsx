@@ -67,26 +67,26 @@ export function SeaDexIntegration() {
           const entry = linkMap[torrentId];
           if (!entry) continue;
 
-          // Add SeaDx icon
+          // Add Seadex icon
           const iconContainer = document.createElement("span");
           a.parentNode?.appendChild(iconContainer);
 
           render(<SeaDexIcon entry={entry} separator={separator} />, iconContainer);
 
-          // Add SeaDx tab if tabs exist
+          // Add Seadex tab if tabs exist
           const tabsList = document.querySelector(`#tabs_${torrentId}`);
           const tabsContainer = tabsList?.parentElement;
 
           if (!tabsList || !tabsContainer) continue;
 
-          const tabId = `seadx_${torrentId}`;
+          const tabId = `seadex_${torrentId}`;
           if (document.getElementById(tabId)) continue;
 
           // Create tab item
           const newTabItem = document.createElement("li");
           const newTabLink = document.createElement("a");
           newTabLink.href = `#${tabId}`;
-          newTabLink.textContent = "SeaDx";
+          newTabLink.textContent = "Seadex";
           newTabLink.addEventListener("click", (e) => {
             e.preventDefault();
             // Use the site's tab switching function if available
@@ -110,22 +110,22 @@ export function SeaDexIntegration() {
             newTabLink.click();
           }
 
-          // Add SeaDx classes to the original torrent row
-          // This helps the row parser detect the SeaDx status
+          // Add Seadex classes to the original torrent row
+          // This helps the row parser detect the Seadex status
           const torrentRow = a.closest(".group_torrent") as HTMLElement;
           if (torrentRow) {
             if (entry.isBest) {
-              torrentRow.classList.add("seadx-best");
+              torrentRow.classList.add("seadex-best");
             } else {
-              torrentRow.classList.add("seadx-alt");
+              torrentRow.classList.add("seadex-alt");
             }
           }
         }
       }
 
-      // After processing SeaDx data, trigger a custom event to let TableRestructure know
-      // it should re-process tables to pick up the new SeaDx classes
-      const event = new CustomEvent("seadx-processing-complete", {
+      // After processing Seadex data, trigger a custom event to let TableRestructure know
+      // it should re-process tables to pick up the new Seadex classes
+      const event = new CustomEvent("seadex-processing-complete", {
         detail: { processedTorrents: torrents.map((t) => t.torrentId) },
       });
 
@@ -134,7 +134,7 @@ export function SeaDexIntegration() {
         document.dispatchEvent(event);
       }, 100);
     } catch (error) {
-      console.error("AB Suite (SeaDx): Failed to process torrents", error);
+      console.error("AB Suite (Seadex): Failed to process torrents", error);
     }
   };
 

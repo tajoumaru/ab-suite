@@ -26,8 +26,16 @@ const CloseIcon = () => (
 );
 
 export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
-  const { anilistIntegrationEnabled, seadexEnabled, tableRestructureEnabled, compactResolutionMode, toggleSetting } =
-    useSettingsStore();
+  const {
+    anilistIntegrationEnabled,
+    seadexEnabled,
+    tableRestructureEnabled,
+    compactResolutionMode,
+    showRegionColumn,
+    showDualAudioColumn,
+    mediainfoParserEnabled,
+    toggleSetting,
+  } = useSettingsStore();
 
   const [isClosing, setIsClosing] = useState(false);
 
@@ -72,7 +80,14 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   };
 
   const handleToggle = (
-    key: "anilistIntegrationEnabled" | "seadexEnabled" | "tableRestructureEnabled" | "compactResolutionMode",
+    key:
+      | "anilistIntegrationEnabled"
+      | "seadexEnabled"
+      | "tableRestructureEnabled"
+      | "compactResolutionMode"
+      | "showRegionColumn"
+      | "showDualAudioColumn"
+      | "mediainfoParserEnabled",
   ) => {
     toggleSetting(key);
 
@@ -81,7 +96,10 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       key === "anilistIntegrationEnabled" ||
       key === "seadexEnabled" ||
       key === "tableRestructureEnabled" ||
-      key === "compactResolutionMode"
+      key === "compactResolutionMode" ||
+      key === "showRegionColumn" ||
+      key === "showDualAudioColumn" ||
+      key === "mediainfoParserEnabled"
     ) {
       // Could add a toast notification here in the future
       console.log("AB Suite: Setting updated. Some changes may require a page reload.");
@@ -158,6 +176,45 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             className={`ab-settings-toggle ${compactResolutionMode ? "active" : ""}`}
             onClick={() => handleToggle("compactResolutionMode")}
             aria-label={`Toggle compact resolution display ${compactResolutionMode ? "off" : "on"}`}
+            type="button"
+          />
+        </div>
+
+        <div className="ab-settings-option">
+          <div className="ab-settings-option-content">
+            <strong>Show Region Column</strong>
+            <div>Displays the region column (R1, R2, A, B, etc.) in the modern table layout.</div>
+          </div>
+          <button
+            className={`ab-settings-toggle ${showRegionColumn ? "active" : ""}`}
+            onClick={() => handleToggle("showRegionColumn")}
+            aria-label={`Toggle region column ${showRegionColumn ? "off" : "on"}`}
+            type="button"
+          />
+        </div>
+
+        <div className="ab-settings-option">
+          <div className="ab-settings-option-content">
+            <strong>Show Dual Audio Column</strong>
+            <div>Displays the dual audio column (checkmark/X indicator) in the modern table layout.</div>
+          </div>
+          <button
+            className={`ab-settings-toggle ${showDualAudioColumn ? "active" : ""}`}
+            onClick={() => handleToggle("showDualAudioColumn")}
+            aria-label={`Toggle dual audio column ${showDualAudioColumn ? "off" : "on"}`}
+            type="button"
+          />
+        </div>
+
+        <div className="ab-settings-option">
+          <div className="ab-settings-option-content">
+            <strong>MediaInfo Parser</strong>
+            <div>Uses MediaInfo data to correct potentially mislabeled torrent information with actual file specs.</div>
+          </div>
+          <button
+            className={`ab-settings-toggle ${mediainfoParserEnabled ? "active" : ""}`}
+            onClick={() => handleToggle("mediainfoParserEnabled")}
+            aria-label={`Toggle MediaInfo parser ${mediainfoParserEnabled ? "off" : "on"}`}
             type="button"
           />
         </div>

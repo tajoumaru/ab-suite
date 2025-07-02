@@ -40,11 +40,13 @@ export interface ParsedTorrentRow {
   detailsLink: string;
   format: string;
   container: string;
+  region: string;
   videoCodec: string;
   aspectRatio: string;
   resolution: string;
   audio: string;
-  language: string;
+  audioChannels: string;
+  hasDualAudio: boolean;
   subtitles: string;
   group: string;
   flags: string[];

@@ -6,6 +6,9 @@ export interface Settings {
   seadexEnabled: boolean;
   tableRestructureEnabled: boolean;
   compactResolutionMode: boolean;
+  showRegionColumn: boolean;
+  showDualAudioColumn: boolean;
+  mediainfoParserEnabled: boolean;
 }
 
 interface SettingsStore extends Settings {
@@ -20,6 +23,9 @@ const DEFAULT_SETTINGS: Settings = {
   seadexEnabled: true,
   tableRestructureEnabled: true,
   compactResolutionMode: true,
+  showRegionColumn: true,
+  showDualAudioColumn: true,
+  mediainfoParserEnabled: true,
 };
 
 // Simple store implementation
@@ -47,6 +53,18 @@ class SimpleSettingsStore {
     return this.state.compactResolutionMode;
   }
 
+  get showRegionColumn() {
+    return this.state.showRegionColumn;
+  }
+
+  get showDualAudioColumn() {
+    return this.state.showDualAudioColumn;
+  }
+
+  get mediainfoParserEnabled() {
+    return this.state.mediainfoParserEnabled;
+  }
+
   get isLoaded() {
     return this.state.isLoaded;
   }
@@ -66,6 +84,9 @@ class SimpleSettingsStore {
         "ab-suite-compactResolutionMode",
         DEFAULT_SETTINGS.compactResolutionMode,
       );
+      const showRegionColumn = GM_getValue("ab-suite-showRegionColumn", DEFAULT_SETTINGS.showRegionColumn);
+      const showDualAudioColumn = GM_getValue("ab-suite-showDualAudioColumn", DEFAULT_SETTINGS.showDualAudioColumn);
+      const mediainfoParserEnabled = GM_getValue("ab-suite-mediainfoParserEnabled", DEFAULT_SETTINGS.mediainfoParserEnabled);
 
       this.state = {
         ...this.state,
@@ -73,6 +94,9 @@ class SimpleSettingsStore {
         seadexEnabled,
         tableRestructureEnabled,
         compactResolutionMode,
+        showRegionColumn,
+        showDualAudioColumn,
+        mediainfoParserEnabled,
         isLoaded: true,
       };
       this.notifySubscribers();
