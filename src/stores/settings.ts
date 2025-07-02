@@ -10,6 +10,7 @@ export interface Settings {
   showDualAudioColumn: boolean;
   mediainfoParserEnabled: boolean;
   interactiveSearchEnabled: boolean;
+  autocompleteSearchEnabled: boolean;
 }
 
 interface SettingsStore extends Settings {
@@ -28,6 +29,7 @@ const DEFAULT_SETTINGS: Settings = {
   showDualAudioColumn: true,
   mediainfoParserEnabled: true,
   interactiveSearchEnabled: true,
+  autocompleteSearchEnabled: true,
 };
 
 // Simple store implementation
@@ -71,6 +73,10 @@ class SimpleSettingsStore {
     return this.state.interactiveSearchEnabled;
   }
 
+  get autocompleteSearchEnabled() {
+    return this.state.autocompleteSearchEnabled;
+  }
+
   get isLoaded() {
     return this.state.isLoaded;
   }
@@ -94,6 +100,7 @@ class SimpleSettingsStore {
       const showDualAudioColumn = GM_getValue("ab-suite-showDualAudioColumn", DEFAULT_SETTINGS.showDualAudioColumn);
       const mediainfoParserEnabled = GM_getValue("ab-suite-mediainfoParserEnabled", DEFAULT_SETTINGS.mediainfoParserEnabled);
       const interactiveSearchEnabled = GM_getValue("ab-suite-interactiveSearchEnabled", DEFAULT_SETTINGS.interactiveSearchEnabled);
+      const autocompleteSearchEnabled = GM_getValue("ab-suite-autocompleteSearchEnabled", DEFAULT_SETTINGS.autocompleteSearchEnabled);
 
       this.state = {
         ...this.state,
@@ -105,6 +112,7 @@ class SimpleSettingsStore {
         showDualAudioColumn,
         mediainfoParserEnabled,
         interactiveSearchEnabled,
+        autocompleteSearchEnabled,
         isLoaded: true,
       };
       this.notifySubscribers();

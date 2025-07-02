@@ -35,6 +35,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     showDualAudioColumn,
     mediainfoParserEnabled,
     interactiveSearchEnabled,
+    autocompleteSearchEnabled,
     toggleSetting,
   } = useSettingsStore();
 
@@ -89,7 +90,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       | "showRegionColumn"
       | "showDualAudioColumn"
       | "mediainfoParserEnabled"
-      | "interactiveSearchEnabled",
+      | "interactiveSearchEnabled"
+      | "autocompleteSearchEnabled",
   ) => {
     toggleSetting(key);
 
@@ -102,7 +104,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       key === "showRegionColumn" ||
       key === "showDualAudioColumn" ||
       key === "mediainfoParserEnabled" ||
-      key === "interactiveSearchEnabled"
+      key === "interactiveSearchEnabled" ||
+      key === "autocompleteSearchEnabled"
     ) {
       // Could add a toast notification here in the future
       console.log("AB Suite: Setting updated. Some changes may require a page reload.");
@@ -234,6 +237,22 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             className={`ab-settings-toggle ${interactiveSearchEnabled ? "active" : ""}`}
             onClick={() => handleToggle("interactiveSearchEnabled")}
             aria-label={`Toggle interactive search ${interactiveSearchEnabled ? "off" : "on"}`}
+            type="button"
+          />
+        </div>
+
+        <div className="ab-settings-option">
+          <div className="ab-settings-option-content">
+            <strong>Search Autocomplete</strong>
+            <div>
+              Adds autocomplete functionality to search bars with keyboard navigation and caching for improved search
+              experience.
+            </div>
+          </div>
+          <button
+            className={`ab-settings-toggle ${autocompleteSearchEnabled ? "active" : ""}`}
+            onClick={() => handleToggle("autocompleteSearchEnabled")}
+            aria-label={`Toggle search autocomplete ${autocompleteSearchEnabled ? "off" : "on"}`}
             type="button"
           />
         </div>
