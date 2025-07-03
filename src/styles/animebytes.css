@@ -1,10 +1,10 @@
-#content {
+#torrents #content {
   width: 95%;
   max-width: 1400px;
 }
 
 @media (min-width: 768px) {
-  #content {
+  #torrents #content {
     width: 90%;
     max-width: 1200px;
     padding: 20px;
@@ -12,7 +12,7 @@
 }
 
 @media (min-width: 1024px) {
-  #content {
+  #torrents #content {
     width: 85%;
     max-width: 1400px;
     padding: 25px;
@@ -20,7 +20,7 @@
 }
 
 @media (min-width: 1200px) {
-  #content {
+  #torrents #content {
     width: 80%;
     max-width: 1600px;
   }
@@ -145,6 +145,12 @@
   transform: translateX(26px);
 }
 
+.ab-settings-footer {
+  margin-top: 20px;
+  font-size: 0.9em;
+  color: #999;
+}
+
 .ab-external-links {
   margin-left: 10px;
 }
@@ -182,6 +188,18 @@
   font-size: 12px;
   text-align: center;
   vertical-align: middle;
+}
+
+/* General sortable styles (must come before specific ones for proper CSS cascade) */
+.ab-sortable {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  transition: background-color 0.15s ease;
+}
+
+.ab-sortable:hover {
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
 /* Sortable Header Styles */
@@ -361,7 +379,7 @@
   text-decoration: underline;
 }
 
-/* .ab-details-row {
+.ab-details-row {
   background: #1e1e1e !important;
   border-top: none !important;
 }
@@ -405,7 +423,7 @@
 
 .ab-details-content .tabs li {
   margin-right: 10px;
-} */
+}
 
 .ab-details-content .tabs a {
   color: #7cb3f4;
@@ -451,4 +469,263 @@
   white-space: pre-wrap;
   padding: 20px;
   box-sizing: border-box;
+}
+
+/* ============================================================
+   Autocomplete Search Styles
+   ============================================================ */
+
+#searchbars > ul {
+  width: 950px;
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+#searchbars > ul > li {
+  margin: 0;
+  flex-grow: 1;
+}
+
+#searchbars form {
+  display: inline-block;
+  width: 100%;
+}
+
+#searchbars input {
+  margin: 0;
+  width: 100%;
+}
+
+#searchbars .ab-enhanced-search-input {
+  width: 100%;
+}
+
+#searchbars .ab-autocomplete-container {
+  padding: 0 !important;
+}
+
+#searchbars .ab-autocomplete-container li {
+  display: list-item !important;
+}
+
+.ab-hidden {
+  display: none !important;
+}
+
+.ab-visible {
+  display: block !important;
+}
+
+.ab-autocomplete-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.ab-autocomplete-container {
+  position: absolute;
+  background: var(--input-bg, #1a1a1a);
+  color: #9a9a9a;
+  overflow: hidden;
+  width: auto;
+  max-width: 888px;
+  z-index: 1000;
+  min-width: unset;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+  font-size: 0.723rem;
+  list-style: none;
+  display: none;
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid rgba(78, 78, 78, 0.31);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.ab-autocomplete-container[style*="display: block"] {
+  display: block !important;
+}
+
+.ab-autocomplete-item {
+  display: block !important;
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid rgba(78, 78, 78, 0.31);
+  padding: 4px 8px;
+  white-space: nowrap;
+  cursor: pointer;
+  background: inherit;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  text-align: left;
+  transition: background-color 0.15s ease;
+  outline-offset: -1px;
+}
+
+.ab-autocomplete-item:last-child {
+  border-bottom: none !important;
+}
+
+.ab-autocomplete-item:hover,
+li.ab-selected .ab-autocomplete-item {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.ab-autocomplete-item:focus {
+  outline: 1px dotted #ccc;
+}
+
+.ab-autocomplete-loading,
+.ab-autocomplete-no-results {
+  display: block !important;
+  padding: 8px;
+  text-align: center;
+  font-style: italic;
+  color: #666;
+}
+
+/* ============================================================
+   Modern Torrent Table Styles
+   ============================================================ */
+
+.ab-modern-table {
+  width: 100%;
+}
+
+.ab-modern-table .torrent_table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* Move to before more specific selectors for proper CSS cascade */
+
+.ab-sort-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.ab-sort-icon {
+  opacity: 0.6;
+  transition: opacity 0.15s ease;
+}
+
+.ab-sort-icon.ab-sort-active {
+  opacity: 1;
+}
+
+.ab-torrent-name {
+  min-width: 300px;
+}
+
+.ab-torrent-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+}
+
+.ab-torrent-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: bold;
+}
+
+.ab-torrent-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.ab-torrent-link:hover {
+  text-decoration: underline;
+}
+
+.ab-torrent-details {
+  font-size: 0.9em;
+  color: #aaa;
+  font-style: italic;
+}
+
+.ab-flags {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ab-expand-button {
+  position: absolute;
+  right: 0;
+  top: 0;
+  background: none;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 2px;
+  transition: all 0.15s ease;
+}
+
+.ab-expand-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.ab-region,
+.ab-dual-audio,
+.ab-size,
+.ab-snatches,
+.ab-seeders,
+.ab-leechers {
+  text-align: center;
+  padding: 8px;
+}
+
+.ab-actions {
+  text-align: center;
+}
+
+.ab-action-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.ab-download-button,
+.ab-report-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  text-decoration: none;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ab-download-button:hover {
+  background: rgba(0, 255, 0, 0.2);
+  transform: scale(1.1);
+}
+
+.ab-report-button:hover {
+  background: rgba(255, 0, 0, 0.2);
+  transform: scale(1.1);
+}
+
+.ab-details-content {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-top: 1px solid rgba(78, 78, 78, 0.31);
+}
+
+.ab-torrent-details-html {
+  padding: 12px;
 }

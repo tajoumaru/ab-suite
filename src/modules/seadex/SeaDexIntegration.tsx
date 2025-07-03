@@ -1,6 +1,7 @@
 import { render } from "preact";
 import { useEffect } from "preact/hooks";
 import { apiService } from "@/services/api";
+import { seadexStore } from "@/stores/seadex";
 import { useSettingsStore } from "@/stores/settings";
 import "@/styles/seadex.css";
 import type { TorrentInfo } from "@/types";
@@ -58,22 +59,32 @@ export function SeaDexIntegration() {
     if (torrents.length === 0) return;
 
     try {
+      seadexStore.setProcessing(true);
+
+      let allLinkMaps = {};
+
       // Process in batches of 100
       for (let i = 0; i < torrents.length; i += 100) {
         const batch = torrents.slice(i, i + 100);
-        const linkMap = await apiService.fetchSeadex(batch);
+        const linkMap = await apiService.fetchSeaDex(batch);
+
+        // Collect all link maps
+        allLinkMaps = { ...allLinkMaps, ...linkMap };
+
+        // Update the store with new SeaDex data - this will trigger reactive updates
+        seadexStore.updateData(linkMap);
 
         for (const { element: a, torrentId, separator } of batch) {
           const entry = linkMap[torrentId];
           if (!entry) continue;
 
-          // Add Seadex icon
+          // Add SeaDex icon
           const iconContainer = document.createElement("span");
           a.parentNode?.appendChild(iconContainer);
 
           render(<SeaDexIcon entry={entry} separator={separator} />, iconContainer);
 
-          // Add Seadex tab if tabs exist
+          // Add SeaDex tab if tabs exist
           const tabsList = document.querySelector(`#tabs_${torrentId}`);
           const tabsContainer = tabsList?.parentElement;
 
@@ -86,7 +97,7 @@ export function SeaDexIntegration() {
           const newTabItem = document.createElement("li");
           const newTabLink = document.createElement("a");
           newTabLink.href = `#${tabId}`;
-          newTabLink.textContent = "Seadex";
+          newTabLink.textContent = "SeaDex";
           newTabLink.addEventListener("click", (e) => {
             e.preventDefault();
             // Use the site's tab switching function if available
@@ -110,8 +121,7 @@ export function SeaDexIntegration() {
             newTabLink.click();
           }
 
-          // Add Seadex classes to the original torrent row
-          // This helps the row parser detect the Seadex status
+          // Add SeaDex classes to the original torrent row for data extraction to pick up
           const torrentRow = a.closest(".group_torrent") as HTMLElement;
           if (torrentRow) {
             if (entry.isBest) {
@@ -123,18 +133,25 @@ export function SeaDexIntegration() {
         }
       }
 
-      // After processing Seadex data, trigger a custom event to let TableRestructure know
-      // it should re-process tables to pick up the new Seadex classes
+      seadexStore.setProcessing(false);
+
+      // Dispatch event for components listening to SeaDex completion
       const event = new CustomEvent("seadex-processing-complete", {
-        detail: { processedTorrents: torrents.map((t) => t.torrentId) },
+        detail: {
+          processedTorrents: torrents.map((t) => t.torrentId),
+          newData: Object.keys(allLinkMaps),
+        },
       });
 
-      // Add a small delay to ensure all DOM modifications are complete
-      setTimeout(() => {
-        document.dispatchEvent(event);
-      }, 100);
+      document.dispatchEvent(event);
+      console.log(
+        "AB Suite: SeaDex processing complete, dispatched event with",
+        Object.keys(allLinkMaps).length,
+        "entries",
+      );
     } catch (error) {
-      console.error("AB Suite (Seadex): Failed to process torrents", error);
+      console.error("AB Suite (SeaDex): Failed to process torrents", error);
+      seadexStore.setProcessing(false);
     }
   };
 
@@ -161,57 +178,5 @@ export function SeaDexIntegration() {
 
   // This component doesn't render anything directly
   // It manipulates the DOM to add SeaDex integration
-  return null;
-}
-
-// Additional component for releases.moe site
-export function ReleasesIntegration() {
-  const { seadexEnabled } = useSettingsStore();
-
-  useEffect(() => {
-    if (!seadexEnabled) return;
-
-    const observer = new MutationObserver((mutations) => {
-      for (const mutation of mutations) {
-        for (const node of Array.from(mutation.addedNodes)) {
-          if (node.nodeType !== Node.ELEMENT_NODE) continue;
-
-          const element = node as Element;
-          const elements = element.matches("a.pt-button, button.pt-button")
-            ? [element]
-            : Array.from(element.querySelectorAll("a.pt-button, button.pt-button"));
-
-          elements.forEach((elm) => {
-            const button = elm as HTMLAnchorElement;
-            if (button.dataset.href) {
-              button.href = new URL(button.dataset.href, "https://animebytes.tv").toString();
-              button.classList.remove("pointer-events-none");
-              button.removeAttribute("data-href");
-
-              const img = button.querySelector("img");
-              if (img) {
-                img.src = "https://animebytes.tv/favicon.ico";
-              }
-
-              const textNode = Array.from(button.childNodes).find(
-                (n) => n.nodeType === Node.TEXT_NODE && n.textContent?.trim(),
-              ) as Text;
-
-              if (textNode?.textContent?.includes("Private")) {
-                textNode.textContent = " AnimeBytes";
-              }
-            }
-          });
-        }
-      }
-    });
-
-    observer.observe(document.body, { childList: true, subtree: true });
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [seadexEnabled]);
-
   return null;
 }

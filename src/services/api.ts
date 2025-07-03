@@ -1,5 +1,16 @@
 import { GM_xmlhttpRequest } from "$";
-import type { RequestOptions, SeadexEntry, SeadexResponse, TorrentInfo } from "@/types";
+import type { RequestOptions, SeaDexEntry, SeaDexResponse, TorrentInfo } from "@/types";
+
+interface AutocompleteResult {
+  id: string;
+  name: string;
+  year: string;
+  type: string;
+}
+
+interface AutocompleteResponse {
+  results?: AutocompleteResult[];
+}
 
 class ApiError extends Error {
   constructor(
@@ -40,7 +51,23 @@ class ApiService {
     });
   }
 
-  async fetchSeadex(torrentIds: TorrentInfo[]): Promise<Record<string, SeadexEntry>> {
+  async autocompleteSearch(query: string, type: "anime" | "music"): Promise<AutocompleteResult[]> {
+    if (!query.trim()) return [];
+
+    try {
+      const timestamp = Date.now();
+      const response = await this.request<AutocompleteResponse>(
+        `/xhr/ac/search/${type}?q=${encodeURIComponent(query)}&cache=${timestamp}`,
+      );
+
+      return response.results || [];
+    } catch (error) {
+      console.error("AB Suite: Autocomplete API error:", error);
+      throw error;
+    }
+  }
+
+  async fetchSeaDex(torrentIds: TorrentInfo[]): Promise<Record<string, SeaDexEntry>> {
     if (torrentIds.length === 0) return {};
 
     const baseURL = new URL("https://releases.moe/api/collections/entries/records");
@@ -52,9 +79,9 @@ class ApiService {
     baseURL.searchParams.set("skipTotal", "true");
 
     try {
-      const response = await this.request<SeadexResponse>(baseURL.toString());
+      const response = await this.request<SeaDexResponse>(baseURL.toString());
 
-      const linkMap: Record<string, SeadexEntry> = {};
+      const linkMap: Record<string, SeaDexEntry> = {};
       const torrentIdRegex = /&torrentid=(\d+)/i;
 
       for (const { alID, notes, comparison, expand } of response.items) {
@@ -76,24 +103,6 @@ class ApiService {
       console.error("AB Suite (SeaDex): Failed to fetch data", error);
       throw error;
     }
-  }
-
-  // Batch processing for large torrent lists
-  async fetchSeadexBatched(torrentIds: TorrentInfo[], batchSize = 100): Promise<Record<string, SeadexEntry>> {
-    const results: Record<string, SeadexEntry> = {};
-
-    for (let i = 0; i < torrentIds.length; i += batchSize) {
-      const batch = torrentIds.slice(i, i + batchSize);
-      try {
-        const batchResults = await this.fetchSeadex(batch);
-        Object.assign(results, batchResults);
-      } catch (error) {
-        console.error(`AB Suite: Failed to fetch batch ${i}-${i + batchSize}`, error);
-        // Continue with other batches even if one fails
-      }
-    }
-
-    return results;
   }
 }
 export const apiService = new ApiService();

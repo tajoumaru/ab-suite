@@ -81,7 +81,10 @@ export function useMediaPageReady(): boolean {
   const { isAnimePage, isMangaPage } = useNavigation();
 
   useEffect(() => {
+    console.log("AB Suite: useMediaPageReady effect", { isAnimePage, isMangaPage });
+
     if (!isAnimePage && !isMangaPage) {
+      console.log("AB Suite: Not on anime/manga page, setting ready to false");
       setIsReady(false);
       return;
     }
@@ -93,7 +96,16 @@ export function useMediaPageReady(): boolean {
         (el) => el.textContent?.trim() === "Format",
       );
 
-      setIsReady(!!(sidebar && formatElement));
+      const ready = !!(sidebar && formatElement);
+      console.log("AB Suite: checkReady", {
+        sidebar: !!sidebar,
+        formatElement: !!formatElement,
+        ready,
+        sidebarElements: document.querySelectorAll(".sidebar").length,
+        dataTypeElements: document.querySelectorAll(".sidebar > .data .type").length,
+      });
+
+      setIsReady(ready);
     };
 
     // Initial check
@@ -113,5 +125,6 @@ export function useMediaPageReady(): boolean {
     };
   }, [isAnimePage, isMangaPage]);
 
+  console.log("AB Suite: useMediaPageReady returning", isReady);
   return isReady;
 }

@@ -1,6 +1,9 @@
 import { GM_getValue, GM_setValue } from "$";
 import { useEffect, useState } from "preact/hooks";
 
+// Constant for settings keys prefix to avoid magic strings
+const SETTINGS_KEY_PREFIX = "ab-suite-";
+
 export interface Settings {
   anilistIntegrationEnabled: boolean;
   seadexEnabled: boolean;
@@ -41,6 +44,7 @@ class SimpleSettingsStore {
 
   private subscribers = new Set<() => void>();
 
+  // Direct access to state properties instead of individual getters
   get anilistIntegrationEnabled() {
     return this.state.anilistIntegrationEnabled;
   }
@@ -84,23 +88,35 @@ class SimpleSettingsStore {
   loadSettings = () => {
     try {
       const anilistIntegrationEnabled = GM_getValue(
-        "ab-suite-anilistIntegrationEnabled",
+        `${SETTINGS_KEY_PREFIX}anilistIntegrationEnabled`,
         DEFAULT_SETTINGS.anilistIntegrationEnabled,
       );
-      const seadexEnabled = GM_getValue("ab-suite-seadexEnabled", DEFAULT_SETTINGS.seadexEnabled);
+      const seadexEnabled = GM_getValue(`${SETTINGS_KEY_PREFIX}seadexEnabled`, DEFAULT_SETTINGS.seadexEnabled);
       const tableRestructureEnabled = GM_getValue(
-        "ab-suite-tableRestructureEnabled",
+        `${SETTINGS_KEY_PREFIX}tableRestructureEnabled`,
         DEFAULT_SETTINGS.tableRestructureEnabled,
       );
       const compactResolutionMode = GM_getValue(
-        "ab-suite-compactResolutionMode",
+        `${SETTINGS_KEY_PREFIX}compactResolutionMode`,
         DEFAULT_SETTINGS.compactResolutionMode,
       );
-      const showRegionColumn = GM_getValue("ab-suite-showRegionColumn", DEFAULT_SETTINGS.showRegionColumn);
-      const showDualAudioColumn = GM_getValue("ab-suite-showDualAudioColumn", DEFAULT_SETTINGS.showDualAudioColumn);
-      const mediainfoParserEnabled = GM_getValue("ab-suite-mediainfoParserEnabled", DEFAULT_SETTINGS.mediainfoParserEnabled);
-      const interactiveSearchEnabled = GM_getValue("ab-suite-interactiveSearchEnabled", DEFAULT_SETTINGS.interactiveSearchEnabled);
-      const autocompleteSearchEnabled = GM_getValue("ab-suite-autocompleteSearchEnabled", DEFAULT_SETTINGS.autocompleteSearchEnabled);
+      const showRegionColumn = GM_getValue(`${SETTINGS_KEY_PREFIX}showRegionColumn`, DEFAULT_SETTINGS.showRegionColumn);
+      const showDualAudioColumn = GM_getValue(
+        `${SETTINGS_KEY_PREFIX}showDualAudioColumn`,
+        DEFAULT_SETTINGS.showDualAudioColumn,
+      );
+      const mediainfoParserEnabled = GM_getValue(
+        `${SETTINGS_KEY_PREFIX}mediainfoParserEnabled`,
+        DEFAULT_SETTINGS.mediainfoParserEnabled,
+      );
+      const interactiveSearchEnabled = GM_getValue(
+        `${SETTINGS_KEY_PREFIX}interactiveSearchEnabled`,
+        DEFAULT_SETTINGS.interactiveSearchEnabled,
+      );
+      const autocompleteSearchEnabled = GM_getValue(
+        `${SETTINGS_KEY_PREFIX}autocompleteSearchEnabled`,
+        DEFAULT_SETTINGS.autocompleteSearchEnabled,
+      );
 
       this.state = {
         ...this.state,
@@ -125,7 +141,7 @@ class SimpleSettingsStore {
 
   updateSetting = (key: keyof Settings, value: boolean) => {
     try {
-      GM_setValue(`ab-suite-${key}`, value);
+      GM_setValue(`${SETTINGS_KEY_PREFIX}${key}`, value);
       this.state = { ...this.state, [key]: value };
       this.notifySubscribers();
     } catch (error) {

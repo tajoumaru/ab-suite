@@ -1,9 +1,9 @@
 import { useSettingsStore } from "@/stores/settings";
-import type { SeadexEntry } from "@/types";
+import type { SeaDexEntry } from "@/types";
 import "@/styles/seadex.css";
 
 interface SeaDexIconProps {
-  entry: SeadexEntry;
+  entry: SeaDexEntry;
   separator?: string;
 }
 
@@ -48,9 +48,8 @@ export function SeaDexIcon({ entry, separator = " | " }: SeaDexIconProps) {
         onKeyDown={handleKeyDown}
         title={tooltip}
         aria-label={`Open SeaDex entry for ${entry.alID}${entry.isBest ? " (Best Choice)" : ""}`}
-        style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
       >
-        <img src={iconSrc} alt={entry.isBest ? "SeaDex Best Choice" : "SeaDex Alt"} style={{ display: "block" }} />
+        <img src={iconSrc} alt={entry.isBest ? "SeaDex Best Choice" : "SeaDex Alt"} />
       </button>
     </>
   );

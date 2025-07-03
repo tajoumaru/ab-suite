@@ -1,8 +1,8 @@
-import type { SeadexEntry } from "@/types";
+import type { SeaDexEntry } from "@/types";
 import "@/styles/seadex.css";
 
 interface SeaDexTabProps {
-  entry: SeadexEntry;
+  entry: SeaDexEntry;
 }
 
 export function SeaDexTab({ entry }: SeaDexTabProps) {

@@ -1,5 +1,2 @@
-export { AutocompleteSearch } from "./AutocompleteSearch";
-export { ExternalLinks } from "./ExternalLinks";
-export { InteractiveSearch } from "./InteractiveSearch";
+export { AnimeBytesHostIntegration } from "./AnimeBytesHostIntegration";
 export { SettingsButton, SettingsModal } from "./SettingsModal";
-export { TableRestructure } from "./TableRestructure";

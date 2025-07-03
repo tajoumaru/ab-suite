@@ -257,7 +257,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           />
         </div>
 
-        <div style={{ marginTop: "20px", fontSize: "0.9em", color: "#999" }}>
+        <div className="ab-settings-footer">
           <p>Some changes may require refreshing the page to take effect.</p>
         </div>
       </div>

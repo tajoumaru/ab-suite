@@ -1,111 +1,62 @@
+import type { ComponentType } from "preact";
 import { render } from "preact";
-import { useEffect } from "preact/hooks";
-// Components
-import { AnimeBytesButton } from "@/modules/anilist";
-import {
-  AutocompleteSearch,
-  ExternalLinks,
-  InteractiveSearch,
-  SettingsButton,
-  TableRestructure,
-} from "@/modules/animebytes";
-import { ReleasesIntegration, SeaDexIntegration } from "@/modules/seadex";
 // Hooks and utilities
-import { useSettingsStore } from "@/stores/settings";
-import { mountComponent, waitForElement } from "@/utils/dom";
+import { withSettings } from "@/hooks/withSettings";
+// Components
+import { AniListHostIntegration } from "@/modules/anilist";
+import { AnimeBytesHostIntegration } from "@/modules/animebytes";
+import { SearchPage } from "@/modules/animebytes/search-page";
+import { TorrentGroupPage } from "@/modules/animebytes/torrent-page";
+import { ReleasesIntegration } from "@/modules/releases";
+import { SeaDexIntegration } from "@/modules/seadex";
 // Styles
 import "@/styles/common.css";
 
-function AniListApp() {
-  const { loadSettings, isLoaded } = useSettingsStore();
-
-  useEffect(() => {
-    loadSettings();
-  }, []);
-
-  useEffect(() => {
-    if (!isLoaded) return;
-
-    const mountButton = async () => {
-      try {
-        const sidebar = await waitForElement(".sidebar");
-        mountComponent(<AnimeBytesButton />, sidebar, "prepend");
-      } catch (error) {
-        console.error("AB Suite: Failed to mount AniList button", error);
-      }
-    };
-
-    mountButton();
-  }, [isLoaded]);
-
-  return null;
+function AniListAppBase() {
+  return <AniListHostIntegration />;
 }
 
-function AnimeBytesApp() {
-  const { loadSettings, isLoaded } = useSettingsStore();
-
-  useEffect(() => {
-    loadSettings();
-  }, []);
-
-  useEffect(() => {
-    if (!isLoaded) return;
-
-    const mountSettings = async () => {
-      try {
-        const userInfoMinor = await waitForElement("#userinfo_minor");
-        mountComponent(<SettingsButton />, userInfoMinor, "prepend", "li");
-      } catch (error) {
-        console.error("AB Suite: Failed to mount settings button", error);
-      }
-    };
-
-    mountSettings();
-  }, [isLoaded]);
-
+function AnimeBytesAppBase() {
   return (
     <>
-      <AutocompleteSearch />
-      <ExternalLinks />
-      <InteractiveSearch />
+      <AnimeBytesHostIntegration />
+      <SearchPage />
       <SeaDexIntegration />
-      <TableRestructure />
+      <TorrentGroupPage />
     </>
   );
 }
 
-function ReleasesApp() {
-  const { loadSettings, isLoaded } = useSettingsStore();
-
-  useEffect(() => {
-    loadSettings();
-  }, []);
-
-  if (!isLoaded) return null;
-
+function ReleasesAppBase() {
   return <ReleasesIntegration />;
 }
+
+// Wrap all page components with settings HOC
+const AniListApp = withSettings(AniListAppBase);
+const AnimeBytesApp = withSettings(AnimeBytesAppBase);
+const ReleasesApp = withSettings(ReleasesAppBase);
+
+// Hostname-based routing configuration
+const pageMap: Record<string, ComponentType<object>> = {
+  "anilist.co": AniListApp,
+  "animebytes.tv": AnimeBytesApp,
+  "releases.moe": ReleasesApp,
+};
 
 function App() {
   const hostname = window.location.hostname;
 
-  // Add common styles
-  useEffect(() => {
-    // The CSS imports will be handled by vite-plugin-monkey
-    console.log("AB Suite: Initialized on", hostname);
-  }, []);
+  // Log initialization
+  console.log("AB Suite: Initialized on", hostname);
 
-  switch (hostname) {
-    case "anilist.co":
-      return <AniListApp />;
-    case "animebytes.tv":
-      return <AnimeBytesApp />;
-    case "releases.moe":
-      return <ReleasesApp />;
-    default:
-      console.warn("AB Suite: Unknown hostname", hostname);
-      return null;
+  const PageComponent = pageMap[hostname];
+
+  if (!PageComponent) {
+    console.warn("AB Suite: Unknown hostname", hostname);
+    return null;
   }
+
+  return <PageComponent />;
 }
 
 // Initialize the app

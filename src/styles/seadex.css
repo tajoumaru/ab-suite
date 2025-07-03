@@ -1,7 +1,14 @@
 .ab-seadex-icon {
+  background: none;
+  border: none;
+  padding: 0;
   cursor: pointer;
   vertical-align: middle;
   margin-left: 2px;
+}
+
+.ab-seadex-icon img {
+  display: block;
 }
 
 .ab-seadex-icon:hover {
