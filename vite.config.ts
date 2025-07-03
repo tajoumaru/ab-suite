@@ -17,7 +17,7 @@ export default defineConfig({
         name: "AnimeBytes Suite",
         description: "A suite of userscripts for AnimeBytes.",
         author: "tajoumaru",
-        version: "0.1.0",
+        version: "0.2.0",
         icon: "https://animebytes.tv/favicon.ico",
         namespace: "https://github.com/tajoumaru",
         homepageURL: "https://github.com/tajoumaru/absuite",
