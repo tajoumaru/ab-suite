@@ -8,13 +8,6 @@ import { ExternalLinksBar } from "./ExternalLinksBar";
 import { TorrentTable } from "./TorrentTable";
 import type { ParsedTorrentRow } from "./types";
 
-// Global debugging function
-declare global {
-  interface Window {
-    abSuiteDebugSeaDex?: () => void;
-  }
-}
-
 /**
  * Comprehensive component that implements declarative takeover for the entire torrent group page.
  * This component:

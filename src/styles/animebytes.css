@@ -501,10 +501,6 @@
   width: 100%;
 }
 
-#searchbars .ab-autocomplete-container {
-  padding: 0 !important;
-}
-
 #searchbars .ab-autocomplete-container li {
   display: list-item !important;
 }
@@ -531,7 +527,7 @@
   max-width: 888px;
   z-index: 1000;
   min-width: unset;
-  padding: 0;
+  padding: 0 !important;
   margin: 0;
   text-align: left;
   font-size: 0.723rem;

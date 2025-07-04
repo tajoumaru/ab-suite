@@ -1,4 +1,3 @@
-import { GM_xmlhttpRequest } from "$";
 import type { RequestOptions, SeaDexEntry, SeaDexResponse, TorrentInfo } from "@/types";
 
 interface AutocompleteResult {
@@ -30,10 +29,9 @@ class ApiService {
       GM_xmlhttpRequest({
         method,
         url: url.toString(),
-        timeout,
         headers,
         ontimeout: () => reject(new ApiError(`Request timed out after ${timeout}ms`)),
-        onerror: (_) => reject(new ApiError("Network request failed", 0)),
+        onerror: () => reject(new ApiError("Network request failed", 0)),
         onload: (response) => {
           if (response.status >= 400) {
             reject(new ApiError(`HTTP ${response.status}: ${response.statusText}`, response.status));

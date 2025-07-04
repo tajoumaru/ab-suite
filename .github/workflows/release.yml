@@ -45,6 +45,6 @@ jobs:
           prerelease: false
           generate_release_notes: true
           files: |
-            dist/absuite.user.js
+            dist/ab-suite.user.js
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 

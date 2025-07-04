@@ -1,4 +1,3 @@
-import { GM_getValue, GM_setValue } from "$";
 import { useEffect, useState } from "preact/hooks";
 
 // Constant for settings keys prefix to avoid magic strings
@@ -90,33 +89,39 @@ class SimpleSettingsStore {
       const anilistIntegrationEnabled = GM_getValue(
         `${SETTINGS_KEY_PREFIX}anilistIntegrationEnabled`,
         DEFAULT_SETTINGS.anilistIntegrationEnabled,
-      );
-      const seadexEnabled = GM_getValue(`${SETTINGS_KEY_PREFIX}seadexEnabled`, DEFAULT_SETTINGS.seadexEnabled);
+      ) as boolean;
+      const seadexEnabled = GM_getValue(
+        `${SETTINGS_KEY_PREFIX}seadexEnabled`,
+        DEFAULT_SETTINGS.seadexEnabled,
+      ) as boolean;
       const tableRestructureEnabled = GM_getValue(
         `${SETTINGS_KEY_PREFIX}tableRestructureEnabled`,
         DEFAULT_SETTINGS.tableRestructureEnabled,
-      );
+      ) as boolean;
       const compactResolutionMode = GM_getValue(
         `${SETTINGS_KEY_PREFIX}compactResolutionMode`,
         DEFAULT_SETTINGS.compactResolutionMode,
-      );
-      const showRegionColumn = GM_getValue(`${SETTINGS_KEY_PREFIX}showRegionColumn`, DEFAULT_SETTINGS.showRegionColumn);
+      ) as boolean;
+      const showRegionColumn = GM_getValue(
+        `${SETTINGS_KEY_PREFIX}showRegionColumn`,
+        DEFAULT_SETTINGS.showRegionColumn,
+      ) as boolean;
       const showDualAudioColumn = GM_getValue(
         `${SETTINGS_KEY_PREFIX}showDualAudioColumn`,
         DEFAULT_SETTINGS.showDualAudioColumn,
-      );
+      ) as boolean;
       const mediainfoParserEnabled = GM_getValue(
         `${SETTINGS_KEY_PREFIX}mediainfoParserEnabled`,
         DEFAULT_SETTINGS.mediainfoParserEnabled,
-      );
+      ) as boolean;
       const interactiveSearchEnabled = GM_getValue(
         `${SETTINGS_KEY_PREFIX}interactiveSearchEnabled`,
         DEFAULT_SETTINGS.interactiveSearchEnabled,
-      );
+      ) as boolean;
       const autocompleteSearchEnabled = GM_getValue(
         `${SETTINGS_KEY_PREFIX}autocompleteSearchEnabled`,
         DEFAULT_SETTINGS.autocompleteSearchEnabled,
-      );
+      ) as boolean;
 
       this.state = {
         ...this.state,
