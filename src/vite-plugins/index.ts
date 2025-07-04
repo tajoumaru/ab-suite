@@ -2,8 +2,9 @@ import { transform as lightningcss } from "lightningcss";
 import type { Plugin } from "rolldown-vite";
 
 // Plugin to inject CSS into JS for userscripts
-export function cssInjectionPlugin(): Plugin {
+export function cssInjectionPlugin(options: { minify?: boolean } = {}): Plugin {
   let collectedCSS = "";
+  const { minify = true } = options;
 
   return {
     name: "css-injection",
@@ -21,23 +22,45 @@ export function cssInjectionPlugin(): Plugin {
       }
     },
     generateBundle(_options, bundle) {
-      // Minify the CSS
-      const { code } = lightningcss({
-        filename: "ab-suite.user.css",
-        code: Buffer.from(collectedCSS),
-        minify: true,
-      });
-      const minifiedCSS = code.toString();
+      let processedCSS: string;
+
+      if (minify) {
+        // Minify the CSS using lightningcss
+        const { code } = lightningcss({
+          filename: "ab-suite.user.css",
+          code: Buffer.from(collectedCSS),
+          minify: true,
+        });
+        processedCSS = code.toString();
+      } else {
+        // Use unminified CSS
+        processedCSS = collectedCSS;
+      }
 
       // Find the main JS chunk
       const jsChunks = Object.entries(bundle).filter(([_, chunk]) => chunk.type === "chunk" && chunk.isEntry);
 
-      if (jsChunks.length > 0 && minifiedCSS.length > 0) {
+      if (jsChunks.length > 0 && processedCSS.length > 0) {
         const [_, mainChunk] = jsChunks[0];
 
         if (mainChunk.type === "chunk") {
-          // Generate CSS injection code
-          const cssInjectionCode = `(t=>{if(typeof GM_addStyle=="function"){GM_addStyle(t);return}const e=document.createElement("style");e.textContent=t,document.head.append(e)})(${JSON.stringify(minifiedCSS)});`;
+          // Generate CSS injection code (minified or readable based on options)
+          let cssInjectionCode: string;
+          if (minify) {
+            cssInjectionCode = `(t=>{if(typeof GM_addStyle=="function"){GM_addStyle(t);return}const e=document.createElement("style");e.textContent=t,document.head.append(e)})(${JSON.stringify(processedCSS)});`;
+          } else {
+            // For unminified version, use template literal to preserve newlines
+            const escapedCSS = processedCSS.replace(/`/g, '\\`').replace(/\${/g, '\\${');
+            cssInjectionCode = `(function injectCSS(css) {
+  if (typeof GM_addStyle === "function") {
+    GM_addStyle(css);
+    return;
+  }
+  const style = document.createElement("style");
+  style.textContent = css;
+  document.head.append(style);
+})(\`${escapedCSS}\`);`;
+          }
 
           // Inject CSS at the beginning of the chunk
           mainChunk.code = `${cssInjectionCode}\n${mainChunk.code}`;
@@ -75,7 +98,7 @@ export interface UserscriptMeta {
 }
 
 // Plugin to generate userscript header
-export function userscriptHeaderPlugin(userscriptMeta: UserscriptMeta): Plugin {
+export function userscriptHeaderPlugin(userscriptMeta: UserscriptMeta, fileName = "ab-suite.user.js"): Plugin {
   return {
     name: "userscript-header",
     generateBundle(_options, bundle) {
@@ -110,7 +133,7 @@ export function userscriptHeaderPlugin(userscriptMeta: UserscriptMeta): Plugin {
           // Emit the userscript file using proper API
           this.emitFile({
             type: "asset",
-            fileName: "ab-suite.user.js",
+            fileName,
             source: header + chunk.code,
           });
 
