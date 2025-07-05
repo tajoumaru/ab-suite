@@ -1,49 +1,144 @@
-import { useMemo, useState } from "preact/hooks";
+import { ChevronDown, ChevronRight } from "lucide-preact";
+import { Fragment } from "preact";
+import { useEffect, useMemo, useState } from "preact/hooks";
 import { useSeaDexStore, useSeaDexUpdates } from "@/stores/seadex";
 import { useSettingsStore } from "@/stores/settings";
+import { extractGroupedTorrentData } from "./data-extraction";
 import { TorrentHeader } from "./TorrentHeader";
 import { TorrentRow } from "./TorrentRow";
-import type { ParsedTorrentRow, SortColumn, SortDirection } from "./types";
+import type { GroupedTorrents, GroupHeader, ParsedTorrentRow, SortColumn, SortDirection, TableSection } from "./types";
 
 interface TorrentTableProps {
   torrents: ParsedTorrentRow[];
+  originalTable?: HTMLTableElement; // Add reference to original table for grouped extraction
+}
+
+/**
+ * Section header component with expand/collapse functionality
+ */
+function SectionHeader({
+  section,
+  isCollapsed,
+  onToggle,
+  isOddSection,
+}: {
+  section: TableSection | GroupHeader;
+  isCollapsed: boolean;
+  onToggle: () => void;
+  isOddSection: boolean;
+}) {
+  // Group headers use their own class, section headers use alternating colors
+  const headerClass =
+    section.type === "group"
+      ? "ab-group-header"
+      : isOddSection
+        ? "ab-section-header ab-group-odd"
+        : "ab-section-header";
+
+  return (
+    <tr className={headerClass} onClick={onToggle} style={{ cursor: "pointer" }}>
+      <td colSpan={100}>
+        {section.type === "group" && section.fullHtml ? (
+          // Render full HTML content for group headers
+          <div style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
+            <div style={{ marginTop: "4px" }}>
+              {isCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
+            </div>
+            <div dangerouslySetInnerHTML={{ __html: section.fullHtml }} />
+          </div>
+        ) : (
+          // Simple text display for section headers
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            {isCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
+            <strong>{section.title}</strong>
+          </div>
+        )}
+      </td>
+    </tr>
+  );
 }
 
 /**
  * The main table component that manages UI state and renders the torrent data.
  * This component handles sorting, expanded rows, and renders the header and rows.
  * It also reactively updates when SeaDex data becomes available.
+ * Now supports section headers with group-aware sorting and section collapse/expand.
  */
-export function TorrentTable({ torrents }: TorrentTableProps) {
-  const { compactResolutionMode, showRegionColumn, showDualAudioColumn } = useSettingsStore();
+export function TorrentTable({ torrents, originalTable }: TorrentTableProps) {
+  const {
+    compactResolutionMode,
+    showRegionColumn,
+    showDualAudioColumn,
+    mediainfoParserEnabled,
+    sectionsCollapsedByDefault,
+  } = useSettingsStore();
   const seadexStore = useSeaDexStore();
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
   const [sortColumn, setSortColumn] = useState<SortColumn>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 
-  // Enhance torrents with SeaDex data from the store
-  const enhancedTorrents = useMemo(() => {
-    return torrents.map((torrent) => {
-      const seadexData = seadexStore.getData(torrent.torrentId);
+  // Extract grouped data if we have the original table, otherwise use flat data
+  const groupedData = useMemo(() => {
+    if (originalTable) {
+      return extractGroupedTorrentData(originalTable, mediainfoParserEnabled);
+    }
 
-      if (seadexData) {
-        return {
-          ...torrent,
-          seadex: seadexData,
-          // Preserve any existing flags from DOM extraction, but prioritize store data
-          isSeaDexBest: seadexData.isBest,
-          isSeaDexAlt: !seadexData.isBest,
-        };
+    // Fallback: create a single section with all torrents
+    return {
+      sections: [
+        {
+          section: null,
+          torrents: torrents,
+        },
+      ],
+    } as GroupedTorrents;
+  }, [originalTable, torrents, mediainfoParserEnabled]);
+
+  // Initialize sections as collapsed or expanded based on setting
+  useEffect(() => {
+    const sectionsWithIds = groupedData.sections
+      .filter(({ section }) => section !== null)
+      .map(({ section }) => section?.id)
+      .filter((id): id is string => id !== undefined);
+
+    if (sectionsWithIds.length > 0) {
+      if (sectionsCollapsedByDefault) {
+        setCollapsedSections(new Set(sectionsWithIds));
+      } else {
+        setCollapsedSections(new Set());
       }
+    }
+  }, [groupedData, sectionsCollapsedByDefault]);
 
-      // If no store data, keep any flags that were extracted from the DOM
-      return torrent;
-    });
-  }, [torrents, seadexStore.data, seadexStore.lastUpdate]);
+  // Enhance torrents with SeaDex data from the store
+  const enhancedGroupedData = useMemo(() => {
+    return {
+      sections: groupedData.sections.map(({ section, torrents: sectionTorrents }) => ({
+        section,
+        torrents: sectionTorrents.map((torrent) => {
+          const seadexData = seadexStore.getData(torrent.torrentId);
+
+          if (seadexData) {
+            return {
+              ...torrent,
+              seadex: seadexData,
+              // Preserve any existing flags from DOM extraction, but prioritize store data
+              isSeaDexBest: seadexData.isBest,
+              isSeaDexAlt: !seadexData.isBest,
+            };
+          }
+
+          // If no store data, keep any flags that were extracted from the DOM
+          return torrent;
+        }),
+      })),
+    };
+  }, [groupedData, seadexStore.data, seadexStore.lastUpdate]);
 
   // Listen for SeaDex updates and force re-render
   useSeaDexUpdates(() => {
-    // The enhancedTorrents memo will automatically update due to store changes
+    // The enhancedGroupedData memo will automatically update due to store changes
     console.log("AB Suite: SeaDex data updated, table will re-render");
   });
 
@@ -58,6 +153,40 @@ export function TorrentTable({ torrents }: TorrentTableProps) {
       }
       return newSet;
     });
+  };
+
+  // Toggle section collapse
+  const toggleSectionCollapsed = (sectionId: string) => {
+    setCollapsedSections((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(sectionId)) {
+        newSet.delete(sectionId);
+      } else {
+        newSet.add(sectionId);
+      }
+      return newSet;
+    });
+  };
+
+  // Toggle all sections
+  const toggleAllSections = () => {
+    const sectionsWithIds = sortedGroupedData.sections
+      .filter(({ section }) => section !== null)
+      .map(({ section }) => section?.id)
+      .filter((id): id is string => id !== undefined);
+
+    if (sectionsWithIds.length === 0) return;
+
+    // If all sections are expanded (collapsedSections is empty or doesn't contain any section IDs)
+    const allExpanded = sectionsWithIds.every((id) => !collapsedSections.has(id));
+
+    if (allExpanded) {
+      // Collapse all sections
+      setCollapsedSections(new Set(sectionsWithIds));
+    } else {
+      // Expand all sections
+      setCollapsedSections(new Set());
+    }
   };
 
   // Handle sorting
@@ -78,23 +207,33 @@ export function TorrentTable({ torrents }: TorrentTableProps) {
     }
   };
 
-  // Memoized sorted torrents using enhanced data
-  const sortedTorrents = useMemo(() => {
-    if (!sortColumn) return enhancedTorrents;
+  // Memoized sorted grouped data - sort within groups, preserve group order
+  const sortedGroupedData = useMemo(() => {
+    if (!sortColumn) return enhancedGroupedData;
 
-    return sortTorrents([...enhancedTorrents], sortColumn, sortDirection);
-  }, [enhancedTorrents, sortColumn, sortDirection]);
+    return {
+      sections: enhancedGroupedData.sections.map(({ section, torrents: sectionTorrents }) => ({
+        section,
+        torrents: sortTorrents([...sectionTorrents], sortColumn, sortDirection),
+      })),
+    };
+  }, [enhancedGroupedData, sortColumn, sortDirection]);
 
-  // Calculate column span for expanded rows
-  const calculateColSpan = () => {
-    let baseColumns = 16; // Base columns: download, group, format, container, codec, resolution, audio, channels, subtitles, size, snatches, seeders, leechers, flags, report
-    if (!compactResolutionMode) baseColumns += 1; // aspect ratio column
-    if (!showRegionColumn) baseColumns -= 1; // region column
-    if (!showDualAudioColumn) baseColumns -= 1; // dual audio column
-    return baseColumns;
-  };
+  // Flatten for total count check
+  const totalTorrents = sortedGroupedData.sections.reduce(
+    (total, { torrents: sectionTorrents }) => total + sectionTorrents.length,
+    0,
+  );
 
-  if (torrents.length === 0) {
+  // Check if there are any sections
+  const hasAnySections = sortedGroupedData.sections.some(({ section }) => section !== null);
+
+  // Check if all sections are expanded
+  const allSectionsExpanded = sortedGroupedData.sections
+    .filter(({ section }) => section !== null)
+    .every(({ section }) => section?.id && !collapsedSections.has(section.id));
+
+  if (totalTorrents === 0) {
     return null;
   }
 
@@ -108,20 +247,57 @@ export function TorrentTable({ torrents }: TorrentTableProps) {
           showRegionColumn={showRegionColumn}
           showDualAudioColumn={showDualAudioColumn}
           compactResolutionMode={compactResolutionMode}
+          hasAnySections={hasAnySections}
+          allSectionsExpanded={allSectionsExpanded}
+          onToggleAllSections={toggleAllSections}
         />
         <tbody>
-          {sortedTorrents.map((torrent) => (
-            <TorrentRow
-              key={torrent.torrentId}
-              torrent={torrent}
-              isExpanded={expandedRows.has(torrent.torrentId)}
-              onToggleExpanded={toggleRowExpanded}
-              colSpan={calculateColSpan()}
-              compactResolutionMode={compactResolutionMode}
-              showRegionColumn={showRegionColumn}
-              showDualAudioColumn={showDualAudioColumn}
-            />
-          ))}
+          {sortedGroupedData.sections.map(({ section, torrents: sectionTorrents }, sectionIndex) => {
+            const sectionId = section?.id || `section_${sectionIndex}`;
+
+            // Check if this section should be hidden due to a collapsed group
+            let isHiddenByGroup = false;
+            if (section?.type === "section") {
+              // Find the last group header before this section
+              for (let i = sectionIndex - 1; i >= 0; i--) {
+                const prevSection = sortedGroupedData.sections[i].section;
+                if (prevSection?.type === "group") {
+                  isHiddenByGroup = collapsedSections.has(prevSection.id);
+                  break;
+                }
+              }
+            }
+
+            const isCollapsed = section ? collapsedSections.has(sectionId) : false;
+            const isOddGroup = sectionIndex % 2 === 1;
+
+            return (
+              <Fragment key={sectionId}>
+                {section && !isHiddenByGroup && (
+                  <SectionHeader
+                    section={section}
+                    isCollapsed={isCollapsed}
+                    onToggle={() => toggleSectionCollapsed(sectionId)}
+                    isOddSection={isOddGroup}
+                  />
+                )}
+                {!isCollapsed &&
+                  !isHiddenByGroup &&
+                  sectionTorrents.map((torrent) => (
+                    <TorrentRow
+                      key={torrent.torrentId}
+                      torrent={torrent}
+                      isExpanded={expandedRows.has(torrent.torrentId)}
+                      onToggleExpanded={toggleRowExpanded}
+                      compactResolutionMode={compactResolutionMode}
+                      showRegionColumn={showRegionColumn}
+                      showDualAudioColumn={showDualAudioColumn}
+                      isOddGroup={isOddGroup}
+                    />
+                  ))}
+              </Fragment>
+            );
+          })}
         </tbody>
       </table>
     </div>
@@ -195,35 +371,33 @@ function compareStringsWithEmpties(a: string, b: string): number {
   return a.localeCompare(b);
 }
 
+function parseNumeric(value: string): number {
+  const parsed = parseInt(value.replace(/[^\d]/g, ""), 10);
+  return Number.isNaN(parsed) ? 0 : parsed;
+}
+
 function parseSizeToBytes(sizeStr: string): number {
   if (!sizeStr) return 0;
 
-  const match = sizeStr.match(/^([\d.]+)\s*(GiB|MiB|KiB|TiB|GB|MB|KB|TB|B)$/i);
+  const match = sizeStr.match(/^([0-9,.]+)\s*([KMGT]?i?B)$/i);
   if (!match) return 0;
 
-  const value = parseFloat(match[1]);
+  const value = parseFloat(match[1].replace(/,/g, ""));
   const unit = match[2].toUpperCase();
 
-  // Handle both binary (1024-based) and decimal (1000-based) units
-  const binaryMultipliers: Record<string, number> = {
+  const multipliers: Record<string, number> = {
     B: 1,
     KB: 1024,
-    KIB: 1024,
     MB: 1024 ** 2,
-    MIB: 1024 ** 2,
     GB: 1024 ** 3,
-    GIB: 1024 ** 3,
     TB: 1024 ** 4,
+    KIB: 1024,
+    MIB: 1024 ** 2,
+    GIB: 1024 ** 3,
     TIB: 1024 ** 4,
   };
 
-  return value * (binaryMultipliers[unit] || 1);
-}
-
-function parseNumeric(str: string): number {
-  const cleaned = str.replace(/[,\s]/g, "");
-  const parsed = parseInt(cleaned, 10);
-  return Number.isNaN(parsed) ? 0 : parsed;
+  return value * (multipliers[unit] || 1);
 }
 
 function parseResolutionForSorting(
@@ -288,25 +462,26 @@ function parseChannelsForSorting(channelsStr: string): number {
 }
 
 function calculateFlagScore(flags: string[]): number {
-  let totalScore = 0;
+  let score = 0;
 
   for (const flag of flags) {
-    const flagContent = flag.toLowerCase();
+    const flagLower = flag.toLowerCase();
 
-    // Check for specific flag types and assign scores
-    if (flagContent.includes("seadex") || flagContent.includes("seadex")) {
-      if (flagContent.includes("best")) {
-        totalScore += 8; // SeaDex Best = highest score
-      } else {
-        totalScore += 4; // SeaDex Alt = higher than freeleech+remaster
-      }
-    } else if (flagContent.includes("freeleech")) {
-      totalScore += 2; // Freeleech = middle score
-    } else if (flagContent.includes("rmstr") || flagContent.includes("remaster")) {
-      totalScore += 1; // Remaster = lowest score
+    // High-value flags
+    if (flagLower.includes("freeleech")) score += 10;
+    if (flagLower.includes("seadx")) {
+      if (flagLower.includes("best")) score += 8;
+      else score += 6;
     }
-    // Other flags don't add to score but still count in the total
+
+    // Medium-value flags
+    if (flagLower.includes("golden") || flagLower.includes("popcorn")) score += 5;
+    if (flagLower.includes("scene") || flagLower.includes("p2p")) score += 3;
+
+    // Low-value flags
+    if (flagLower.includes("trump") || flagLower.includes("proper")) score += 2;
+    if (flagLower.includes("repack") || flagLower.includes("fix")) score += 1;
   }
 
-  return totalScore;
+  return score;
 }

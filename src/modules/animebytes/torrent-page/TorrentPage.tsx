@@ -93,7 +93,10 @@ export function TorrentPage() {
   // Render the table into the container when we have data
   useEffect(() => {
     if (isInitialized && containerRef.current && torrents.length > 0) {
-      render(<TorrentTable torrents={torrents} />, containerRef.current);
+      render(
+        <TorrentTable torrents={torrents} originalTable={originalTableRef.current || undefined} />,
+        containerRef.current,
+      );
     }
   }, [isInitialized, torrents]);
 

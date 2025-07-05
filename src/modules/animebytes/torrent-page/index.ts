@@ -1,3 +1,4 @@
+export { SeriesPage } from "./SeriesPage";
 export { TorrentDetails } from "./TorrentDetails";
 export { TorrentGroupPage } from "./TorrentGroupPage";
 export { TorrentPage } from "./TorrentPage";

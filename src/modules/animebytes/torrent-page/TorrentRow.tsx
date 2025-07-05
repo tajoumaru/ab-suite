@@ -6,10 +6,10 @@ interface TorrentRowProps {
   torrent: ParsedTorrentRow;
   isExpanded: boolean;
   onToggleExpanded: (torrentId: string) => void;
-  colSpan: number;
   compactResolutionMode: boolean;
   showRegionColumn: boolean;
   showDualAudioColumn: boolean;
+  isOddGroup: boolean;
 }
 
 /**
@@ -19,10 +19,10 @@ export function TorrentRow({
   torrent,
   isExpanded,
   onToggleExpanded,
-  colSpan,
   compactResolutionMode,
   showRegionColumn,
   showDualAudioColumn,
+  isOddGroup,
 }: TorrentRowProps) {
   const handleToggleExpanded = () => {
     onToggleExpanded(torrent.torrentId);
@@ -75,6 +75,11 @@ export function TorrentRow({
   // Determine row classes for styling
   const getRowClasses = (): string => {
     const classes = ["ab-modern-row"];
+
+    // Add alternating group background
+    if (isOddGroup) {
+      classes.push("ab-group-odd");
+    }
 
     // Check for freeleech using legacy field or flags
     if (torrent.isFreeleech || torrent.flags.some((flag) => flag.toLowerCase().includes("freeleech"))) {
@@ -156,7 +161,6 @@ export function TorrentRow({
                 <span
                   key={`${torrent.torrentId}-${index}`}
                   className="ab-flag"
-                  // biome-ignore lint/security/noDangerouslySetInnerHtml: necessary for flags
                   dangerouslySetInnerHTML={{ __html: flag }}
                 />
               ))}
@@ -176,7 +180,7 @@ export function TorrentRow({
       </tr>
 
       {/* Expanded details row */}
-      {isExpanded && torrent.detailsHtml && <TorrentDetails detailsHtml={torrent.detailsHtml} colSpan={colSpan} />}
+      {isExpanded && torrent.detailsHtml && <TorrentDetails detailsHtml={torrent.detailsHtml} />}
     </>
   );
 }

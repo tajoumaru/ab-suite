@@ -36,6 +36,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     mediainfoParserEnabled,
     interactiveSearchEnabled,
     autocompleteSearchEnabled,
+    sectionsCollapsedByDefault,
     toggleSetting,
   } = useSettingsStore();
 
@@ -91,7 +92,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       | "showDualAudioColumn"
       | "mediainfoParserEnabled"
       | "interactiveSearchEnabled"
-      | "autocompleteSearchEnabled",
+      | "autocompleteSearchEnabled"
+      | "sectionsCollapsedByDefault",
   ) => {
     toggleSetting(key);
 
@@ -105,7 +107,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       key === "showDualAudioColumn" ||
       key === "mediainfoParserEnabled" ||
       key === "interactiveSearchEnabled" ||
-      key === "autocompleteSearchEnabled"
+      key === "autocompleteSearchEnabled" ||
+      key === "sectionsCollapsedByDefault"
     ) {
       // Could add a toast notification here in the future
       console.log("AB Suite: Setting updated. Some changes may require a page reload.");
@@ -253,6 +256,22 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             className={`ab-settings-toggle ${autocompleteSearchEnabled ? "active" : ""}`}
             onClick={() => handleToggle("autocompleteSearchEnabled")}
             aria-label={`Toggle search autocomplete ${autocompleteSearchEnabled ? "off" : "on"}`}
+            type="button"
+          />
+        </div>
+
+        <div className="ab-settings-option">
+          <div className="ab-settings-option-content">
+            <strong>Load Sections Collapsed</strong>
+            <div>
+              When enabled, torrent table sections and groups will load collapsed by default. When disabled, they will
+              load expanded.
+            </div>
+          </div>
+          <button
+            className={`ab-settings-toggle ${sectionsCollapsedByDefault ? "active" : ""}`}
+            onClick={() => handleToggle("sectionsCollapsedByDefault")}
+            aria-label={`Toggle load sections collapsed ${sectionsCollapsedByDefault ? "off" : "on"}`}
             type="button"
           />
         </div>

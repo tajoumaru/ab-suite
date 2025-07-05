@@ -1,19 +1,114 @@
 import { parseMediaInfo } from "mi-parser";
-import type { ParsedTorrentRow } from "./types";
+import type { GroupedTorrents, GroupHeader, ParsedTorrentRow, TableSection } from "./types";
 
 /**
  * Extracts torrent data from the original HTML table, converting it to clean JavaScript objects.
  * This is the "data extraction" phase of the declarative takeover approach.
+ * Now also extracts section headers and groups torrents by sections.
  */
 export function extractTorrentData(
   table: HTMLTableElement,
   mediainfoParserEnabled: boolean = true,
 ): ParsedTorrentRow[] {
-  const torrentRows = Array.from(table.querySelectorAll("tr.group_torrent")) as HTMLTableRowElement[];
+  const groupedData = extractGroupedTorrentData(table, mediainfoParserEnabled);
 
-  return torrentRows
-    .map((row) => parseTorrentRow(row, mediainfoParserEnabled))
-    .filter((torrent): torrent is ParsedTorrentRow => torrent !== null);
+  // Flatten the grouped data into a simple array for backward compatibility
+  const allTorrents: ParsedTorrentRow[] = [];
+  for (const { torrents } of groupedData.sections) {
+    allTorrents.push(...torrents);
+  }
+
+  return allTorrents;
+}
+
+/**
+ * Extracts torrent data with section grouping preserved
+ */
+export function extractGroupedTorrentData(
+  table: HTMLTableElement,
+  mediainfoParserEnabled: boolean = true,
+): GroupedTorrents {
+  const allRows = Array.from(table.querySelectorAll("tr")) as HTMLTableRowElement[];
+  const sections: Array<{ section: TableSection | GroupHeader | null; torrents: ParsedTorrentRow[] }> = [];
+
+  let currentSection: TableSection | GroupHeader | null = null;
+  let currentTorrents: ParsedTorrentRow[] = [];
+
+  for (const row of allRows) {
+    // Check if this is a section header (edition_info)
+    if (row.classList.contains("edition_info")) {
+      // Save previous section if it exists
+      if (currentSection !== null || currentTorrents.length > 0) {
+        sections.push({
+          section: currentSection,
+          torrents: currentTorrents,
+        });
+      }
+
+      // Start new section
+      const sectionTitle = row.textContent?.trim() || "";
+      const sectionId = `section_${sections.length}_${Date.now()}`;
+
+      currentSection = {
+        type: "section",
+        id: sectionId,
+        title: sectionTitle,
+        originalRow: row,
+      };
+      currentTorrents = [];
+
+      console.log("AB Suite: Found section header:", sectionTitle);
+    }
+    // Check if this is a group header (group discog)
+    else if (row.classList.contains("group")) {
+      // Save previous section if it exists
+      if (currentSection !== null || currentTorrents.length > 0) {
+        sections.push({
+          section: currentSection,
+          torrents: currentTorrents,
+        });
+      }
+
+      // Extract group title from the h3 element but preserve full HTML content
+      const h3Element = row.querySelector("h3");
+      const groupTitle = h3Element?.textContent?.trim() || row.textContent?.trim() || "";
+      const groupId = `group_${sections.length}_${Date.now()}`;
+
+      currentSection = {
+        type: "group",
+        id: groupId,
+        title: groupTitle,
+        originalRow: row,
+        fullHtml: row.querySelector("td")?.innerHTML || "", // Store full HTML content
+      };
+      currentTorrents = [];
+
+      console.log("AB Suite: Found group header:", groupTitle);
+    }
+    // Check if this is a torrent row
+    else if (row.classList.contains("group_torrent")) {
+      const torrent = parseTorrentRow(row, mediainfoParserEnabled);
+      if (torrent) {
+        // Add section information to the torrent
+        if (currentSection) {
+          torrent.sectionId = currentSection.id;
+          torrent.sectionTitle = currentSection.title;
+        }
+
+        currentTorrents.push(torrent);
+      }
+    }
+  }
+
+  // Don't forget the last section
+  if (currentSection !== null || currentTorrents.length > 0) {
+    sections.push({
+      section: currentSection,
+      torrents: currentTorrents,
+    });
+  }
+
+  return { sections };
 }
 
 /**
@@ -46,6 +141,7 @@ function parseTorrentRow(row: HTMLTableRowElement, mediainfoParserEnabled: boole
 
     // Initialize parsed data with required fields
     const parsed: ParsedTorrentRow = {
+      type: "torrent",
       torrentId,
       groupId,
       name: linkText,

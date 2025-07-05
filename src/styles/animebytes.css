@@ -1,10 +1,12 @@
-#torrents #content {
+#torrents #content,
+#series #content {
   width: 95%;
   max-width: 1400px;
 }
 
 @media (min-width: 768px) {
-  #torrents #content {
+  #torrents #content,
+  #series #content {
     width: 90%;
     max-width: 1200px;
     padding: 20px;
@@ -12,7 +14,8 @@
 }
 
 @media (min-width: 1024px) {
-  #torrents #content {
+  #torrents #content,
+  #series #content {
     width: 85%;
     max-width: 1400px;
     padding: 25px;
@@ -20,7 +23,8 @@
 }
 
 @media (min-width: 1200px) {
-  #torrents #content {
+  #torrents #content,
+  #series #content {
     width: 80%;
     max-width: 1600px;
   }
@@ -39,7 +43,7 @@
 }
 
 .ab-settings-btn:hover {
-  color: #e1e1e1;
+  color: hsl(0, 0%, 88%);
 }
 
 .ab-settings-modal {
@@ -57,7 +61,7 @@
 }
 
 .ab-settings-content {
-  background: #292929;
+  background: hsl(0, 0%, 16%);
   padding: 20px;
   border-radius: 8px;
   min-width: 400px;
@@ -69,7 +73,7 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid hsl(0, 0%, 20%);
   padding-bottom: 10px;
 }
 
@@ -83,7 +87,7 @@
   border: none;
   font-size: 20px;
   cursor: pointer;
-  color: #ababab;
+  color: hsl(0, 0%, 67%);
 }
 
 .ab-settings-close:hover {
@@ -96,7 +100,7 @@
   align-items: center;
   margin-bottom: 15px;
   padding: 10px;
-  border: 1px solid #333;
+  border: 1px solid hsl(0, 0%, 20%);
   border-radius: 4px;
 }
 
@@ -111,14 +115,14 @@
 
 .ab-settings-option-content div {
   font-size: 0.9em;
-  color: #ccc;
+  color: hsl(0, 0%, 80%);
 }
 
 .ab-settings-toggle {
   position: relative;
   width: 50px;
   height: 24px;
-  background: #ccc;
+  background: hsl(0, 0%, 80%);
   border-radius: 12px;
   cursor: pointer;
   transition: background 0.3s;
@@ -126,7 +130,7 @@
 }
 
 .ab-settings-toggle.active {
-  background: #ed106a;
+  background: hsl(336, 87%, 50%);
 }
 
 .ab-settings-toggle::after {
@@ -148,7 +152,7 @@
 .ab-settings-footer {
   margin-top: 20px;
   font-size: 0.9em;
-  color: #999;
+  color: hsl(0, 0%, 60%);
 }
 
 .ab-external-links {
@@ -173,18 +177,18 @@
 .ab-modern-torrent-table {
   width: 100%;
   border-collapse: collapse;
-  border: 1px solid #333;
+  border: 1px solid hsl(0, 0%, 20%);
 }
 
 .ab-modern-header {
-  background: #1a2332;
+  background: hsl(218, 32%, 15%);
   color: white;
   font-weight: bold;
 }
 
 .ab-modern-header td {
   padding: 8px 6px;
-  border: 1px solid #333;
+  border: 1px solid hsl(0, 0%, 20%);
   font-size: 12px;
   text-align: center;
   vertical-align: middle;
@@ -210,7 +214,7 @@
 }
 
 .ab-modern-header .ab-sortable:hover {
-  background: #233244;
+  background: hsl(213, 32%, 20%);
 }
 
 .ab-header-content {
@@ -229,7 +233,7 @@
 
 .ab-sort-indicator.ab-sort-active {
   opacity: 1;
-  color: #ed106a;
+  color: hsl(336, 87%, 50%);
 }
 
 .ab-modern-header .ab-sortable:hover .ab-sort-indicator {
@@ -238,15 +242,15 @@
 
 .ab-modern-row {
   color: white;
-  border-bottom: 1px solid #222;
+  border-bottom: 1px solid hsl(0, 0%, 13%);
 }
 
 .ab-modern-row:hover {
-  background: #292929;
+  background: hsl(0, 0%, 16%);
 }
 
 .ab-modern-row.ab-freeleech {
-  background: rgba(207, 181, 59, 0.1);
+  background: rgba(207, 181, 59, 0.12);
 }
 
 .ab-modern-row.ab-freeleech:hover {
@@ -271,7 +275,7 @@
 
 .ab-modern-row td {
   padding: 6px 4px;
-  border: 1px solid #333;
+  border: 1px solid hsl(0, 0%, 20%);
   font-size: 11px;
   text-align: center;
   vertical-align: middle;
@@ -283,6 +287,77 @@
 
 .ab-modern-row.ab-has-details td:not(.ab-col-download):not(.ab-col-report) {
   cursor: pointer;
+}
+
+/* Section Header Styles */
+.ab-section-header td {
+  padding: 4px 8px;
+  border: 1px solid hsl(0, 0%, 20%);
+  color: white;
+  font-weight: bold;
+  font-size: 12px;
+  text-align: left;
+  vertical-align: middle;
+  background: hsl(218, 32%, 15%);
+}
+
+/* Group Header Styles */
+.ab-group-header td {
+  padding: 4px 8px;
+  border: 1px solid hsl(0, 0%, 20%);
+  color: white;
+  font-weight: bold;
+  font-size: 12px;
+  text-align: left;
+  vertical-align: middle;
+  background: hsl(219, 100%, 10%);
+}
+
+.ab-group-header h3,
+.ab-group-header a {
+  color: white;
+}
+
+.ab-group-header .tags,
+.ab-group-header .tags a {
+  color: #a3a3a3;
+}
+
+/* Alternating group backgrounds */
+.ab-section-header.ab-group-odd td {
+  background: hsl(218, 32%, 10%);
+}
+
+.ab-modern-row.ab-group-odd {
+  background: hsl(0, 0%, 8%);
+}
+
+.ab-modern-row.ab-group-odd:hover {
+  background: hsl(0, 0%, 12%);
+}
+
+.ab-modern-row.ab-group-odd.ab-freeleech {
+  background: rgba(207, 181, 59, 0.05);
+}
+
+.ab-modern-row.ab-group-odd.ab-freeleech:hover {
+  background: rgba(207, 181, 59, 0.1);
+}
+
+.ab-modern-row.ab-group-odd.ab-seadex-best {
+  background: rgba(121, 237, 163, 0.08);
+}
+
+.ab-modern-row.ab-group-odd.ab-seadex-best:hover {
+  background: rgba(121, 237, 163, 0.15);
+}
+
+.ab-modern-row.ab-group-odd.ab-seadex-alt {
+  background: rgba(251, 136, 136, 0.08);
+}
+
+.ab-modern-row.ab-group-odd.ab-seadex-alt:hover {
+  background: rgba(251, 136, 136, 0.15);
 }
 
 .ab-col-download,
@@ -329,11 +404,11 @@
 }
 
 .ab-dual-audio-check {
-  color: #4ade80;
+  color: hsl(142, 69%, 58%);
 }
 
 .ab-dual-audio-cross {
-  color: #f87171;
+  color: hsl(0, 91%, 71%);
   opacity: 0.6;
 }
 
@@ -368,7 +443,7 @@
 
 .ab-download-btn,
 .ab-report-btn {
-  color: #7cb3f4;
+  color: hsl(213, 85%, 72%);
   text-decoration: none;
   font-size: 10px;
   font-weight: bold;
@@ -380,30 +455,30 @@
 }
 
 .ab-details-row {
-  background: #1e1e1e !important;
+  background: hsl(0, 0%, 12%) !important;
   border-top: none !important;
 }
 
 .ab-details-row:hover {
-  background: #1e1e1e !important;
+  background: hsl(0, 0%, 12%) !important;
 }
 
 .ab-details-cell {
   padding: 0 !important;
-  border-left: 1px solid #333 !important;
-  border-right: 1px solid #333 !important;
-  border-bottom: 1px solid #333 !important;
+  border-left: 1px solid hsl(0, 0%, 20%) !important;
+  border-right: 1px solid hsl(0, 0%, 20%) !important;
+  border-bottom: 1px solid hsl(0, 0%, 20%) !important;
 }
 
 .ab-details-content {
   padding: 15px;
-  background: #1e1e1e;
-  color: #ccc;
+  background: hsl(0, 0%, 12%);
+  color: hsl(0, 0%, 80%);
 }
 
 .ab-details-content blockquote {
-  background: #252525;
-  border-left: 3px solid #ed106a;
+  background: hsl(0, 0%, 15%);
+  border-left: 3px solid hsl(336, 87%, 50%);
   padding: 10px 15px;
   margin: 10px 0;
   border-radius: 3px;
@@ -418,7 +493,7 @@
   list-style: none;
   padding: 0;
   margin: 0;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid hsl(0, 0%, 20%);
 }
 
 .ab-details-content .tabs li {
@@ -426,7 +501,7 @@
 }
 
 .ab-details-content .tabs a {
-  color: #7cb3f4;
+  color: hsl(213, 85%, 72%);
 }
 
 .ab-details-content .tabs a:hover {
@@ -434,7 +509,7 @@
 }
 
 .ab-details-content .tabs li a {
-  color: #dad8d8;
+  color: hsl(0, 3%, 85%);
 }
 
 .ab-details-content .tabs li a:hover {
@@ -520,8 +595,8 @@
 
 .ab-autocomplete-container {
   position: absolute;
-  background: var(--input-bg, #1a1a1a);
-  color: #9a9a9a;
+  background: var(--input-bg, hsl(0, 0%, 10%));
+  color: hsl(0, 0%, 60%);
   overflow: hidden;
   width: auto;
   max-width: 888px;
@@ -570,7 +645,7 @@ li.ab-selected .ab-autocomplete-item {
 }
 
 .ab-autocomplete-item:focus {
-  outline: 1px dotted #ccc;
+  outline: 1px dotted hsl(0, 0%, 80%);
 }
 
 .ab-autocomplete-loading,
@@ -579,7 +654,7 @@ li.ab-selected .ab-autocomplete-item {
   padding: 8px;
   text-align: center;
   font-style: italic;
-  color: #666;
+  color: hsl(0, 0%, 40%);
 }
 
 /* ============================================================
@@ -642,7 +717,7 @@ li.ab-selected .ab-autocomplete-item {
 
 .ab-torrent-details {
   font-size: 0.9em;
-  color: #aaa;
+  color: hsl(0, 0%, 67%);
   font-style: italic;
 }
 
@@ -658,7 +733,7 @@ li.ab-selected .ab-autocomplete-item {
   top: 0;
   background: none;
   border: none;
-  color: #888;
+  color: hsl(0, 0%, 53%);
   cursor: pointer;
   padding: 2px;
   border-radius: 2px;
@@ -667,7 +742,7 @@ li.ab-selected .ab-autocomplete-item {
 
 .ab-expand-button:hover {
   background-color: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  color: hsl(0, 0%, 100%);
 }
 
 .ab-region,
@@ -702,7 +777,7 @@ li.ab-selected .ab-autocomplete-item {
   text-decoration: none;
   border: none;
   background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  color: hsl(0, 0%, 100%);
   cursor: pointer;
   transition: all 0.15s ease;
 }

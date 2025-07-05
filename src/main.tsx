@@ -6,7 +6,7 @@ import { withSettings } from "@/hooks/withSettings";
 import { AniListHostIntegration } from "@/modules/anilist";
 import { AnimeBytesHostIntegration } from "@/modules/animebytes";
 import { SearchPage } from "@/modules/animebytes/search-page";
-import { TorrentGroupPage } from "@/modules/animebytes/torrent-page";
+import { SeriesPage, TorrentGroupPage } from "@/modules/animebytes/torrent-page";
 import { ReleasesIntegration } from "@/modules/releases";
 import { SeaDexIntegration } from "@/modules/seadex";
 // Styles
@@ -23,6 +23,7 @@ function AnimeBytesAppBase() {
       <SearchPage />
       <SeaDexIntegration />
       <TorrentGroupPage />
+      <SeriesPage />
     </>
   );
 }

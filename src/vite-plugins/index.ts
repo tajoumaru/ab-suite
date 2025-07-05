@@ -50,7 +50,7 @@ export function cssInjectionPlugin(options: { minify?: boolean } = {}): Plugin {
             cssInjectionCode = `(t=>{if(typeof GM_addStyle=="function"){GM_addStyle(t);return}const e=document.createElement("style");e.textContent=t,document.head.append(e)})(${JSON.stringify(processedCSS)});`;
           } else {
             // For unminified version, use template literal to preserve newlines
-            const escapedCSS = processedCSS.replace(/`/g, '\\`').replace(/\${/g, '\\${');
+            const escapedCSS = processedCSS.replace(/`/g, "\\`").replace(/\${/g, "\\${");
             cssInjectionCode = `(function injectCSS(css) {
   if (typeof GM_addStyle === "function") {
     GM_addStyle(css);

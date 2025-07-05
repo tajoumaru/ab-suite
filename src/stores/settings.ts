@@ -13,6 +13,7 @@ export interface Settings {
   mediainfoParserEnabled: boolean;
   interactiveSearchEnabled: boolean;
   autocompleteSearchEnabled: boolean;
+  sectionsCollapsedByDefault: boolean;
 }
 
 interface SettingsStore extends Settings {
@@ -32,6 +33,7 @@ const DEFAULT_SETTINGS: Settings = {
   mediainfoParserEnabled: true,
   interactiveSearchEnabled: true,
   autocompleteSearchEnabled: true,
+  sectionsCollapsedByDefault: true,
 };
 
 // Simple store implementation
@@ -80,6 +82,10 @@ class SimpleSettingsStore {
     return this.state.autocompleteSearchEnabled;
   }
 
+  get sectionsCollapsedByDefault() {
+    return this.state.sectionsCollapsedByDefault;
+  }
+
   get isLoaded() {
     return this.state.isLoaded;
   }
@@ -122,6 +128,10 @@ class SimpleSettingsStore {
         `${SETTINGS_KEY_PREFIX}autocompleteSearchEnabled`,
         DEFAULT_SETTINGS.autocompleteSearchEnabled,
       ) as boolean;
+      const sectionsCollapsedByDefault = GM_getValue(
+        `${SETTINGS_KEY_PREFIX}sectionsCollapsedByDefault`,
+        DEFAULT_SETTINGS.sectionsCollapsedByDefault,
+      ) as boolean;
 
       this.state = {
         ...this.state,
@@ -134,6 +144,7 @@ class SimpleSettingsStore {
         mediainfoParserEnabled,
         interactiveSearchEnabled,
         autocompleteSearchEnabled,
+        sectionsCollapsedByDefault,
         isLoaded: true,
       };
       this.notifySubscribers();

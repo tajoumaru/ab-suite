@@ -134,10 +134,13 @@ export function TorrentGroupPage() {
     integrateExternalLinks();
   }, [anilistIntegrationEnabled, mediaInfo]);
 
-  // Render the enhanced table when we have data
+  // Render the components into their containers when we have data
   useEffect(() => {
     if (isInitialized && tableContainerRef.current && torrents.length > 0) {
-      render(<TorrentTable torrents={torrents} />, tableContainerRef.current);
+      render(
+        <TorrentTable torrents={torrents} originalTable={originalTableRef.current || undefined} />,
+        tableContainerRef.current,
+      );
     }
   }, [isInitialized, torrents]);
 

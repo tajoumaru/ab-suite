@@ -2,7 +2,34 @@
  * Clean data structures for torrent information extracted from the DOM
  */
 
+/**
+ * Represents a table section header (e.g., "Episode 48")
+ */
+export interface TableSection {
+  type: "section";
+  id: string; // Unique identifier for this section
+  title: string; // The section title (e.g., "Episode 48")
+  originalRow?: HTMLElement; // Reference to original DOM row
+}
+
+/**
+ * Represents a group header (e.g., "2025 - TV Series")
+ */
+export interface GroupHeader {
+  type: "group";
+  id: string; // Unique identifier for this group
+  title: string; // The group title (e.g., "2025 - TV Series")
+  originalRow?: HTMLElement; // Reference to original DOM row
+  fullHtml?: string; // Full HTML content of the group row
+}
+
+/**
+ * Represents either a torrent, section header, or group header in the table
+ */
+export type TableItem = ParsedTorrentRow | TableSection | GroupHeader;
+
 export interface ParsedTorrentRow {
+  type?: "torrent"; // Optional type discriminator
   // Core identifiers
   torrentId: string;
   groupId: string;
@@ -52,6 +79,10 @@ export interface ParsedTorrentRow {
   // Additional metadata
   uploader: string;
   uploadTime: string;
+
+  // Section information
+  sectionId?: string; // ID of the section this torrent belongs to
+  sectionTitle?: string; // Title of the section this torrent belongs to
 
   // Media info (if available)
   mediaInfo?: {
@@ -117,4 +148,14 @@ export interface TorrentTableState {
   expandedRows: Set<string>;
   sortColumn: SortColumn;
   sortDirection: SortDirection;
+}
+
+/**
+ * Grouped torrents data structure that preserves section order
+ */
+export interface GroupedTorrents {
+  sections: Array<{
+    section: TableSection | GroupHeader | null; // null for torrents without a section
+    torrents: ParsedTorrentRow[];
+  }>;
 }

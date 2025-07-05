@@ -2,7 +2,6 @@ import { useEffect } from "preact/hooks";
 
 interface TorrentDetailsProps {
   detailsHtml: string;
-  colSpan: number;
 }
 
 /**
@@ -10,7 +9,7 @@ interface TorrentDetailsProps {
  * Uses dangerouslySetInnerHTML to render the existing HTML content from the original table.
  * This is a pragmatic choice to avoid recreating the entire torrent details view.
  */
-export function TorrentDetails({ detailsHtml, colSpan }: TorrentDetailsProps) {
+export function TorrentDetails({ detailsHtml }: TorrentDetailsProps) {
   useEffect(() => {
     // Handle tab functionality within details content
     const handleTabClick = (e: Event) => {
@@ -152,9 +151,8 @@ export function TorrentDetails({ detailsHtml, colSpan }: TorrentDetailsProps) {
 
   return (
     <tr className="ab-details-row">
-      <td colSpan={colSpan} className="ab-details-cell">
+      <td colSpan={100} className="ab-details-cell">
         <div className="ab-details-content">
-          {/* biome-ignore lint/security/noDangerouslySetInnerHtml: necessary */}
           <div className="ab-torrent-details-html" dangerouslySetInnerHTML={{ __html: detailsHtml }} />
         </div>
       </td>

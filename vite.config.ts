@@ -31,11 +31,7 @@ function createBuildConfig(isMinified: boolean) {
         "@": path.resolve(__dirname, "src"),
       },
     },
-    plugins: [
-      preact(),
-      cssInjectionPlugin({ minify: isMinified }),
-      userscriptHeaderPlugin(userscriptMeta, fileName)
-    ],
+    plugins: [preact(), cssInjectionPlugin({ minify: isMinified }), userscriptHeaderPlugin(userscriptMeta, fileName)],
     build: {
       emptyOutDir: !isMinified,
       lib: {
@@ -62,11 +58,13 @@ function createBuildConfig(isMinified: boolean) {
             unsafeWindow: "unsafeWindow",
           },
           extend: true,
-          minify: isMinified ? {
-            mangle: true,
-            compress: true,
-            removeWhitespace: true,
-          } : false,
+          minify: isMinified
+            ? {
+                mangle: true,
+                compress: true,
+                removeWhitespace: true,
+              }
+            : false,
         },
       },
       cssCodeSplit: false,

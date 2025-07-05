@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronsUpDown, ChevronUp } from "lucide-preact";
+import { ChevronDown, ChevronsUpDown, ChevronUp, Maximize2, Minimize2 } from "lucide-preact";
 import type { SortColumn, SortDirection } from "./types";
 
 interface TorrentHeaderProps {
@@ -8,6 +8,9 @@ interface TorrentHeaderProps {
   showRegionColumn: boolean;
   showDualAudioColumn: boolean;
   compactResolutionMode: boolean;
+  hasAnySections?: boolean;
+  allSectionsExpanded?: boolean;
+  onToggleAllSections?: () => void;
 }
 
 /**
@@ -20,6 +23,9 @@ export function TorrentHeader({
   showRegionColumn,
   showDualAudioColumn,
   compactResolutionMode,
+  hasAnySections = false,
+  allSectionsExpanded = true,
+  onToggleAllSections,
 }: TorrentHeaderProps) {
   const handleSort = (column: SortColumn) => {
     onSort(column);
@@ -68,10 +74,40 @@ export function TorrentHeader({
     </td>
   );
 
+  const handleToggleAllKeyDown = (e: KeyboardEvent) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      if (onToggleAllSections) {
+        onToggleAllSections();
+      }
+    }
+  };
+
   return (
     <thead>
       <tr className="ab-modern-header">
-        <td className="ab-col-download"></td>
+        <td
+          className={`ab-col-download ${hasAnySections && onToggleAllSections ? "ab-sortable" : ""}`}
+          onClick={hasAnySections && onToggleAllSections ? onToggleAllSections : undefined}
+          onKeyDown={hasAnySections && onToggleAllSections ? handleToggleAllKeyDown : undefined}
+          title={
+            hasAnySections && onToggleAllSections
+              ? allSectionsExpanded
+                ? "Collapse all sections"
+                : "Expand all sections"
+              : undefined
+          }
+        >
+          {hasAnySections && onToggleAllSections && (
+            <div className="ab-header-content">
+              {allSectionsExpanded ? (
+                <Minimize2 size={14} className="ab-sort-indicator" />
+              ) : (
+                <Maximize2 size={14} className="ab-sort-indicator" />
+              )}
+            </div>
+          )}
+        </td>
 
         <SortableHeader column="group" className="ab-col-group" title="Sort by Group">
           Group
