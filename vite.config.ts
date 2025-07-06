@@ -20,7 +20,7 @@ function createBuildConfig(isMinified: boolean) {
     updateURL: `${pkg.homepage}/releases/latest/download/${fileName}`,
     downloadURL: `${pkg.homepage}/releases/latest/download/${fileName}`,
     match: ["https://animebytes.tv/*", "https://anilist.co/*", "https://releases.moe/*"],
-    connect: ["releases.moe"],
+    connect: ["releases.moe", "anime-api-tajoumarus-projects.vercel.app"],
     runAt: "document-idle",
     grant: ["GM_addStyle", "GM_setValue", "GM_getValue", "GM_xmlhttpRequest"],
   };

@@ -1,11 +1,46 @@
 import { useEffect, useState } from "preact/hooks";
 import { PRINTED_MEDIA_TYPES } from "@/utils/format-mapping";
+import { log } from "@/utils/logging";
+
+type StringNull = string | null;
+type NumberNull = number | null;
+type TraktType = "movies" | "shows" | null;
+
+interface AnimeApiResponse {
+  title: string;
+  anidb: NumberNull;
+  anilist: NumberNull;
+  animenewsnetwork: NumberNull;
+  animeplanet: StringNull;
+  anisearch: NumberNull;
+  annict: NumberNull;
+  imdb: StringNull;
+  kaize: StringNull;
+  kaize_id: NumberNull;
+  kitsu: NumberNull;
+  livechart: NumberNull;
+  myanimelist: NumberNull;
+  nautiljon: StringNull;
+  nautiljon_id: NumberNull;
+  notify: StringNull;
+  otakotaku: NumberNull;
+  simkl: NumberNull;
+  shikimori: NumberNull;
+  shoboi: NumberNull;
+  silveryasha: NumberNull;
+  themoviedb: NumberNull;
+  trakt: NumberNull;
+  trakt_type: TraktType;
+  trakt_season: NumberNull;
+}
 
 export interface MediaInfo {
   seriesTitle: string;
   mediaType: string;
   searchTitle: string;
   searchMediaType: "anime" | "manga";
+  malId: string | null;
+  apiData: AnimeApiResponse | null;
   externalLinks: Array<{
     name: string;
     url: string;
@@ -25,7 +60,7 @@ export function useMediaInfo(): MediaInfo | null {
       return;
     }
 
-    const extractMediaInfo = (): MediaInfo | null => {
+    const extractMediaInfo = async (): Promise<MediaInfo | null> => {
       try {
         let seriesTitle: string;
         let mediaType: string;
@@ -66,20 +101,93 @@ export function useMediaInfo(): MediaInfo | null {
 
         // Determine search media type
         const searchMediaType = PRINTED_MEDIA_TYPES.includes(mediaType) ? "manga" : "anime";
-        const encodedTitle = encodeURIComponent(searchTitle);
+
+        // Find MAL ID from the page
+        const findMalId = (): string | null => {
+          const contentLinks = document.querySelectorAll("#content h3 a");
+          for (const link of contentLinks) {
+            const linkElement = link as HTMLAnchorElement;
+            const text = linkElement.textContent?.trim();
+            const href = linkElement.href;
+
+            if (text === "MAL" || href.includes("myanimelist")) {
+              // Extract MAL ID from href
+              const malMatch = href.match(/\/anime\/(\d+)/);
+              if (malMatch) {
+                return malMatch[1];
+              }
+            }
+          }
+          return null;
+        };
+
+        const malId = findMalId();
+        let apiData: AnimeApiResponse | null = null;
+
+        // Fetch data from API if MAL ID is found
+        if (malId) {
+          try {
+            apiData = await new Promise<AnimeApiResponse | null>((resolve) => {
+              GM_xmlhttpRequest({
+                method: "GET",
+                url: `https://anime-api-tajoumarus-projects.vercel.app/mal/${malId}`,
+                onload: (response) => {
+                  if (response.status === 200) {
+                    try {
+                      const data = JSON.parse(response.responseText);
+                      resolve(data);
+                    } catch (parseError) {
+                      console.error("AB Suite: Failed to parse anime API response", parseError);
+                      resolve(null);
+                    }
+                  } else {
+                    console.error("AB Suite: Anime API returned status", response.status);
+                    resolve(null);
+                  }
+                },
+                onerror: () => {
+                  console.error("AB Suite: Failed to fetch anime API data");
+                  resolve(null);
+                },
+              });
+            });
+          } catch (error) {
+            console.error("AB Suite: Failed to fetch anime API data", error);
+          }
+        }
+
+        log("AB Suite: Fetched API Data", apiData);
 
         // Create external links
-        const externalLinks = [
-          {
+        const externalLinks: Array<{ name: string; url: string }> = [];
+
+        if (apiData?.anilist) {
+          // Use actual AniList ID from API
+          externalLinks.push({
             name: "AniList",
-            url: `https://anilist.co/search/${searchMediaType}?search=${encodedTitle}`,
-          },
-        ];
+            url: `https://anilist.co/anime/${apiData.anilist}`,
+          });
+        } else if (searchMediaType === "anime") {
+          // Fallback to search URL for anime
+          const encodedTitle = encodeURIComponent(searchTitle);
+          externalLinks.push({
+            name: "AniList",
+            url: `https://anilist.co/search/anime?search=${encodedTitle}`,
+          });
+        }
 
         if (searchMediaType === "manga") {
+          const encodedTitle = encodeURIComponent(searchTitle);
+          // Keep MangaDex search for manga
           externalLinks.push({
             name: "MangaDex",
             url: `https://mangadex.org/search?q=${encodedTitle}`,
+          });
+
+          // Also add AniList search for manga
+          externalLinks.push({
+            name: "AniList",
+            url: `https://anilist.co/search/manga?search=${encodedTitle}`,
           });
         }
 
@@ -88,6 +196,8 @@ export function useMediaInfo(): MediaInfo | null {
           mediaType,
           searchTitle,
           searchMediaType,
+          malId,
+          apiData,
           externalLinks,
         };
       } catch (error) {
@@ -96,8 +206,7 @@ export function useMediaInfo(): MediaInfo | null {
       }
     };
 
-    const info = extractMediaInfo();
-    setMediaInfo(info);
+    extractMediaInfo().then(setMediaInfo);
   }, []);
 
   return mediaInfo;
