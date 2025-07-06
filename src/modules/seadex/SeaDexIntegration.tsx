@@ -5,6 +5,7 @@ import { seadexStore } from "@/stores/seadex";
 import { useSettingsStore } from "@/stores/settings";
 import "@/styles/seadex.css";
 import type { TorrentInfo } from "@/types";
+import { log } from "@/utils/logging";
 import { SeaDexIcon } from "./SeaDexIcon";
 import { SeaDexTab } from "./SeaDexTab";
 
@@ -144,11 +145,7 @@ export function SeaDexIntegration() {
       });
 
       document.dispatchEvent(event);
-      console.log(
-        "AB Suite: SeaDex processing complete, dispatched event with",
-        Object.keys(allLinkMaps).length,
-        "entries",
-      );
+      log("AB Suite: SeaDex processing complete, dispatched event with", Object.keys(allLinkMaps).length, "entries");
     } catch (error) {
       console.error("AB Suite (SeaDex): Failed to process torrents", error);
       seadexStore.setProcessing(false);

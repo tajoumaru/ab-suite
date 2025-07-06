@@ -1,4 +1,5 @@
 import { useEffect, useState } from "preact/hooks";
+import { log } from "@/utils/logging";
 
 interface NavigationState {
   currentPath: string;
@@ -81,10 +82,10 @@ export function useMediaPageReady(): boolean {
   const { isAnimePage, isMangaPage } = useNavigation();
 
   useEffect(() => {
-    console.log("AB Suite: useMediaPageReady effect", { isAnimePage, isMangaPage });
+    log("AB Suite: useMediaPageReady effect", { isAnimePage, isMangaPage });
 
     if (!isAnimePage && !isMangaPage) {
-      console.log("AB Suite: Not on anime/manga page, setting ready to false");
+      log("AB Suite: Not on anime/manga page, setting ready to false");
       setIsReady(false);
       return;
     }
@@ -97,7 +98,7 @@ export function useMediaPageReady(): boolean {
       );
 
       const ready = !!(sidebar && formatElement);
-      console.log("AB Suite: checkReady", {
+      log("AB Suite: checkReady", {
         sidebar: !!sidebar,
         formatElement: !!formatElement,
         ready,
@@ -125,6 +126,6 @@ export function useMediaPageReady(): boolean {
     };
   }, [isAnimePage, isMangaPage]);
 
-  console.log("AB Suite: useMediaPageReady returning", isReady);
+  log("AB Suite: useMediaPageReady returning", isReady);
   return isReady;
 }

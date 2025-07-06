@@ -2,11 +2,15 @@ import { render } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { useSeaDexUpdates } from "@/stores/seadex";
 import { useSettingsStore } from "@/stores/settings";
+import { log } from "@/utils/logging";
 import { useMediaInfo } from "../hooks/useMediaInfo";
-import { extractTorrentData } from "./data-extraction";
-import { ExternalLinksBar } from "./ExternalLinksBar";
-import { TorrentTable } from "./TorrentTable";
-import type { ParsedTorrentRow } from "./types";
+import {
+  detectTableType,
+  ExternalLinksBar,
+  extractTorrentData,
+  type ParsedTorrentRow,
+  TorrentTable,
+} from "../modern-table";
 
 /**
  * Comprehensive component that implements declarative takeover for the entire torrent group page.
@@ -37,12 +41,15 @@ export function TorrentGroupPage() {
     }
 
     try {
-      // Extract data from the original table
-      const extractedTorrents = extractTorrentData(originalTable, mediainfoParserEnabled);
+      // Detect table type and extract data from the original table
+      const tableType = detectTableType(originalTable);
+      const extractedTorrents = extractTorrentData(originalTable, mediainfoParserEnabled, tableType);
 
       if (extractedTorrents.length === 0) {
         return;
       }
+
+      log(`AB Suite: Detected table type '${tableType}' for torrent group page`);
 
       // Store reference to original table for re-extraction
       originalTableRef.current = originalTable;
@@ -62,7 +69,7 @@ export function TorrentGroupPage() {
       setTorrents(extractedTorrents);
       setIsInitialized(true);
 
-      console.log("AB Suite: Torrent group page initialized with", extractedTorrents.length, "torrents");
+      log("AB Suite: Torrent group page initialized with", extractedTorrents.length, "torrents");
     } catch (error) {
       console.error("AB Suite: Failed to initialize torrent group page", error);
     }
@@ -73,8 +80,8 @@ export function TorrentGroupPage() {
       return;
     }
 
-    // Only run on torrent pages
-    if (!window.location.pathname.includes("/torrents.php")) {
+    // Only run on torrent pages (both torrents.php and torrents2.php for music)
+    if (!window.location.pathname.includes("/torrents.php") && !window.location.pathname.includes("/torrents2.php")) {
       return;
     }
 
@@ -86,10 +93,11 @@ export function TorrentGroupPage() {
   useSeaDexUpdates(() => {
     if (!isInitialized || !originalTableRef.current) return;
 
-    console.log("AB Suite: SeaDex processing complete, re-extracting torrent data");
+    log("AB Suite: SeaDex processing complete, re-extracting torrent data");
 
     try {
-      const updatedTorrents = extractTorrentData(originalTableRef.current, mediainfoParserEnabled);
+      const tableType = detectTableType(originalTableRef.current);
+      const updatedTorrents = extractTorrentData(originalTableRef.current, mediainfoParserEnabled, tableType);
       setTorrents(updatedTorrents);
     } catch (error) {
       console.error("AB Suite: Failed to re-extract torrent data after SeaDex update", error);
@@ -102,8 +110,8 @@ export function TorrentGroupPage() {
       return;
     }
 
-    // Only run on torrent pages
-    if (!window.location.pathname.includes("/torrents.php")) {
+    // Only run on torrent pages (both torrents.php and torrents2.php for music)
+    if (!window.location.pathname.includes("/torrents.php") && !window.location.pathname.includes("/torrents2.php")) {
       return;
     }
 
@@ -128,7 +136,7 @@ export function TorrentGroupPage() {
       // Store the container reference
       headerContainerRef.current = linksContainer;
 
-      console.log("AB Suite: External links container created");
+      log("AB Suite: External links container created");
     };
 
     integrateExternalLinks();
@@ -138,7 +146,7 @@ export function TorrentGroupPage() {
   useEffect(() => {
     if (isInitialized && tableContainerRef.current && torrents.length > 0) {
       render(
-        <TorrentTable torrents={torrents} originalTable={originalTableRef.current || undefined} />,
+        <TorrentTable torrents={torrents} originalTable={originalTableRef.current || undefined} isSeriesPage={false} />,
         tableContainerRef.current,
       );
     }

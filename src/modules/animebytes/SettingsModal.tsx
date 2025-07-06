@@ -1,6 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
 import { useSettingsStore } from "@/stores/settings";
 import "@/styles/animebytes.css";
+import { log } from "@/utils/logging";
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -37,6 +38,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     interactiveSearchEnabled,
     autocompleteSearchEnabled,
     sectionsCollapsedByDefault,
+    debugLoggingEnabled,
     toggleSetting,
   } = useSettingsStore();
 
@@ -93,7 +95,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       | "mediainfoParserEnabled"
       | "interactiveSearchEnabled"
       | "autocompleteSearchEnabled"
-      | "sectionsCollapsedByDefault",
+      | "sectionsCollapsedByDefault"
+      | "debugLoggingEnabled",
   ) => {
     toggleSetting(key);
 
@@ -108,10 +111,11 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       key === "mediainfoParserEnabled" ||
       key === "interactiveSearchEnabled" ||
       key === "autocompleteSearchEnabled" ||
-      key === "sectionsCollapsedByDefault"
+      key === "sectionsCollapsedByDefault" ||
+      key === "debugLoggingEnabled"
     ) {
       // Could add a toast notification here in the future
-      console.log("AB Suite: Setting updated. Some changes may require a page reload.");
+      log("AB Suite: Setting updated. Some changes may require a page reload.");
     }
   };
 
@@ -272,6 +276,19 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             className={`ab-settings-toggle ${sectionsCollapsedByDefault ? "active" : ""}`}
             onClick={() => handleToggle("sectionsCollapsedByDefault")}
             aria-label={`Toggle load sections collapsed ${sectionsCollapsedByDefault ? "off" : "on"}`}
+            type="button"
+          />
+        </div>
+
+        <div className="ab-settings-option">
+          <div className="ab-settings-option-content">
+            <strong>Debug Logging</strong>
+            <div>Enables debug logging for troubleshooting purposes.</div>
+          </div>
+          <button
+            className={`ab-settings-toggle ${debugLoggingEnabled ? "active" : ""}`}
+            onClick={() => handleToggle("debugLoggingEnabled")}
+            aria-label={`Toggle debug logging ${debugLoggingEnabled ? "off" : "on"}`}
             type="button"
           />
         </div>

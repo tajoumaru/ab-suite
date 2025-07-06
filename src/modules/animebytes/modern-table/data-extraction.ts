@@ -1,5 +1,75 @@
 import { parseMediaInfo } from "mi-parser";
-import type { GroupedTorrents, GroupHeader, ParsedTorrentRow, TableSection } from "./types";
+import { log } from "@/utils/logging";
+import type { GroupedTorrents, GroupHeader, ParsedTorrentRow, TableSection, TableType } from "./types";
+
+/**
+ * Detects the table type based on context (series page table ID or torrents page title)
+ */
+export function detectTableType(table?: HTMLTableElement): TableType {
+  // Method 1: Check table ID (for series pages)
+  if (table?.id) {
+    const tableId = table.id.toLowerCase();
+
+    // Anime tables
+    if (["anime_table", "live_action_table", "pv_table", "live_table"].includes(tableId)) return "anime";
+
+    // Printed media tables
+    if (tableId === "printed_media_table") return "printed_media";
+
+    // Games tables
+    if (tableId === "games_table") return "games";
+
+    // Music tables
+    if (
+      [
+        "album_table",
+        "soundtrack_table",
+        "single_table",
+        "ep_table",
+        "compilation_table",
+        "remix_cd_table",
+        "live_album_table",
+        "spokenword_table",
+        "image_cd_table",
+        "vocal_cd_table",
+      ].includes(tableId)
+    )
+      return "music";
+  }
+
+  // Method 2: Check URL for music tables (torrents2.php)
+  if (window.location.pathname.includes("torrents2.php")) {
+    return "music";
+  }
+
+  // Method 3: Check title for torrents pages
+  if (window.location.pathname.includes("torrents.php")) {
+    const titleElement = document.querySelector("#content .thin h2");
+    if (titleElement) {
+      // Extract text outside of <a> tags
+      const titleText = Array.from(titleElement.childNodes)
+        .filter((node) => node.nodeType === Node.TEXT_NODE)
+        .map((node) => node.textContent?.trim())
+        .join(" ")
+        .toLowerCase();
+
+      // Check for printed media keywords
+      const printedMediaKeywords = ["artbook", "manga", "light novel", "oneshot", "anthology", "manhwa", "manhua"];
+      if (printedMediaKeywords.some((keyword) => titleText.includes(keyword))) {
+        return "printed_media";
+      }
+
+      // Check for games keywords
+      const gamesKeywords = ["game", "visual novel"];
+      if (gamesKeywords.some((keyword) => titleText.includes(keyword))) {
+        return "games";
+      }
+    }
+  }
+
+  // Default fallback: assume anime for torrents.php
+  return "anime";
+}
 
 /**
  * Extracts torrent data from the original HTML table, converting it to clean JavaScript objects.
@@ -9,8 +79,9 @@ import type { GroupedTorrents, GroupHeader, ParsedTorrentRow, TableSection } fro
 export function extractTorrentData(
   table: HTMLTableElement,
   mediainfoParserEnabled: boolean = true,
+  tableType?: TableType,
 ): ParsedTorrentRow[] {
-  const groupedData = extractGroupedTorrentData(table, mediainfoParserEnabled);
+  const groupedData = extractGroupedTorrentData(table, mediainfoParserEnabled, tableType);
 
   // Flatten the grouped data into a simple array for backward compatibility
   const allTorrents: ParsedTorrentRow[] = [];
@@ -27,16 +98,32 @@ export function extractTorrentData(
 export function extractGroupedTorrentData(
   table: HTMLTableElement,
   mediainfoParserEnabled: boolean = true,
+  tableType?: TableType,
 ): GroupedTorrents {
   const allRows = Array.from(table.querySelectorAll("tr")) as HTMLTableRowElement[];
   const sections: Array<{ section: TableSection | GroupHeader | null; torrents: ParsedTorrentRow[] }> = [];
 
+  // Detect table type if not provided
+  const actualTableType = tableType || detectTableType(table);
+
   let currentSection: TableSection | GroupHeader | null = null;
   let currentTorrents: ParsedTorrentRow[] = [];
+  let pendingSectionTitles: string[] = []; // Collect consecutive edition_info titles
 
   for (const row of allRows) {
     // Check if this is a section header (edition_info)
     if (row.classList.contains("edition_info")) {
+      const sectionTitle = row.textContent?.trim() || "";
+      if (sectionTitle) {
+        // Only add non-empty titles
+        pendingSectionTitles.push(sectionTitle);
+        log("AB Suite: Found section header:", sectionTitle);
+      }
+      continue; // Don't create section yet, wait for non-edition_info row
+    }
+
+    // If we have pending section titles and this is not another edition_info, create the section
+    if (pendingSectionTitles.length > 0) {
       // Save previous section if it exists
       if (currentSection !== null || currentTorrents.length > 0) {
         sections.push({
@@ -45,22 +132,27 @@ export function extractGroupedTorrentData(
         });
       }
 
-      // Start new section
-      const sectionTitle = row.textContent?.trim() || "";
-      const sectionId = `section_${sections.length}_${Date.now()}`;
+      // Create new section with merged titles using newlines
+      const mergedTitle = pendingSectionTitles.join("\n").trim();
+      if (mergedTitle) {
+        // Only create section if we have a non-empty title
+        const sectionId = `section_${sections.length}_${Date.now()}`;
 
-      currentSection = {
-        type: "section",
-        id: sectionId,
-        title: sectionTitle,
-        originalRow: row,
-      };
-      currentTorrents = [];
+        currentSection = {
+          type: "section",
+          id: sectionId,
+          title: mergedTitle,
+          originalRow: row, // Use the current row as reference
+        };
+        currentTorrents = [];
 
-      console.log("AB Suite: Found section header:", sectionTitle);
+        log("AB Suite: Created merged section header:", mergedTitle);
+      }
+      pendingSectionTitles = []; // Clear pending titles regardless
     }
+
     // Check if this is a group header (group discog)
-    else if (row.classList.contains("group")) {
+    if (row.classList.contains("group")) {
       // Save previous section if it exists
       if (currentSection !== null || currentTorrents.length > 0) {
         sections.push({
@@ -83,20 +175,53 @@ export function extractGroupedTorrentData(
       };
       currentTorrents = [];
 
-      console.log("AB Suite: Found group header:", groupTitle);
+      log("AB Suite: Found group header:", groupTitle);
     }
     // Check if this is a torrent row
-    else if (row.classList.contains("group_torrent")) {
-      const torrent = parseTorrentRow(row, mediainfoParserEnabled);
+    if (row.classList.contains("group_torrent")) {
+      const torrent = parseTorrentRow(row, mediainfoParserEnabled, actualTableType);
       if (torrent) {
         // Add section information to the torrent
         if (currentSection) {
           torrent.sectionId = currentSection.id;
           torrent.sectionTitle = currentSection.title;
+
+          // For printed media, use section title as group (e.g., artbook title)
+          if (actualTableType === "printed_media" && currentSection.type === "section") {
+            torrent.group = currentSection.title;
+          }
         }
 
         currentTorrents.push(torrent);
       }
+    }
+  }
+
+  // Handle any pending section titles at the end
+  if (pendingSectionTitles.length > 0) {
+    // Save previous section if it exists
+    if (currentSection !== null || currentTorrents.length > 0) {
+      sections.push({
+        section: currentSection,
+        torrents: currentTorrents,
+      });
+    }
+
+    // Create final section with merged titles using newlines
+    const mergedTitle = pendingSectionTitles.join("\n").trim();
+    if (mergedTitle) {
+      // Only create section if we have a non-empty title
+      const sectionId = `section_${sections.length}_${Date.now()}`;
+
+      currentSection = {
+        type: "section",
+        id: sectionId,
+        title: mergedTitle,
+        originalRow: undefined, // No following row
+      };
+      currentTorrents = [];
+
+      log("AB Suite: Created final merged section header:", mergedTitle);
     }
   }
 
@@ -114,7 +239,11 @@ export function extractGroupedTorrentData(
 /**
  * Parses a single torrent row from the DOM into a clean data structure
  */
-function parseTorrentRow(row: HTMLTableRowElement, mediainfoParserEnabled: boolean = true): ParsedTorrentRow | null {
+function parseTorrentRow(
+  row: HTMLTableRowElement,
+  mediainfoParserEnabled: boolean = true,
+  tableType: TableType = "anime",
+): ParsedTorrentRow | null {
   try {
     // Get the main torrent cell (first td)
     const mainCell = row.querySelector("td:first-child");
@@ -122,7 +251,9 @@ function parseTorrentRow(row: HTMLTableRowElement, mediainfoParserEnabled: boole
 
     // Extract download and details links
     const downloadLink = mainCell.querySelector('a[href*="/torrent/"]')?.getAttribute("href") || "";
-    const detailsLink = mainCell.querySelector('a[href*="torrents.php"]') as HTMLAnchorElement;
+    const detailsLink = mainCell.querySelector(
+      'a[href*="torrents.php"], a[href*="torrents2.php"]',
+    ) as HTMLAnchorElement;
     if (!detailsLink) return null;
 
     // Extract torrent and group IDs
@@ -182,9 +313,25 @@ function parseTorrentRow(row: HTMLTableRowElement, mediainfoParserEnabled: boole
       detailsContent: detailsRow || undefined,
     };
 
-    // Parse format information using smart split
-    const parts = smartSplit(formatText);
-    parseTorrentParts(parts, parsed);
+    // Parse format information based on table type
+    // Music tables use " / " separators instead of "|" like other tables
+    const parts =
+      tableType === "music"
+        ? formatText
+            .split(" / ")
+            .map((part) => part.trim())
+            .filter((part) => part)
+        : smartSplit(formatText);
+
+    if (tableType === "anime") {
+      parseTorrentParts(parts, parsed);
+    } else if (tableType === "printed_media") {
+      parsePrintedMediaParts(parts, parsed);
+    } else if (tableType === "games") {
+      parseGamesParts(parts, parsed);
+    } else if (tableType === "music") {
+      parseMusicParts(parts, parsed);
+    }
 
     // Get statistics from other columns
     const cells = row.querySelectorAll("td");
@@ -203,10 +350,10 @@ function parseTorrentRow(row: HTMLTableRowElement, mediainfoParserEnabled: boole
     // First check if SeaDex integration has already processed this row
     if (row.classList.contains("seadex-best")) {
       parsed.isSeaDexBest = true;
-      console.log("AB Suite: Found SeaDex Best via row class for torrent", torrentId);
+      log("AB Suite: Found SeaDex Best via row class for torrent", torrentId);
     } else if (row.classList.contains("seadex-alt")) {
       parsed.isSeaDexAlt = true;
-      console.log("AB Suite: Found SeaDex Alt via row class for torrent", torrentId);
+      log("AB Suite: Found SeaDex Alt via row class for torrent", torrentId);
     }
 
     // Look for specific SeaDex elements (icons/buttons added by SeaDex integration)
@@ -219,16 +366,16 @@ function parseTorrentRow(row: HTMLTableRowElement, mediainfoParserEnabled: boole
 
       if (iconContent.includes("best") || iconClasses.includes("best") || iconTitle.includes("best")) {
         parsed.isSeaDexBest = true;
-        console.log("AB Suite: Found SeaDex Best via icon for torrent", torrentId);
+        log("AB Suite: Found SeaDex Best via icon for torrent", torrentId);
       } else {
         parsed.isSeaDexAlt = true;
-        console.log("AB Suite: Found SeaDex Alt via icon for torrent", torrentId);
+        log("AB Suite: Found SeaDex Alt via icon for torrent", torrentId);
       }
     }
 
     // Add debugging for SeaDex status
     if (parsed.isSeaDexBest || parsed.isSeaDexAlt) {
-      console.log("AB Suite: SeaDex status for torrent", torrentId, ":", {
+      log("AB Suite: SeaDex status for torrent", torrentId, ":", {
         isSeaDexBest: parsed.isSeaDexBest,
         isSeaDexAlt: parsed.isSeaDexAlt,
         flagsCount: parsed.flags.length,
@@ -280,7 +427,144 @@ function smartSplit(text: string): string[] {
 }
 
 /**
- * Parse torrent format parts and categorize them
+ * Parse printed media format parts and categorize them
+ */
+function parsePrintedMediaParts(parts: string[], parsed: ParsedTorrentRow): void {
+  for (const part of parts) {
+    const cleanPart = part.trim();
+    if (!cleanPart) continue;
+
+    // Check for type with optional translator/publisher in parentheses
+    // Handle "Translated (Publisher)" or "Raw (Publisher)" format
+    const typeWithTranslatorMatch = cleanPart.match(/^(translated|raw)\s*\(([^)]+)\)$/i);
+    if (typeWithTranslatorMatch) {
+      const type = typeWithTranslatorMatch[1].toLowerCase();
+      const translator = typeWithTranslatorMatch[2].trim();
+
+      parsed.printedMediaType = type === "raw" ? "Raw" : "Translated";
+      parsed.translator = translator;
+      continue;
+    }
+
+    // Check for simple type
+    if (cleanPart.toLowerCase() === "raw") {
+      parsed.printedMediaType = "Raw";
+    } else if (cleanPart.toLowerCase() === "translated") {
+      parsed.printedMediaType = "Translated";
+    }
+    // Check for standalone translator/publisher (content in parentheses)
+    else if (cleanPart.match(/^\([^)]+\)$/)) {
+      parsed.translator = cleanPart.slice(1, -1); // Remove parentheses
+    }
+    // Check for format
+    else if (cleanPart.toLowerCase() === "epub") {
+      parsed.printedFormat = "EPUB";
+    } else if (cleanPart.toLowerCase() === "pdf") {
+      parsed.printedFormat = "PDF";
+    } else if (cleanPart.toLowerCase() === "archived scans") {
+      parsed.printedFormat = "Archived Scans";
+    }
+    // Check for digital indicator
+    else if (cleanPart.toLowerCase() === "digital") {
+      parsed.isDigital = true;
+    }
+    // Check for ongoing indicator
+    else if (cleanPart.toLowerCase() === "ongoing") {
+      parsed.isOngoing = true;
+    }
+  }
+}
+
+/**
+ * Parse games format parts and categorize them
+ */
+function parseGamesParts(parts: string[], parsed: ParsedTorrentRow): void {
+  const validPlatforms = new Set([
+    "PC",
+    "PS2",
+    "PSP",
+    "PSX",
+    "GameCube",
+    "Wii",
+    "GBA",
+    "NDS",
+    "N64",
+    "SNES",
+    "NES",
+    "Dreamcast",
+    "PS3",
+    "3DS",
+    "PS Vita",
+    "Switch",
+  ]);
+  const validRegions = new Set(["Region Free", "NTSC-J", "NTSC-U", "PAL", "JPN", "ENG", "EUR"]);
+
+  for (const part of parts) {
+    const cleanPart = part.trim();
+    if (!cleanPart) continue;
+
+    // Check for type
+    if (cleanPart.toLowerCase() === "game") {
+      parsed.gameType = "Game";
+    } else if (cleanPart.toLowerCase() === "patch") {
+      parsed.gameType = "Patch";
+    } else if (cleanPart.toLowerCase() === "dlc") {
+      parsed.gameType = "DLC";
+    }
+    // Check for platform
+    else if (validPlatforms.has(cleanPart)) {
+      parsed.platform = cleanPart as ParsedTorrentRow["platform"];
+    }
+    // Check for region
+    else if (validRegions.has(cleanPart)) {
+      parsed.gameRegion = cleanPart as ParsedTorrentRow["gameRegion"];
+    }
+    // Check for archived status
+    else if (cleanPart.toLowerCase() === "archived") {
+      parsed.isArchived = true;
+    } else if (cleanPart.toLowerCase() === "unarchived") {
+      parsed.isArchived = false;
+    }
+  }
+}
+
+/**
+ * Parse music format parts and categorize them
+ */
+function parseMusicParts(parts: string[], parsed: ParsedTorrentRow): void {
+  const validCodecs = new Set(["AAC", "MP3", "FLAC"]);
+  const validBitrates = new Set(["192", "V2 (VBR)", "256", "V0 (VBR)", "320", "Lossless", "Lossless 24-bit"]);
+  const validMedia = new Set(["CD", "DVD", "Blu-ray", "Cassette", "Vinyl", "Soundboard", "Web"]);
+
+  for (const part of parts) {
+    const cleanPart = part.trim();
+    if (!cleanPart) continue;
+
+    // Check for codec
+    if (validCodecs.has(cleanPart)) {
+      parsed.musicCodec = cleanPart as ParsedTorrentRow["musicCodec"];
+    }
+    // Check for bitrate
+    else if (validBitrates.has(cleanPart)) {
+      parsed.bitrate = cleanPart as ParsedTorrentRow["bitrate"];
+    }
+    // Check for media
+    else if (validMedia.has(cleanPart)) {
+      parsed.media = cleanPart as ParsedTorrentRow["media"];
+    }
+    // Check for log
+    else if (cleanPart.toLowerCase() === "log") {
+      parsed.hasLog = true;
+    }
+    // Check for cue
+    else if (cleanPart.toLowerCase() === "cue") {
+      parsed.hasCue = true;
+    }
+  }
+}
+
+/**
+ * Parse torrent format parts and categorize them (anime-specific)
  */
 function parseTorrentParts(parts: string[], parsed: ParsedTorrentRow): void {
   // Define valid values from site dropdowns

@@ -14,6 +14,7 @@ export interface Settings {
   interactiveSearchEnabled: boolean;
   autocompleteSearchEnabled: boolean;
   sectionsCollapsedByDefault: boolean;
+  debugLoggingEnabled: boolean;
 }
 
 interface SettingsStore extends Settings {
@@ -34,6 +35,7 @@ const DEFAULT_SETTINGS: Settings = {
   interactiveSearchEnabled: true,
   autocompleteSearchEnabled: true,
   sectionsCollapsedByDefault: true,
+  debugLoggingEnabled: false,
 };
 
 // Simple store implementation
@@ -86,6 +88,10 @@ class SimpleSettingsStore {
     return this.state.sectionsCollapsedByDefault;
   }
 
+  get debugLoggingEnabled() {
+    return this.state.debugLoggingEnabled;
+  }
+
   get isLoaded() {
     return this.state.isLoaded;
   }
@@ -132,6 +138,10 @@ class SimpleSettingsStore {
         `${SETTINGS_KEY_PREFIX}sectionsCollapsedByDefault`,
         DEFAULT_SETTINGS.sectionsCollapsedByDefault,
       ) as boolean;
+      const debugLoggingEnabled = GM_getValue(
+        `${SETTINGS_KEY_PREFIX}debugLoggingEnabled`,
+        DEFAULT_SETTINGS.debugLoggingEnabled,
+      ) as boolean;
 
       this.state = {
         ...this.state,
@@ -145,6 +155,7 @@ class SimpleSettingsStore {
         interactiveSearchEnabled,
         autocompleteSearchEnabled,
         sectionsCollapsedByDefault,
+        debugLoggingEnabled,
         isLoaded: true,
       };
       this.notifySubscribers();

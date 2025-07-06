@@ -6,9 +6,11 @@ import { withSettings } from "@/hooks/withSettings";
 import { AniListHostIntegration } from "@/modules/anilist";
 import { AnimeBytesHostIntegration } from "@/modules/animebytes";
 import { SearchPage } from "@/modules/animebytes/search-page";
-import { SeriesPage, TorrentGroupPage } from "@/modules/animebytes/torrent-page";
+import { SeriesPage } from "@/modules/animebytes/series-page";
+import { TorrentGroupPage } from "@/modules/animebytes/torrent-page";
 import { ReleasesIntegration } from "@/modules/releases";
 import { SeaDexIntegration } from "@/modules/seadex";
+import { log } from "@/utils/logging";
 // Styles
 import "@/styles/common.css";
 
@@ -48,7 +50,7 @@ function App() {
   const hostname = window.location.hostname;
 
   // Log initialization
-  console.log("AB Suite: Initialized on", hostname);
+  log("AB Suite: Initialized on", hostname);
 
   const PageComponent = pageMap[hostname];
 

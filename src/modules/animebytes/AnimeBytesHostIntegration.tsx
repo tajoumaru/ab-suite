@@ -1,5 +1,6 @@
 import { render } from "preact";
 import { useEffect, useRef } from "preact/hooks";
+import { log } from "@/utils/logging";
 import { SettingsButton } from "./SettingsModal";
 
 /**
@@ -41,7 +42,7 @@ export function AnimeBytesHostIntegration() {
 
         isInitialized.current = true;
 
-        console.log("AB Suite: AnimeBytes host integration initialized");
+        log("AB Suite: AnimeBytes host integration initialized");
       } catch (error) {
         console.error("AB Suite: Failed to initialize AnimeBytes host integration", error);
       }

@@ -1,6 +1,7 @@
 import { render } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { useSettingsStore } from "@/stores/settings";
+import { log } from "@/utils/logging";
 import { AutocompleteEnhancedInput } from "./AutocompleteEnhancedInput";
 import { createCategoryUrl, createCrossNavigationUrl, useSearchState } from "./useSearchState";
 
@@ -129,7 +130,7 @@ export function SearchPage() {
       setSearchInputs(inputs);
       setIsInitialized(true);
 
-      console.log("AB Suite: Search page initialized with", inputs.length, "enhanced inputs");
+      log("AB Suite: Search page initialized with", inputs.length, "enhanced inputs");
     };
 
     // Try to initialize immediately
@@ -162,7 +163,7 @@ export function SearchPage() {
       }
     });
 
-    console.log("AB Suite: Rendered", searchInputs.length, "enhanced search inputs");
+    log("AB Suite: Rendered", searchInputs.length, "enhanced search inputs");
   }, [isInitialized, searchInputs]);
 
   // Handle interactive search enhancements
@@ -240,7 +241,7 @@ export function SearchPage() {
           });
         }
 
-        console.log("AB Suite: Interactive search enhancements applied");
+        log("AB Suite: Interactive search enhancements applied");
       } catch (error) {
         console.error("AB Suite: Error in interactive search enhancement:", error);
       }

@@ -3,15 +3,21 @@ import { Fragment } from "preact";
 import { useEffect, useMemo, useState } from "preact/hooks";
 import { useSeaDexStore, useSeaDexUpdates } from "@/stores/seadex";
 import { useSettingsStore } from "@/stores/settings";
-import { extractGroupedTorrentData } from "./data-extraction";
+import { log, logTime, logTimeEnd } from "@/utils/logging";
+import { detectTableType, extractGroupedTorrentData } from "./data-extraction";
 import { TorrentHeader } from "./TorrentHeader";
 import { TorrentRow } from "./TorrentRow";
-import type { GroupedTorrents, GroupHeader, ParsedTorrentRow, SortColumn, SortDirection, TableSection } from "./types";
+import type {
+  GroupedTorrents,
+  GroupHeader,
+  ParsedTorrentRow,
+  SortColumn,
+  SortDirection,
+  TableSection,
+  TorrentTableProps,
+} from "./types";
 
-interface TorrentTableProps {
-  torrents: ParsedTorrentRow[];
-  originalTable?: HTMLTableElement; // Add reference to original table for grouped extraction
-}
+// TorrentTableProps is now imported from types.ts
 
 /**
  * Section header component with expand/collapse functionality
@@ -47,10 +53,12 @@ function SectionHeader({
             <div dangerouslySetInnerHTML={{ __html: section.fullHtml }} />
           </div>
         ) : (
-          // Simple text display for section headers
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            {isCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
-            <strong>{section.title}</strong>
+          // Simple text display for section headers with newline support
+          <div style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
+            <div style={{ marginTop: "2px" }}>
+              {isCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
+            </div>
+            <strong style={{ whiteSpace: "pre-line" }}>{section.title}</strong>
           </div>
         )}
       </td>
@@ -64,7 +72,12 @@ function SectionHeader({
  * It also reactively updates when SeaDex data becomes available.
  * Now supports section headers with group-aware sorting and section collapse/expand.
  */
-export function TorrentTable({ torrents, originalTable }: TorrentTableProps) {
+export function TorrentTable({ torrents, originalTable, isSeriesPage = false }: TorrentTableProps) {
+  logTime("AB Suite: TorrentTable component render");
+  log("AB Suite: TorrentTable component rendering", {
+    torrentsLength: torrents.length,
+    hasOriginalTable: !!originalTable,
+  });
   const {
     compactResolutionMode,
     showRegionColumn,
@@ -77,6 +90,11 @@ export function TorrentTable({ torrents, originalTable }: TorrentTableProps) {
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
   const [sortColumn, setSortColumn] = useState<SortColumn>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+
+  // Detect table type based on the original table
+  const tableType = useMemo(() => {
+    return detectTableType(originalTable);
+  }, [originalTable]);
 
   // Extract grouped data if we have the original table, otherwise use flat data
   const groupedData = useMemo(() => {
@@ -111,7 +129,7 @@ export function TorrentTable({ torrents, originalTable }: TorrentTableProps) {
     }
   }, [groupedData, sectionsCollapsedByDefault]);
 
-  // Enhance torrents with SeaDex data from the store
+  // Enhance torrents with Seadex data from the store
   const enhancedGroupedData = useMemo(() => {
     return {
       sections: groupedData.sections.map(({ section, torrents: sectionTorrents }) => ({
@@ -139,8 +157,28 @@ export function TorrentTable({ torrents, originalTable }: TorrentTableProps) {
   // Listen for SeaDex updates and force re-render
   useSeaDexUpdates(() => {
     // The enhancedGroupedData memo will automatically update due to store changes
-    console.log("AB Suite: SeaDex data updated, table will re-render");
+    log("AB Suite: SeaDex data updated, table will re-render");
   });
+
+  // Auto-expand torrent details if torrentid is in URL (torrent pages only)
+  useEffect(() => {
+    if (!isSeriesPage && enhancedGroupedData.sections.length > 0) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const torrentId = urlParams.get("torrentid");
+
+      if (torrentId) {
+        // Check if this torrent exists in our data
+        const torrentExists = enhancedGroupedData.sections.some(({ torrents: sectionTorrents }) =>
+          sectionTorrents.some((torrent) => torrent.torrentId === torrentId),
+        );
+
+        if (torrentExists) {
+          log(`AB Suite: Auto-expanding torrent details for torrentid=${torrentId}`);
+          setExpandedRows(new Set([torrentId]));
+        }
+      }
+    }
+  }, [isSeriesPage, enhancedGroupedData.sections]);
 
   // Toggle row expansion
   const toggleRowExpanded = (torrentId: string) => {
@@ -234,16 +272,18 @@ export function TorrentTable({ torrents, originalTable }: TorrentTableProps) {
     .every(({ section }) => section?.id && !collapsedSections.has(section.id));
 
   if (totalTorrents === 0) {
+    logTimeEnd("AB Suite: TorrentTable component render");
     return null;
   }
 
-  return (
+  const result = (
     <div className="ab-modern-table-container">
       <table className="ab-modern-torrent-table torrent_table">
         <TorrentHeader
           sortColumn={sortColumn}
           sortDirection={sortDirection}
           onSort={handleSort}
+          tableType={tableType}
           showRegionColumn={showRegionColumn}
           showDualAudioColumn={showDualAudioColumn}
           compactResolutionMode={compactResolutionMode}
@@ -289,10 +329,12 @@ export function TorrentTable({ torrents, originalTable }: TorrentTableProps) {
                       torrent={torrent}
                       isExpanded={expandedRows.has(torrent.torrentId)}
                       onToggleExpanded={toggleRowExpanded}
+                      tableType={tableType}
                       compactResolutionMode={compactResolutionMode}
                       showRegionColumn={showRegionColumn}
                       showDualAudioColumn={showDualAudioColumn}
                       isOddGroup={isOddGroup}
+                      isSeriesPage={isSeriesPage}
                     />
                   ))}
               </Fragment>
@@ -302,6 +344,9 @@ export function TorrentTable({ torrents, originalTable }: TorrentTableProps) {
       </table>
     </div>
   );
+
+  logTimeEnd("AB Suite: TorrentTable component render");
+  return result;
 }
 
 /**
@@ -311,7 +356,25 @@ function sortTorrents(torrents: ParsedTorrentRow[], column: SortColumn, directio
   if (!column) return torrents;
 
   const sortFunctions: Record<NonNullable<SortColumn>, (a: ParsedTorrentRow, b: ParsedTorrentRow) => number> = {
+    // Common columns (group is anime-only but kept for compatibility)
     group: (a, b) => compareStringsWithEmpties(a.group, b.group),
+    size: (a, b) => parseSizeToBytes(a.size) - parseSizeToBytes(b.size),
+    snatches: (a, b) => parseNumeric(a.snatches) - parseNumeric(b.snatches),
+    seeders: (a, b) => parseNumeric(a.seeders) - parseNumeric(b.seeders),
+    leechers: (a, b) => parseNumeric(a.leechers) - parseNumeric(b.leechers),
+    flags: (a, b) => {
+      const aScore = calculateFlagScore(a.flags);
+      const bScore = calculateFlagScore(b.flags);
+
+      // Primary sort by total flag score
+      const scoreDiff = aScore - bScore;
+      if (scoreDiff !== 0) return scoreDiff;
+
+      // Secondary sort by flag count if scores are equal
+      return a.flags.length - b.flags.length;
+    },
+
+    // Anime-specific columns
     format: (a, b) => compareStringsWithEmpties(a.format, b.format),
     region: (a, b) => compareStringsWithEmpties(a.region, b.region),
     container: (a, b) => compareStringsWithEmpties(a.container, b.container),
@@ -338,21 +401,26 @@ function sortTorrents(torrents: ParsedTorrentRow[], column: SortColumn, directio
     },
     hasDualAudio: (a, b) => Number(b.hasDualAudio) - Number(a.hasDualAudio), // Dual audio first
     subtitles: (a, b) => compareStringsWithEmpties(a.subtitles, b.subtitles),
-    size: (a, b) => parseSizeToBytes(a.size) - parseSizeToBytes(b.size),
-    snatches: (a, b) => parseNumeric(a.snatches) - parseNumeric(b.snatches),
-    seeders: (a, b) => parseNumeric(a.seeders) - parseNumeric(b.seeders),
-    leechers: (a, b) => parseNumeric(a.leechers) - parseNumeric(b.leechers),
-    flags: (a, b) => {
-      const aScore = calculateFlagScore(a.flags);
-      const bScore = calculateFlagScore(b.flags);
 
-      // Primary sort by total flag score
-      const scoreDiff = aScore - bScore;
-      if (scoreDiff !== 0) return scoreDiff;
+    // Printed Media columns
+    printedMediaType: (a, b) => compareStringsWithEmpties(a.printedMediaType || "", b.printedMediaType || ""),
+    translator: (a, b) => compareStringsWithEmpties(a.translator || "", b.translator || ""),
+    isDigital: (a, b) => Number(b.isDigital) - Number(a.isDigital), // Digital first
+    printedFormat: (a, b) => compareStringsWithEmpties(a.printedFormat || "", b.printedFormat || ""),
+    isOngoing: (a, b) => Number(b.isOngoing) - Number(a.isOngoing), // Ongoing first
 
-      // Secondary sort by flag count if scores are equal
-      return a.flags.length - b.flags.length;
-    },
+    // Games columns
+    gameType: (a, b) => compareStringsWithEmpties(a.gameType || "", b.gameType || ""),
+    platform: (a, b) => compareStringsWithEmpties(a.platform || "", b.platform || ""),
+    gameRegion: (a, b) => compareStringsWithEmpties(a.gameRegion || "", b.gameRegion || ""),
+    isArchived: (a, b) => Number(b.isArchived) - Number(a.isArchived), // Archived first
+
+    // Music columns
+    musicCodec: (a, b) => compareStringsWithEmpties(a.musicCodec || "", b.musicCodec || ""),
+    bitrate: (a, b) => compareStringsWithEmpties(a.bitrate || "", b.bitrate || ""),
+    media: (a, b) => compareStringsWithEmpties(a.media || "", b.media || ""),
+    hasLog: (a, b) => Number(b.hasLog) - Number(a.hasLog), // Log first
+    hasCue: (a, b) => Number(b.hasCue) - Number(a.hasCue), // Cue first
   };
 
   const sortFn = sortFunctions[column];
@@ -469,7 +537,7 @@ function calculateFlagScore(flags: string[]): number {
 
     // High-value flags
     if (flagLower.includes("freeleech")) score += 10;
-    if (flagLower.includes("seadx")) {
+    if (flagLower.includes("seadex")) {
       if (flagLower.includes("best")) score += 8;
       else score += 6;
     }
