@@ -1,3 +1,4 @@
+export { Ratings } from "./ratings";
 export { detectTableType, extractTorrentData } from "./data-extraction";
 export { ExternalLinksBar } from "./ExternalLinksBar";
 export { TorrentDetails } from "./TorrentDetails";

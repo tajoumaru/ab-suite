@@ -27,7 +27,7 @@ class ApiService {
 
     return new Promise((resolve, reject) => {
       GM_xmlhttpRequest({
-        method,
+        method: method as "GET" | "POST" | "HEAD" | undefined,
         url: url.toString(),
         headers,
         ontimeout: () => reject(new ApiError(`Request timed out after ${timeout}ms`)),

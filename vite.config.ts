@@ -20,9 +20,19 @@ function createBuildConfig(isMinified: boolean) {
     updateURL: `${pkg.homepage}/releases/latest/download/${fileName}`,
     downloadURL: `${pkg.homepage}/releases/latest/download/${fileName}`,
     match: ["https://animebytes.tv/*", "https://anilist.co/*", "https://releases.moe/*"],
-    connect: ["releases.moe", "anime-api-tajoumarus-projects.vercel.app"],
+    connect: [
+      "releases.moe",
+      "anime-api-tajoumarus-projects.vercel.app",
+      "api.simkl.com",
+      "api.themoviedb.org",
+      "www.imdb.com",
+      "api.jikan.moe",
+      "api.anidb.net",
+      "graphql.anilist.co",
+      "kitsu.app",
+    ],
     runAt: "document-idle",
-    grant: ["GM_addStyle", "GM_setValue", "GM_getValue", "GM_xmlhttpRequest"],
+    grant: ["GM_addStyle", "GM_setValue", "GM_getValue", "GM_listValues", "GM_deleteValue", "GM_xmlhttpRequest"],
   };
 
   return defineConfig({
@@ -53,6 +63,8 @@ function createBuildConfig(isMinified: boolean) {
             GM_addStyle: "GM_addStyle",
             GM_setValue: "GM_setValue",
             GM_getValue: "GM_getValue",
+            GM_listValues: "GM_listValues",
+            GM_deleteValue: "GM_deleteValue",
             GM_xmlhttpRequest: "GM_xmlhttpRequest",
             GM: "GM",
             unsafeWindow: "unsafeWindow",
@@ -60,10 +72,10 @@ function createBuildConfig(isMinified: boolean) {
           extend: true,
           minify: isMinified
             ? {
-                mangle: true,
-                compress: true,
-                removeWhitespace: true,
-              }
+              mangle: true,
+              compress: true,
+              removeWhitespace: true,
+            }
             : false,
         },
       },

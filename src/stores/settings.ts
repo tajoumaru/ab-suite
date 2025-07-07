@@ -15,13 +15,17 @@ export interface Settings {
   autocompleteSearchEnabled: boolean;
   sectionsCollapsedByDefault: boolean;
   debugLoggingEnabled: boolean;
+  RatingsEnabled: boolean;
+  simklClientId: string;
+  tmdbApiToken: string;
 }
 
 interface SettingsStore extends Settings {
   isLoaded: boolean;
   loadSettings: () => void;
-  updateSetting: (key: keyof Settings, value: boolean) => void;
-  toggleSetting: (key: keyof Settings) => void;
+  updateSetting: <K extends keyof Settings>(key: K, value: Settings[K]) => void;
+  updateStringSetting: (key: keyof Pick<Settings, "simklClientId" | "tmdbApiToken">, value: string) => void;
+  toggleSetting: (key: keyof Omit<Settings, "simklClientId" | "tmdbApiToken">) => void;
 }
 
 const DEFAULT_SETTINGS: Settings = {
@@ -36,6 +40,9 @@ const DEFAULT_SETTINGS: Settings = {
   autocompleteSearchEnabled: true,
   sectionsCollapsedByDefault: true,
   debugLoggingEnabled: false,
+  RatingsEnabled: true,
+  simklClientId: "",
+  tmdbApiToken: "",
 };
 
 // Simple store implementation
@@ -92,6 +99,18 @@ class SimpleSettingsStore {
     return this.state.debugLoggingEnabled;
   }
 
+  get RatingsEnabled() {
+    return this.state.RatingsEnabled;
+  }
+
+  get simklClientId() {
+    return this.state.simklClientId;
+  }
+
+  get tmdbApiToken() {
+    return this.state.tmdbApiToken;
+  }
+
   get isLoaded() {
     return this.state.isLoaded;
   }
@@ -142,6 +161,15 @@ class SimpleSettingsStore {
         `${SETTINGS_KEY_PREFIX}debugLoggingEnabled`,
         DEFAULT_SETTINGS.debugLoggingEnabled,
       ) as boolean;
+      const RatingsEnabled = GM_getValue(
+        `${SETTINGS_KEY_PREFIX}RatingsEnabled`,
+        DEFAULT_SETTINGS.RatingsEnabled,
+      ) as boolean;
+      const simklClientId = GM_getValue(
+        `${SETTINGS_KEY_PREFIX}simklClientId`,
+        DEFAULT_SETTINGS.simklClientId,
+      ) as string;
+      const tmdbApiToken = GM_getValue(`${SETTINGS_KEY_PREFIX}tmdbApiToken`, DEFAULT_SETTINGS.tmdbApiToken) as string;
 
       this.state = {
         ...this.state,
@@ -156,6 +184,9 @@ class SimpleSettingsStore {
         autocompleteSearchEnabled,
         sectionsCollapsedByDefault,
         debugLoggingEnabled,
+        RatingsEnabled,
+        simklClientId,
+        tmdbApiToken,
         isLoaded: true,
       };
       this.notifySubscribers();
@@ -166,7 +197,7 @@ class SimpleSettingsStore {
     }
   };
 
-  updateSetting = (key: keyof Settings, value: boolean) => {
+  updateSetting = <K extends keyof Settings>(key: K, value: Settings[K]) => {
     try {
       GM_setValue(`${SETTINGS_KEY_PREFIX}${key}`, value);
       this.state = { ...this.state, [key]: value };
@@ -176,8 +207,12 @@ class SimpleSettingsStore {
     }
   };
 
-  toggleSetting = (key: keyof Settings) => {
-    const current = this.state[key];
+  updateStringSetting = (key: keyof Pick<Settings, "simklClientId" | "tmdbApiToken">, value: string) => {
+    this.updateSetting(key, value);
+  };
+
+  toggleSetting = (key: keyof Omit<Settings, "simklClientId" | "tmdbApiToken">) => {
+    const current = this.state[key] as boolean;
     this.updateSetting(key, !current);
   };
 

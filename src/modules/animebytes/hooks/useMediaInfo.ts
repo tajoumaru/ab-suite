@@ -1,4 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
+import { useSettingsStore } from "@/stores/settings";
+import { cachedApiCall } from "@/utils/cache";
 import { PRINTED_MEDIA_TYPES } from "@/utils/format-mapping";
 import { log } from "@/utils/logging";
 
@@ -6,7 +8,7 @@ type StringNull = string | null;
 type NumberNull = number | null;
 type TraktType = "movies" | "shows" | null;
 
-interface AnimeApiResponse {
+export interface AnimeApiResponse {
   title: string;
   anidb: NumberNull;
   anilist: NumberNull;
@@ -34,6 +36,44 @@ interface AnimeApiResponse {
   trakt_season: NumberNull;
 }
 
+interface SimklSearchResponse {
+  type: string;
+  title: string;
+  year: number;
+  ids: {
+    simkl: number;
+    slug: string;
+  };
+}
+
+interface SimklDetailResponse {
+  title: string;
+  year: number;
+  ids: {
+    simkl: number;
+    slug: string;
+    anidb?: string;
+    mal?: string;
+    imdb?: string;
+    tmdb?: string;
+    anilist?: string;
+    kitsu?: string;
+    [key: string]: string | number | undefined;
+  };
+}
+
+interface KitsuApiResponse {
+  data: {
+    id: string;
+    attributes: {
+      averageRating?: string;
+      ratingFrequencies?: {
+        [key: string]: string;
+      };
+    };
+  };
+}
+
 export interface MediaInfo {
   seriesTitle: string;
   mediaType: string;
@@ -41,10 +81,209 @@ export interface MediaInfo {
   searchMediaType: "anime" | "manga";
   malId: string | null;
   apiData: AnimeApiResponse | null;
+  kitsuRating: number | null;
+  kitsuVotes: number | null;
   externalLinks: Array<{
     name: string;
     url: string;
   }>;
+}
+
+/**
+ * Fetch Kitsu data and calculate average rating from rating frequencies
+ */
+async function fetchKitsuData(kitsuId: string): Promise<{ rating: number | null; votes: number | null }> {
+  const cacheKey = `kitsu-rating-${kitsuId}`;
+
+  const kitsuData = await cachedApiCall(
+    cacheKey,
+    () =>
+      new Promise<KitsuApiResponse | null>((resolve) => {
+        GM_xmlhttpRequest({
+          method: "GET",
+          url: `https://kitsu.app/api/edge/anime/${kitsuId}`,
+          onload: (response) => {
+            if (response.status === 200) {
+              try {
+                const data = JSON.parse(response.responseText);
+                resolve(data);
+              } catch (error) {
+                log("AB Suite: Failed to parse Kitsu response", error);
+                resolve(null);
+              }
+            } else {
+              log("AB Suite: Kitsu API returned status", response.status);
+              resolve(null);
+            }
+          },
+          onerror: () => {
+            log("AB Suite: Failed to fetch Kitsu data");
+            resolve(null);
+          },
+        });
+      }),
+    {
+      ttl: 7 * 24 * 60 * 60 * 1000, // 7 days
+      failureTtl: 2 * 60 * 60 * 1000, // 2 hours for failures
+      apiKey: "kitsu",
+    },
+  );
+
+  if (!kitsuData?.data?.attributes) {
+    return { rating: null, votes: null };
+  }
+
+  const attributes = kitsuData.data.attributes;
+  let rating: number | null = null;
+  let votes: number | null = null;
+
+  // If averageRating is available, use it directly
+  if (attributes.averageRating) {
+    rating = parseFloat(attributes.averageRating);
+    rating = Number.isNaN(rating) ? null : rating;
+  }
+
+  // Calculate from rating frequencies if available
+  if (attributes.ratingFrequencies) {
+    const frequencies = attributes.ratingFrequencies;
+    let totalWeightedScore = 0;
+    let totalRatings = 0;
+
+    // Kitsu uses ratings from 2-20 (even numbers only)
+    for (let score = 2; score <= 20; score += 2) {
+      const frequency = parseInt(frequencies[score.toString()] || "0", 10);
+      if (frequency > 0) {
+        totalWeightedScore += score * frequency;
+        totalRatings += frequency;
+      }
+    }
+
+    if (totalRatings > 0) {
+      // If we didn't get averageRating directly, calculate it
+      if (rating === null) {
+        const averageOn20Scale = totalWeightedScore / totalRatings;
+        rating = (averageOn20Scale / 20) * 100;
+      }
+      votes = totalRatings;
+    }
+  }
+
+  return { rating, votes };
+}
+
+/**
+ * Fetch additional anime IDs from SIMKL API
+ */
+async function fetchSimklData(
+  malId: string,
+  clientId: string,
+  existingSimklId?: number,
+): Promise<SimklDetailResponse | null> {
+  let simklId: number;
+
+  if (existingSimklId) {
+    // Use the existing SIMKL ID, skip search
+    simklId = existingSimklId;
+    log(`AB Suite: Using existing SIMKL ID: ${simklId}`);
+  } else {
+    // First, search for the anime by MAL ID
+    const searchCacheKey = `simkl-search-mal-${malId}`;
+    const searchResults = await cachedApiCall(
+      searchCacheKey,
+      () =>
+        new Promise<SimklSearchResponse[]>((resolve) => {
+          GM_xmlhttpRequest({
+            method: "GET",
+            url: `https://api.simkl.com/search/id?mal=${malId}&client_id=${clientId}`,
+            onload: (response) => {
+              if (response.status === 200) {
+                try {
+                  const data = JSON.parse(response.responseText);
+                  resolve(Array.isArray(data) ? data : []);
+                } catch (error) {
+                  log("AB Suite: Failed to parse SIMKL search response", error);
+                  resolve([]);
+                }
+              } else {
+                log("AB Suite: SIMKL search API returned status", response.status);
+                resolve([]);
+              }
+            },
+            onerror: () => {
+              log("AB Suite: Failed to fetch SIMKL search data");
+              resolve([]);
+            },
+          });
+        }),
+      {
+        ttl: 7 * 24 * 60 * 60 * 1000, // 7 days - IDs rarely change
+        failureTtl: 2 * 60 * 60 * 1000, // 2 hours for failures
+        apiKey: "simkl",
+      },
+    );
+
+    if (!searchResults || searchResults.length === 0) {
+      return null;
+    }
+
+    // Get the first result's SIMKL ID
+    simklId = searchResults[0].ids.simkl;
+  }
+
+  // Fetch detailed information with all IDs
+  const detailCacheKey = `simkl-detail-${simklId}`;
+  const detailData = await cachedApiCall(
+    detailCacheKey,
+    () =>
+      new Promise<SimklDetailResponse | null>((resolve) => {
+        GM_xmlhttpRequest({
+          method: "GET",
+          url: `https://api.simkl.com/anime/${simklId}?extended=full&client_id=${clientId}`,
+          onload: (response) => {
+            if (response.status === 200) {
+              try {
+                const data = JSON.parse(response.responseText);
+                resolve(data);
+              } catch (error) {
+                log("AB Suite: Failed to parse SIMKL detail response", error);
+                resolve(null);
+              }
+            } else {
+              log("AB Suite: SIMKL detail API returned status", response.status);
+              resolve(null);
+            }
+          },
+          onerror: () => {
+            log("AB Suite: Failed to fetch SIMKL detail data");
+            resolve(null);
+          },
+        });
+      }),
+    {
+      ttl: 7 * 24 * 60 * 60 * 1000, // 7 days - IDs rarely change
+      failureTtl: 2 * 60 * 60 * 1000, // 2 hours for failures
+      apiKey: "simkl",
+    },
+  );
+
+  return detailData;
+}
+
+/**
+ * Merge SIMKL IDs with existing anime API data
+ */
+function mergeSimklData(apiData: AnimeApiResponse, simklData: SimklDetailResponse): AnimeApiResponse {
+  return {
+    ...apiData,
+    // Only update fields that are null/missing in the original data
+    imdb: apiData.imdb || (simklData.ids.imdb ? simklData.ids.imdb : null),
+    themoviedb: apiData.themoviedb || (simklData.ids.tmdb ? parseInt(simklData.ids.tmdb, 10) : null),
+    anidb: apiData.anidb || (simklData.ids.anidb ? parseInt(simklData.ids.anidb, 10) : null),
+    anilist: apiData.anilist || (simklData.ids.anilist ? parseInt(simklData.ids.anilist, 10) : null),
+    kitsu: apiData.kitsu || (simklData.ids.kitsu ? parseInt(simklData.ids.kitsu, 10) : null),
+    // Add SIMKL ID itself
+    simkl: simklData.ids.simkl,
+  };
 }
 
 /**
@@ -53,6 +292,7 @@ export interface MediaInfo {
  */
 export function useMediaInfo(): MediaInfo | null {
   const [mediaInfo, setMediaInfo] = useState<MediaInfo | null>(null);
+  const { simklClientId } = useSettingsStore();
 
   useEffect(() => {
     // Only run on torrent pages
@@ -127,36 +367,75 @@ export function useMediaInfo(): MediaInfo | null {
         // Fetch data from API if MAL ID is found
         if (malId) {
           try {
-            apiData = await new Promise<AnimeApiResponse | null>((resolve) => {
-              GM_xmlhttpRequest({
-                method: "GET",
-                url: `https://anime-api-tajoumarus-projects.vercel.app/mal/${malId}`,
-                onload: (response) => {
-                  if (response.status === 200) {
-                    try {
-                      const data = JSON.parse(response.responseText);
-                      resolve(data);
-                    } catch (parseError) {
-                      console.error("AB Suite: Failed to parse anime API response", parseError);
+            const cacheKey = `anime-api-mal-${malId}`;
+            apiData = await cachedApiCall(
+              cacheKey,
+              () =>
+                new Promise<AnimeApiResponse | null>((resolve) => {
+                  GM_xmlhttpRequest({
+                    method: "GET",
+                    url: `https://anime-api-tajoumarus-projects.vercel.app/mal/${malId}`,
+                    onload: (response) => {
+                      if (response.status === 200) {
+                        try {
+                          const data = JSON.parse(response.responseText);
+                          resolve(data);
+                        } catch (parseError) {
+                          console.error("AB Suite: Failed to parse anime API response", parseError);
+                          resolve(null);
+                        }
+                      } else {
+                        console.error("AB Suite: Anime API returned status", response.status);
+                        resolve(null);
+                      }
+                    },
+                    onerror: () => {
+                      console.error("AB Suite: Failed to fetch anime API data");
                       resolve(null);
-                    }
-                  } else {
-                    console.error("AB Suite: Anime API returned status", response.status);
-                    resolve(null);
-                  }
-                },
-                onerror: () => {
-                  console.error("AB Suite: Failed to fetch anime API data");
-                  resolve(null);
-                },
-              });
-            });
+                    },
+                  });
+                }),
+              {
+                ttl: 7 * 24 * 60 * 60 * 1000, // 7 days - anime IDs rarely change
+                failureTtl: 60 * 60 * 1000, // 1 hour for failures
+                apiKey: "anime-api",
+              },
+            );
           } catch (error) {
             console.error("AB Suite: Failed to fetch anime API data", error);
           }
         }
 
         log("AB Suite: Fetched API Data", apiData);
+
+        // Fetch additional IDs from SIMKL if client ID is provided and MAL ID exists
+        if (simklClientId && malId && apiData) {
+          try {
+            const existingSimklId = apiData.simkl ? apiData.simkl : undefined;
+            const simklData = await fetchSimklData(malId, simklClientId, existingSimklId);
+            if (simklData) {
+              // Merge SIMKL IDs with existing apiData
+              apiData = mergeSimklData(apiData, simklData);
+              log("AB Suite: Merged SIMKL data", apiData);
+            }
+          } catch (error) {
+            log("AB Suite: Failed to fetch SIMKL data", error);
+          }
+        }
+
+        // Fetch Kitsu rating if Kitsu ID is available
+        let kitsuRating: number | null = null;
+        let kitsuVotes: number | null = null;
+        if (apiData?.kitsu) {
+          try {
+            const kitsuData = await fetchKitsuData(apiData.kitsu.toString());
+            kitsuRating = kitsuData.rating;
+            kitsuVotes = kitsuData.votes;
+            log("AB Suite: Fetched Kitsu rating", kitsuRating);
+          } catch (error) {
+            log("AB Suite: Failed to fetch Kitsu rating", error);
+          }
+        }
 
         // Create external links
         const externalLinks: Array<{ name: string; url: string }> = [];
@@ -169,6 +448,14 @@ export function useMediaInfo(): MediaInfo | null {
           });
         }
 
+        if (apiData?.kitsu) {
+          // Add Kitsu link
+          externalLinks.push({
+            name: "Kitsu",
+            url: `https://kitsu.app/anime/${apiData.kitsu}`,
+          });
+        }
+
         return {
           seriesTitle,
           mediaType,
@@ -176,6 +463,8 @@ export function useMediaInfo(): MediaInfo | null {
           searchMediaType,
           malId,
           apiData,
+          kitsuRating,
+          kitsuVotes,
           externalLinks,
         };
       } catch (error) {
@@ -185,7 +474,7 @@ export function useMediaInfo(): MediaInfo | null {
     };
 
     extractMediaInfo().then(setMediaInfo);
-  }, []);
+  }, [simklClientId]);
 
   return mediaInfo;
 }

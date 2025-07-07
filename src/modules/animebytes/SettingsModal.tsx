@@ -39,7 +39,11 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     autocompleteSearchEnabled,
     sectionsCollapsedByDefault,
     debugLoggingEnabled,
+    RatingsEnabled,
+    simklClientId,
+    tmdbApiToken,
     toggleSetting,
+    updateStringSetting,
   } = useSettingsStore();
 
   const [isClosing, setIsClosing] = useState(false);
@@ -96,7 +100,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       | "interactiveSearchEnabled"
       | "autocompleteSearchEnabled"
       | "sectionsCollapsedByDefault"
-      | "debugLoggingEnabled",
+      | "debugLoggingEnabled"
+      | "RatingsEnabled",
   ) => {
     toggleSetting(key);
 
@@ -112,7 +117,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       key === "interactiveSearchEnabled" ||
       key === "autocompleteSearchEnabled" ||
       key === "sectionsCollapsedByDefault" ||
-      key === "debugLoggingEnabled"
+      key === "debugLoggingEnabled" ||
+      key === "RatingsEnabled"
     ) {
       // Could add a toast notification here in the future
       log("AB Suite: Setting updated. Some changes may require a page reload.");
@@ -152,6 +158,54 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             aria-label={`Toggle AniList integration ${anilistIntegrationEnabled ? "off" : "on"}`}
             type="button"
           />
+        </div>
+
+        <div className="ab-settings-option">
+          <div className="ab-settings-option-content">
+            <strong>Comprehensive Ratings</strong>
+            <div>
+              Shows ratings from AniDB, AniList, Kitsu, MyAnimeList, TMDB, and IMDb with detailed score breakdowns.
+            </div>
+          </div>
+          <button
+            className={`ab-settings-toggle ${RatingsEnabled ? "active" : ""}`}
+            onClick={() => handleToggle("RatingsEnabled")}
+            aria-label={`Toggle comprehensive ratings ${RatingsEnabled ? "off" : "on"}`}
+            type="button"
+          />
+        </div>
+
+        <div className="ab-settings-option">
+          <div className="ab-settings-option-content">
+            <strong>SIMKL Client ID</strong>
+            <div>
+              Optional API key for SIMKL integration to fetch additional IDs (TMDB, IMDB). Get yours at
+              simkl.com/settings/developer
+            </div>
+            <input
+              type="text"
+              placeholder="Enter SIMKL Client ID (optional)"
+              value={simklClientId}
+              onChange={(e) => updateStringSetting("simklClientId", (e.target as HTMLInputElement).value)}
+              className="ab-settings-input"
+            />
+          </div>
+        </div>
+
+        <div className="ab-settings-option">
+          <div className="ab-settings-option-content">
+            <strong>TMDB API Token</strong>
+            <div>
+              Required for TMDB and IMDb ratings in Comprehensive Ratings. Get yours at themoviedb.org/settings/api
+            </div>
+            <input
+              type="text"
+              placeholder="Enter TMDB API Bearer Token (required for TMDB/IMDb ratings)"
+              value={tmdbApiToken}
+              onChange={(e) => updateStringSetting("tmdbApiToken", (e.target as HTMLInputElement).value)}
+              className="ab-settings-input"
+            />
+          </div>
         </div>
 
         <div className="ab-settings-option">

@@ -149,6 +149,27 @@
   transform: translateX(26px);
 }
 
+.ab-settings-input {
+  width: 100%;
+  padding: 8px 12px;
+  margin-top: 8px;
+  background: hsl(0, 0%, 10%);
+  border: 1px solid hsl(0, 0%, 30%);
+  border-radius: 4px;
+  color: white;
+  font-size: 0.9em;
+}
+
+.ab-settings-input:focus {
+  outline: none;
+  border-color: hsl(336, 87%, 50%);
+  box-shadow: 0 0 0 2px hsla(336, 87%, 50%, 0.2);
+}
+
+.ab-settings-input::placeholder {
+  color: hsl(0, 0%, 50%);
+}
+
 .ab-settings-footer {
   margin-top: 20px;
   font-size: 0.9em;
@@ -1194,4 +1215,31 @@ li.ab-selected .ab-autocomplete-item {
 
 .animate-spin {
   animation: spin 1s linear infinite;
+}
+
+/* Comprehensive Ratings Styles */
+.ab-ratings-grid {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  align-items: start;
+}
+
+.ab-rating-card {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.ab-rating-platform-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 25%;
+}
+
+.ab-rating-score {
+  font-weight: bold;
+  font-size: 13px;
+  color: #fff;
 }

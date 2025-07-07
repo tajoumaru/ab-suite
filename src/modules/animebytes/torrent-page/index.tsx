@@ -5,6 +5,7 @@ import { useSettingsStore } from "@/stores/settings";
 import { log } from "@/utils/logging";
 import { useMediaInfo } from "../hooks/useMediaInfo";
 import {
+  Ratings,
   detectTableType,
   ExternalLinksBar,
   extractTorrentData,
@@ -24,11 +25,13 @@ import {
  * This replaces both the old TorrentPage and ExternalLinks components.
  */
 export function TorrentGroupPage() {
-  const { tableRestructureEnabled, mediainfoParserEnabled, anilistIntegrationEnabled } = useSettingsStore();
+  const { tableRestructureEnabled, mediainfoParserEnabled, anilistIntegrationEnabled, RatingsEnabled } =
+    useSettingsStore();
   const [torrents, setTorrents] = useState<ParsedTorrentRow[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const headerContainerRef = useRef<HTMLSpanElement>(null);
+  const ratingsContainerRef = useRef<HTMLDivElement>(null);
   const originalTableRef = useRef<HTMLTableElement | null>(null);
   const mediaInfo = useMediaInfo();
 
@@ -142,6 +145,46 @@ export function TorrentGroupPage() {
     integrateExternalLinks();
   }, [anilistIntegrationEnabled, mediaInfo]);
 
+  // Handle comprehensive ratings integration
+  useEffect(() => {
+    if (!RatingsEnabled || !mediaInfo?.apiData || !isInitialized) {
+      return;
+    }
+
+    // Only run on torrent pages
+    if (!window.location.pathname.includes("/torrents.php") && !window.location.pathname.includes("/torrents2.php")) {
+      return;
+    }
+
+    const integrateRatings = () => {
+      // Find the modern torrent table element
+      const modernTable = document.querySelector("#ab-modern-torrent-table");
+
+      if (!modernTable) {
+        return;
+      }
+
+      // Check if ratings already exist to prevent duplication
+      if (document.querySelector(".ab-comprehensive-ratings")) {
+        return;
+      }
+
+      // Create container for ratings
+      const ratingsContainer = document.createElement("div");
+      ratingsContainer.id = "ab-comprehensive-ratings-container";
+
+      // Insert before the modern torrent table
+      modernTable.parentNode?.insertBefore(ratingsContainer, modernTable);
+
+      // Store the container reference
+      ratingsContainerRef.current = ratingsContainer;
+
+      log("AB Suite: Comprehensive ratings container created");
+    };
+
+    integrateRatings();
+  }, [RatingsEnabled, mediaInfo, isInitialized]);
+
   // Render the components into their containers when we have data
   useEffect(() => {
     if (isInitialized && tableContainerRef.current && torrents.length > 0) {
@@ -158,6 +201,13 @@ export function TorrentGroupPage() {
       render(<ExternalLinksBar mediaInfo={mediaInfo} />, headerContainerRef.current);
     }
   }, [anilistIntegrationEnabled, mediaInfo]);
+
+  // Render comprehensive ratings when we have API data
+  useEffect(() => {
+    if (RatingsEnabled && mediaInfo?.apiData && ratingsContainerRef.current) {
+      render(<Ratings apiData={mediaInfo.apiData} mediaInfo={mediaInfo} />, ratingsContainerRef.current);
+    }
+  }, [RatingsEnabled, mediaInfo]);
 
   // This component doesn't render anything directly - it manages DOM takeover
   return null;
