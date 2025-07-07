@@ -167,28 +167,6 @@ export function useMediaInfo(): MediaInfo | null {
             name: "AniList",
             url: `https://anilist.co/anime/${apiData.anilist}`,
           });
-        } else if (searchMediaType === "anime") {
-          // Fallback to search URL for anime
-          const encodedTitle = encodeURIComponent(searchTitle);
-          externalLinks.push({
-            name: "AniList",
-            url: `https://anilist.co/search/anime?search=${encodedTitle}`,
-          });
-        }
-
-        if (searchMediaType === "manga") {
-          const encodedTitle = encodeURIComponent(searchTitle);
-          // Keep MangaDex search for manga
-          externalLinks.push({
-            name: "MangaDex",
-            url: `https://mangadex.org/search?q=${encodedTitle}`,
-          });
-
-          // Also add AniList search for manga
-          externalLinks.push({
-            name: "AniList",
-            url: `https://anilist.co/search/manga?search=${encodedTitle}`,
-          });
         }
 
         return {
