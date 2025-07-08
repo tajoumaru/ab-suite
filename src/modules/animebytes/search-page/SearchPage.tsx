@@ -2,6 +2,7 @@ import { render } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { useSettingsStore } from "@/stores/settings";
 import { log } from "@/utils/logging";
+import { GalleryView } from "../gallery-view";
 import { AutocompleteEnhancedInput } from "./AutocompleteEnhancedInput";
 import { createCategoryUrl, createCrossNavigationUrl, useSearchState } from "./useSearchState";
 
@@ -24,10 +25,11 @@ const SUBCATEGORIES_ACTIVE_COLOR = "#fe2a73";
  * 4. Replaces the imperative DOM manipulation from AutocompleteSearch and InteractiveSearch
  */
 export function SearchPage() {
-  const { autocompleteSearchEnabled, interactiveSearchEnabled } = useSettingsStore();
+  const { autocompleteSearchEnabled, interactiveSearchEnabled, galleryViewEnabled } = useSettingsStore();
   const [searchInputs, setSearchInputs] = useState<SearchInputInfo[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
   const enhancedInputRefs = useRef<Map<HTMLInputElement, HTMLDivElement>>(new Map());
+  const galleryContainerRef = useRef<HTMLDivElement>(null);
   const searchState = useSearchState();
 
   useEffect(() => {
@@ -287,6 +289,57 @@ export function SearchPage() {
       observer.disconnect();
     };
   }, [interactiveSearchEnabled, searchState]);
+
+  // Initialize gallery view
+  useEffect(() => {
+    if (!galleryViewEnabled) {
+      return;
+    }
+
+    // Only run on search pages
+    if (!window.location.pathname.includes("/torrents.php") && !window.location.pathname.includes("/torrents2.php")) {
+      return;
+    }
+
+    const initializeGalleryView = () => {
+      if (galleryContainerRef.current) {
+        return;
+      }
+
+      // Find a good location to insert the gallery view
+      const firstGroup = document.querySelector("div.group_cont.box");
+      if (!firstGroup) {
+        return;
+      }
+
+      // Create container for gallery view
+      const galleryContainer = document.createElement("div");
+      galleryContainer.id = "ab-gallery-view-container";
+
+      // Insert before the first torrent group
+      firstGroup.parentNode?.insertBefore(galleryContainer, firstGroup);
+      galleryContainerRef.current = galleryContainer;
+
+      // Render the gallery view
+      render(<GalleryView />, galleryContainer);
+
+      log("AB Suite: Gallery view initialized on search page");
+    };
+
+    // Try to initialize immediately
+    initializeGalleryView();
+
+    // Watch for dynamic content changes
+    const observer = new MutationObserver(() => {
+      initializeGalleryView();
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [galleryViewEnabled]);
 
   // This component doesn't render anything directly - it manages DOM takeover
   return null;

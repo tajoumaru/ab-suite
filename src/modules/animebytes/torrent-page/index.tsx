@@ -3,14 +3,16 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import { useSeaDexUpdates } from "@/stores/seadex";
 import { useSettingsStore } from "@/stores/settings";
 import { log } from "@/utils/logging";
+import { GalleryView } from "../gallery-view";
 import { useMediaInfo } from "../hooks/useMediaInfo";
 import {
-  Ratings,
   detectTableType,
   ExternalLinksBar,
   extractTorrentData,
   type ParsedTorrentRow,
+  Ratings,
   TorrentTable,
+  Trailers,
 } from "../modern-table";
 
 /**
@@ -25,14 +27,22 @@ import {
  * This replaces both the old TorrentPage and ExternalLinks components.
  */
 export function TorrentGroupPage() {
-  const { tableRestructureEnabled, mediainfoParserEnabled, anilistIntegrationEnabled, RatingsEnabled } =
-    useSettingsStore();
+  const {
+    tableRestructureEnabled,
+    mediainfoParserEnabled,
+    anilistIntegrationEnabled,
+    RatingsEnabled,
+    TrailersEnabled,
+    galleryViewEnabled,
+  } = useSettingsStore();
   const [torrents, setTorrents] = useState<ParsedTorrentRow[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const headerContainerRef = useRef<HTMLSpanElement>(null);
-  const ratingsContainerRef = useRef<HTMLDivElement>(null);
+  const sectionsContainerRef = useRef<HTMLDivElement>(null);
+  const galleryContainerRef = useRef<HTMLDivElement>(null);
   const originalTableRef = useRef<HTMLTableElement | null>(null);
+  const [plotSynopsisHtml, setPlotSynopsisHtml] = useState<string | null>(null);
   const mediaInfo = useMediaInfo();
 
   const initializeTorrentGroupPage = () => {
@@ -67,6 +77,14 @@ export function TorrentGroupPage() {
 
       // Store the container reference for rendering
       tableContainerRef.current = tableContainer;
+
+      // Create container for gallery view
+      if (galleryViewEnabled) {
+        const galleryContainer = document.createElement("div");
+        galleryContainer.id = "ab-gallery-container";
+        originalTable.parentNode?.insertBefore(galleryContainer, originalTable);
+        galleryContainerRef.current = galleryContainer;
+      }
 
       // Set the extracted data and mark as initialized
       setTorrents(extractedTorrents);
@@ -145,9 +163,9 @@ export function TorrentGroupPage() {
     integrateExternalLinks();
   }, [anilistIntegrationEnabled, mediaInfo]);
 
-  // Handle comprehensive ratings integration
+  // Handle sections container creation and plot synopsis extraction
   useEffect(() => {
-    if (!RatingsEnabled || !mediaInfo?.apiData || !isInitialized) {
+    if (!isInitialized) {
       return;
     }
 
@@ -156,34 +174,34 @@ export function TorrentGroupPage() {
       return;
     }
 
-    const integrateRatings = () => {
-      // Find the modern torrent table element
+    const integrateSections = () => {
       const modernTable = document.querySelector("#ab-modern-torrent-table");
-
-      if (!modernTable) {
+      if (!modernTable || document.querySelector("#ab-sections-container")) {
         return;
       }
 
-      // Check if ratings already exist to prevent duplication
-      if (document.querySelector(".ab-comprehensive-ratings")) {
-        return;
+      // Create single container for all sections
+      const sectionsContainer = document.createElement("div");
+      sectionsContainer.id = "ab-sections-container";
+      modernTable.parentNode?.insertBefore(sectionsContainer, modernTable);
+      sectionsContainerRef.current = sectionsContainer;
+
+      // Extract plot synopsis HTML and hide original
+      const boxes = document.querySelectorAll("div.box");
+      for (const box of boxes) {
+        const head = box.querySelector("div.head");
+        if (head?.textContent?.includes("Plot Synopsis")) {
+          setPlotSynopsisHtml(box.outerHTML);
+          (box as HTMLElement).style.display = "none";
+          break;
+        }
       }
 
-      // Create container for ratings
-      const ratingsContainer = document.createElement("div");
-      ratingsContainer.id = "ab-comprehensive-ratings-container";
-
-      // Insert before the modern torrent table
-      modernTable.parentNode?.insertBefore(ratingsContainer, modernTable);
-
-      // Store the container reference
-      ratingsContainerRef.current = ratingsContainer;
-
-      log("AB Suite: Comprehensive ratings container created");
+      log("AB Suite: Sections container created");
     };
 
-    integrateRatings();
-  }, [RatingsEnabled, mediaInfo, isInitialized]);
+    integrateSections();
+  }, [isInitialized]);
 
   // Render the components into their containers when we have data
   useEffect(() => {
@@ -202,12 +220,27 @@ export function TorrentGroupPage() {
     }
   }, [anilistIntegrationEnabled, mediaInfo]);
 
-  // Render comprehensive ratings when we have API data
+  // Render all sections in proper order
   useEffect(() => {
-    if (RatingsEnabled && mediaInfo?.apiData && ratingsContainerRef.current) {
-      render(<Ratings apiData={mediaInfo.apiData} mediaInfo={mediaInfo} />, ratingsContainerRef.current);
+    if (sectionsContainerRef.current && isInitialized) {
+      const SectionsContainer = () => (
+        <>
+          {TrailersEnabled && mediaInfo?.apiData && <Trailers apiData={mediaInfo.apiData} mediaInfo={mediaInfo} />}
+          {plotSynopsisHtml && <div dangerouslySetInnerHTML={{ __html: plotSynopsisHtml }} />}
+          {RatingsEnabled && mediaInfo?.apiData && <Ratings apiData={mediaInfo.apiData} mediaInfo={mediaInfo} />}
+        </>
+      );
+
+      render(<SectionsContainer />, sectionsContainerRef.current);
     }
-  }, [RatingsEnabled, mediaInfo]);
+  }, [TrailersEnabled, RatingsEnabled, mediaInfo, plotSynopsisHtml, isInitialized]);
+
+  // Render gallery view when enabled
+  useEffect(() => {
+    if (galleryViewEnabled && galleryContainerRef.current) {
+      render(<GalleryView />, galleryContainerRef.current);
+    }
+  }, [galleryViewEnabled]);
 
   // This component doesn't render anything directly - it manages DOM takeover
   return null;

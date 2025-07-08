@@ -1,6 +1,6 @@
 {
   "name": "ab-suite",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "A suite of userscripts for AnimeBytes.",
   "homepage": "https://github.com/tajoumaru/ab-suite",
   "repository": {
@@ -12,11 +12,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "format": "biome check --fix --unsafe",
+    "check": "tsc --noEmit -p tsconfig.app.json",
     "build": "pnpm build:unminified && pnpm build:minified",
     "build:unminified": "vite build",
-    "build:minified": "BUILD_MODE=minified vite build",
-    "preview": "vite preview"
+    "build:minified": "BUILD_MODE=minified vite build"
   },
   "dependencies": {
     "lucide-preact": "^0.525.0",

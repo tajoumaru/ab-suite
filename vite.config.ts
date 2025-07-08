@@ -72,10 +72,10 @@ function createBuildConfig(isMinified: boolean) {
           extend: true,
           minify: isMinified
             ? {
-              mangle: true,
-              compress: true,
-              removeWhitespace: true,
-            }
+                mangle: true,
+                compress: true,
+                removeWhitespace: true,
+              }
             : false,
         },
       },

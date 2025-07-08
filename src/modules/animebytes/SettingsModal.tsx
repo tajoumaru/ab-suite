@@ -40,6 +40,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     sectionsCollapsedByDefault,
     debugLoggingEnabled,
     RatingsEnabled,
+    galleryViewEnabled,
+    treeFilelistEnabled,
     simklClientId,
     tmdbApiToken,
     toggleSetting,
@@ -101,7 +103,9 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       | "autocompleteSearchEnabled"
       | "sectionsCollapsedByDefault"
       | "debugLoggingEnabled"
-      | "RatingsEnabled",
+      | "RatingsEnabled"
+      | "galleryViewEnabled"
+      | "treeFilelistEnabled",
   ) => {
     toggleSetting(key);
 
@@ -118,7 +122,9 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       key === "autocompleteSearchEnabled" ||
       key === "sectionsCollapsedByDefault" ||
       key === "debugLoggingEnabled" ||
-      key === "RatingsEnabled"
+      key === "RatingsEnabled" ||
+      key === "galleryViewEnabled" ||
+      key === "treeFilelistEnabled"
     ) {
       // Could add a toast notification here in the future
       log("AB Suite: Setting updated. Some changes may require a page reload.");
@@ -179,8 +185,10 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           <div className="ab-settings-option-content">
             <strong>SIMKL Client ID</strong>
             <div>
-              Optional API key for SIMKL integration to fetch additional IDs (TMDB, IMDB). Get yours at
-              simkl.com/settings/developer
+              Optional API key for SIMKL integration to fetch additional IDs (TMDB, IMDB). Get yours at{" "}
+              <a href="https://simkl.com/settings/developer" target="_blank" rel="noopener noreferrer">
+                simkl.com/settings/developer
+              </a>
             </div>
             <input
               type="text"
@@ -196,7 +204,10 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           <div className="ab-settings-option-content">
             <strong>TMDB API Token</strong>
             <div>
-              Required for TMDB and IMDb ratings in Comprehensive Ratings. Get yours at themoviedb.org/settings/api
+              Required for TMDB ratings in Comprehensive Ratings. Get yours at{" "}
+              <a href="https://themoviedb.org/settings/api" target="_blank" rel="noopener noreferrer">
+                themoviedb.org/settings/api
+              </a>
             </div>
             <input
               type="text"
@@ -230,6 +241,19 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             className={`ab-settings-toggle ${tableRestructureEnabled ? "active" : ""}`}
             onClick={() => handleToggle("tableRestructureEnabled")}
             aria-label={`Toggle modern table layout ${tableRestructureEnabled ? "off" : "on"}`}
+            type="button"
+          />
+        </div>
+
+        <div className="ab-settings-option">
+          <div className="ab-settings-option-content">
+            <strong>Gallery View</strong>
+            <div>Adds a gallery view option to torrent search pages with cover images, tags, and descriptions.</div>
+          </div>
+          <button
+            className={`ab-settings-toggle ${galleryViewEnabled ? "active" : ""}`}
+            onClick={() => handleToggle("galleryViewEnabled")}
+            aria-label={`Toggle gallery view ${galleryViewEnabled ? "off" : "on"}`}
             type="button"
           />
         </div>
@@ -330,6 +354,22 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             className={`ab-settings-toggle ${sectionsCollapsedByDefault ? "active" : ""}`}
             onClick={() => handleToggle("sectionsCollapsedByDefault")}
             aria-label={`Toggle load sections collapsed ${sectionsCollapsedByDefault ? "off" : "on"}`}
+            type="button"
+          />
+        </div>
+
+        <div className="ab-settings-option">
+          <div className="ab-settings-option-content">
+            <strong>Tree-Style Filelist</strong>
+            <div>
+              Displays filelists in a tree structure with folders and files, similar to U2's filelist. Folders can be
+              expanded/collapsed and show total size.
+            </div>
+          </div>
+          <button
+            className={`ab-settings-toggle ${treeFilelistEnabled ? "active" : ""}`}
+            onClick={() => handleToggle("treeFilelistEnabled")}
+            aria-label={`Toggle tree-style filelist ${treeFilelistEnabled ? "off" : "on"}`}
             type="button"
           />
         </div>

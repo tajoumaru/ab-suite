@@ -83,6 +83,8 @@ export interface MediaInfo {
   apiData: AnimeApiResponse | null;
   kitsuRating: number | null;
   kitsuVotes: number | null;
+  siteRating: number | null;
+  siteVotes: number | null;
   externalLinks: Array<{
     name: string;
     url: string;
@@ -437,6 +439,35 @@ export function useMediaInfo(): MediaInfo | null {
           }
         }
 
+        // Extract site's own rating from the page
+        let siteRating: number | null = null;
+        let siteVotes: number | null = null;
+        try {
+          const ratingStatsElement = document.querySelector("#rating_stats");
+          if (ratingStatsElement) {
+            const avgRatingElement = ratingStatsElement.querySelector("#avg_rating");
+            const numRatingElement = ratingStatsElement.querySelector("#num_rating");
+
+            if (avgRatingElement && numRatingElement) {
+              const avgRatingText = avgRatingElement.textContent?.trim();
+              const numRatingText = numRatingElement.textContent?.trim();
+
+              if (avgRatingText && numRatingText) {
+                siteRating = parseFloat(avgRatingText);
+                siteVotes = parseInt(numRatingText, 10);
+
+                // Validate the extracted values
+                if (Number.isNaN(siteRating) || Number.isNaN(siteVotes)) {
+                  siteRating = null;
+                  siteVotes = null;
+                }
+              }
+            }
+          }
+        } catch (error) {
+          log("AB Suite: Failed to extract site rating", error);
+        }
+
         // Create external links
         const externalLinks: Array<{ name: string; url: string }> = [];
 
@@ -456,6 +487,23 @@ export function useMediaInfo(): MediaInfo | null {
           });
         }
 
+        if (apiData?.imdb) {
+          // Add IMDB link
+          externalLinks.push({
+            name: "IMDB",
+            url: `https://www.imdb.com/title/${apiData.imdb}`,
+          });
+        }
+
+        if (apiData?.themoviedb) {
+          // Add TMDB link - use tv for anime, movie for everything else
+          const tmdbMediaType = searchMediaType === "anime" ? "tv" : "movie";
+          externalLinks.push({
+            name: "TMDB",
+            url: `https://www.themoviedb.org/${tmdbMediaType}/${apiData.themoviedb}`,
+          });
+        }
+
         return {
           seriesTitle,
           mediaType,
@@ -465,6 +513,8 @@ export function useMediaInfo(): MediaInfo | null {
           apiData,
           kitsuRating,
           kitsuVotes,
+          siteRating,
+          siteVotes,
           externalLinks,
         };
       } catch (error) {

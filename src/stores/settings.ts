@@ -16,16 +16,23 @@ export interface Settings {
   sectionsCollapsedByDefault: boolean;
   debugLoggingEnabled: boolean;
   RatingsEnabled: boolean;
+  TrailersEnabled: boolean;
+  galleryViewEnabled: boolean;
+  treeFilelistEnabled: boolean;
   simklClientId: string;
   tmdbApiToken: string;
+  youtubeApiKey: string;
 }
 
 interface SettingsStore extends Settings {
   isLoaded: boolean;
   loadSettings: () => void;
   updateSetting: <K extends keyof Settings>(key: K, value: Settings[K]) => void;
-  updateStringSetting: (key: keyof Pick<Settings, "simklClientId" | "tmdbApiToken">, value: string) => void;
-  toggleSetting: (key: keyof Omit<Settings, "simklClientId" | "tmdbApiToken">) => void;
+  updateStringSetting: (
+    key: keyof Pick<Settings, "simklClientId" | "tmdbApiToken" | "youtubeApiKey">,
+    value: string,
+  ) => void;
+  toggleSetting: (key: keyof Omit<Settings, "simklClientId" | "tmdbApiToken" | "youtubeApiKey">) => void;
 }
 
 const DEFAULT_SETTINGS: Settings = {
@@ -41,8 +48,12 @@ const DEFAULT_SETTINGS: Settings = {
   sectionsCollapsedByDefault: true,
   debugLoggingEnabled: false,
   RatingsEnabled: true,
+  TrailersEnabled: true,
+  galleryViewEnabled: false,
+  treeFilelistEnabled: false,
   simklClientId: "",
   tmdbApiToken: "",
+  youtubeApiKey: "",
 };
 
 // Simple store implementation
@@ -111,6 +122,22 @@ class SimpleSettingsStore {
     return this.state.tmdbApiToken;
   }
 
+  get TrailersEnabled() {
+    return this.state.TrailersEnabled;
+  }
+
+  get youtubeApiKey() {
+    return this.state.youtubeApiKey;
+  }
+
+  get galleryViewEnabled() {
+    return this.state.galleryViewEnabled;
+  }
+
+  get treeFilelistEnabled() {
+    return this.state.treeFilelistEnabled;
+  }
+
   get isLoaded() {
     return this.state.isLoaded;
   }
@@ -170,6 +197,22 @@ class SimpleSettingsStore {
         DEFAULT_SETTINGS.simklClientId,
       ) as string;
       const tmdbApiToken = GM_getValue(`${SETTINGS_KEY_PREFIX}tmdbApiToken`, DEFAULT_SETTINGS.tmdbApiToken) as string;
+      const TrailersEnabled = GM_getValue(
+        `${SETTINGS_KEY_PREFIX}TrailersEnabled`,
+        DEFAULT_SETTINGS.TrailersEnabled,
+      ) as boolean;
+      const youtubeApiKey = GM_getValue(
+        `${SETTINGS_KEY_PREFIX}youtubeApiKey`,
+        DEFAULT_SETTINGS.youtubeApiKey,
+      ) as string;
+      const galleryViewEnabled = GM_getValue(
+        `${SETTINGS_KEY_PREFIX}galleryViewEnabled`,
+        DEFAULT_SETTINGS.galleryViewEnabled,
+      ) as boolean;
+      const treeFilelistEnabled = GM_getValue(
+        `${SETTINGS_KEY_PREFIX}treeFilelistEnabled`,
+        DEFAULT_SETTINGS.treeFilelistEnabled,
+      ) as boolean;
 
       this.state = {
         ...this.state,
@@ -185,8 +228,12 @@ class SimpleSettingsStore {
         sectionsCollapsedByDefault,
         debugLoggingEnabled,
         RatingsEnabled,
+        TrailersEnabled,
+        galleryViewEnabled,
+        treeFilelistEnabled,
         simklClientId,
         tmdbApiToken,
+        youtubeApiKey,
         isLoaded: true,
       };
       this.notifySubscribers();
@@ -207,11 +254,14 @@ class SimpleSettingsStore {
     }
   };
 
-  updateStringSetting = (key: keyof Pick<Settings, "simklClientId" | "tmdbApiToken">, value: string) => {
+  updateStringSetting = (
+    key: keyof Pick<Settings, "simklClientId" | "tmdbApiToken" | "youtubeApiKey">,
+    value: string,
+  ) => {
     this.updateSetting(key, value);
   };
 
-  toggleSetting = (key: keyof Omit<Settings, "simklClientId" | "tmdbApiToken">) => {
+  toggleSetting = (key: keyof Omit<Settings, "simklClientId" | "tmdbApiToken" | "youtubeApiKey">) => {
     const current = this.state[key] as boolean;
     this.updateSetting(key, !current);
   };

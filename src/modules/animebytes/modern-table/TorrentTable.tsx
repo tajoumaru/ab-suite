@@ -535,20 +535,14 @@ function calculateFlagScore(flags: string[]): number {
   for (const flag of flags) {
     const flagLower = flag.toLowerCase();
 
-    // High-value flags
-    if (flagLower.includes("freeleech")) score += 10;
-    if (flagLower.includes("seadex")) {
-      if (flagLower.includes("best")) score += 8;
-      else score += 6;
-    }
-
-    // Medium-value flags
-    if (flagLower.includes("golden") || flagLower.includes("popcorn")) score += 5;
-    if (flagLower.includes("scene") || flagLower.includes("p2p")) score += 3;
-
-    // Low-value flags
-    if (flagLower.includes("trump") || flagLower.includes("proper")) score += 2;
-    if (flagLower.includes("repack") || flagLower.includes("fix")) score += 1;
+    // SeaDex Best (highest value)
+    if (flagLower.includes("seadex") && flagLower.includes("best")) score += 8;
+    // SeaDex Alt
+    else if (flagLower.includes("seadex")) score += 4;
+    // Freeleech
+    else if (flagLower.includes("freeleech")) score += 2;
+    // Remaster
+    else if (flagLower.includes("remastered")) score += 1;
   }
 
   return score;

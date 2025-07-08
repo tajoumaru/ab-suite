@@ -1,4 +1,5 @@
 import { useEffect, useState } from "preact/hooks";
+import { useSettingsStore } from "@/stores/settings";
 import { log } from "@/utils/logging";
 import {
   DescriptionTab,
@@ -7,6 +8,7 @@ import {
   PeerlistTab,
   ScreenshotsTab,
   SeaDexTab,
+  TreeFilelistTab,
   UploadDescription,
 } from "./detail-components";
 import { extractTorrentDetailsData, fetchPeerlistData, fetchScreenshotsData } from "./details-extraction";
@@ -23,6 +25,7 @@ export function TorrentDetails({ torrentId, groupId, detailsHtml, onDataExtracte
   const [peerlistLoading, setPeerlistLoading] = useState(false);
   const [screenshotsLoaded, setScreenshotsLoaded] = useState(false);
   const [peerlistLoaded, setPeerlistLoaded] = useState(false);
+  const { treeFilelistEnabled } = useSettingsStore();
 
   // Extract data on mount
   useEffect(() => {
@@ -132,7 +135,11 @@ export function TorrentDetails({ torrentId, groupId, detailsHtml, onDataExtracte
       case "description":
         return <DescriptionTab description={detailsData.description} />;
       case "filelist":
-        return <FilelistTab filelist={detailsData.filelist} torrentId={torrentId} />;
+        return treeFilelistEnabled ? (
+          <TreeFilelistTab filelist={detailsData.filelist} torrentId={torrentId} />
+        ) : (
+          <FilelistTab filelist={detailsData.filelist} torrentId={torrentId} />
+        );
       case "mediainfo":
         return <MediaInfoTab mediaInfo={detailsData.mediaInfo} />;
       case "screenshots":
