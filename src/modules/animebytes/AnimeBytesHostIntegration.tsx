@@ -1,6 +1,7 @@
 import { render } from "preact";
 import { useEffect, useRef } from "preact/hooks";
 import { log } from "@/utils/logging";
+import { ReadMoreIntegration } from "./ReadMoreIntegration";
 import { SettingsButton } from "./SettingsModal";
 
 /**
@@ -71,5 +72,6 @@ export function AnimeBytesHostIntegration() {
   }, [isInitialized.current]);
 
   // This component doesn't render anything directly - it manages DOM takeover
-  return null;
+  // Also render the ReadMoreIntegration component to handle truncated descriptions
+  return <ReadMoreIntegration />;
 }

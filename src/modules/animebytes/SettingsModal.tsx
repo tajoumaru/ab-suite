@@ -42,6 +42,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     RatingsEnabled,
     galleryViewEnabled,
     treeFilelistEnabled,
+    readMoreEnabled,
     simklClientId,
     tmdbApiToken,
     toggleSetting,
@@ -105,7 +106,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       | "debugLoggingEnabled"
       | "RatingsEnabled"
       | "galleryViewEnabled"
-      | "treeFilelistEnabled",
+      | "treeFilelistEnabled"
+      | "readMoreEnabled",
   ) => {
     toggleSetting(key);
 
@@ -124,7 +126,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       key === "debugLoggingEnabled" ||
       key === "RatingsEnabled" ||
       key === "galleryViewEnabled" ||
-      key === "treeFilelistEnabled"
+      key === "treeFilelistEnabled" ||
+      key === "readMoreEnabled"
     ) {
       // Could add a toast notification here in the future
       log("AB Suite: Setting updated. Some changes may require a page reload.");
@@ -370,6 +373,19 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             className={`ab-settings-toggle ${treeFilelistEnabled ? "active" : ""}`}
             onClick={() => handleToggle("treeFilelistEnabled")}
             aria-label={`Toggle tree-style filelist ${treeFilelistEnabled ? "off" : "on"}`}
+            type="button"
+          />
+        </div>
+
+        <div className="ab-settings-option">
+          <div className="ab-settings-option-content">
+            <strong>Read More Links</strong>
+            <div>Adds "Read all" links to truncated torrent descriptions that expand to show the full description.</div>
+          </div>
+          <button
+            className={`ab-settings-toggle ${readMoreEnabled ? "active" : ""}`}
+            onClick={() => handleToggle("readMoreEnabled")}
+            aria-label={`Toggle read more links ${readMoreEnabled ? "off" : "on"}`}
             type="button"
           />
         </div>

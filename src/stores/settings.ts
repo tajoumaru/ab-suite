@@ -19,6 +19,7 @@ export interface Settings {
   TrailersEnabled: boolean;
   galleryViewEnabled: boolean;
   treeFilelistEnabled: boolean;
+  readMoreEnabled: boolean;
   simklClientId: string;
   tmdbApiToken: string;
   youtubeApiKey: string;
@@ -51,6 +52,7 @@ const DEFAULT_SETTINGS: Settings = {
   TrailersEnabled: true,
   galleryViewEnabled: false,
   treeFilelistEnabled: false,
+  readMoreEnabled: true,
   simklClientId: "",
   tmdbApiToken: "",
   youtubeApiKey: "",
@@ -138,6 +140,10 @@ class SimpleSettingsStore {
     return this.state.treeFilelistEnabled;
   }
 
+  get readMoreEnabled() {
+    return this.state.readMoreEnabled;
+  }
+
   get isLoaded() {
     return this.state.isLoaded;
   }
@@ -213,6 +219,10 @@ class SimpleSettingsStore {
         `${SETTINGS_KEY_PREFIX}treeFilelistEnabled`,
         DEFAULT_SETTINGS.treeFilelistEnabled,
       ) as boolean;
+      const readMoreEnabled = GM_getValue(
+        `${SETTINGS_KEY_PREFIX}readMoreEnabled`,
+        DEFAULT_SETTINGS.readMoreEnabled,
+      ) as boolean;
 
       this.state = {
         ...this.state,
@@ -231,6 +241,7 @@ class SimpleSettingsStore {
         TrailersEnabled,
         galleryViewEnabled,
         treeFilelistEnabled,
+        readMoreEnabled,
         simklClientId,
         tmdbApiToken,
         youtubeApiKey,
