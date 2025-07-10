@@ -47,6 +47,12 @@ export interface AnilistAnimeResponse {
       id: number;
       averageScore: number | null;
       popularity: number | null;
+      stats: {
+        scoreDistribution: Array<{
+          score: number;
+          amount: number;
+        }>;
+      } | null;
     };
   };
 }
@@ -245,6 +251,12 @@ export async function fetchAnilistData(anilistId: number): Promise<AnilistAnimeR
         id
         averageScore
         popularity
+        stats {
+          scoreDistribution {
+            score
+            amount
+          }
+        }
       }
     }
   `;
@@ -467,9 +479,11 @@ export async function fetchYouTubeVideoInfo(videoId: string, youtubeApiKey: stri
 
                     if (captionsResponse.status === 200) {
                       try {
-                        const captionsData = JSON.parse(captionsResponse.responseText);
+                        const captionsData = JSON.parse(
+                          captionsResponse.responseText,
+                        ) as import("@/types/external-apis").YouTubeCaptionsResponse;
                         captions =
-                          captionsData.items?.map((caption: any) => ({
+                          captionsData.items?.map((caption) => ({
                             languageCode: caption.snippet.language,
                             name: caption.snippet.name,
                             kind: caption.snippet.trackKind === "ASR" ? "asr" : "standard",

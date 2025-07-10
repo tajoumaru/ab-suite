@@ -1,5 +1,5 @@
 import { ChevronDown, ChevronsUpDown, ChevronUp, Maximize2, Minimize2 } from "lucide-preact";
-import type { SortColumn, SortDirection, TableType } from "./types";
+import type { SortColumn, SortDirection, TableType } from "@/types/modern-table";
 
 interface TorrentHeaderProps {
   sortColumn: SortColumn;

@@ -1,6 +1,6 @@
 import { ChevronLeft, ChevronRight, Loader2, X } from "lucide-preact";
 import { useEffect, useState } from "preact/hooks";
-import type { ScreenshotItem } from "../types";
+import type { ScreenshotItem } from "@/types/modern-table";
 
 interface ScreenshotsTabProps {
   screenshots: ScreenshotItem[];

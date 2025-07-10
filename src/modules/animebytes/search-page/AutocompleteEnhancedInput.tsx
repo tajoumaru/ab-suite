@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useEffect, useReducer, useRef } from "preact/hooks";
 import { apiService } from "@/services/api";
 
 interface AutocompleteResult {
@@ -16,6 +16,84 @@ interface AutocompleteState {
   selectedIndex: number;
 }
 
+type AutocompleteAction =
+  | { type: "SET_QUERY"; payload: string }
+  | { type: "SET_LOADING"; payload: boolean }
+  | { type: "SET_RESULTS"; payload: AutocompleteResult[] }
+  | { type: "SET_VISIBLE"; payload: boolean }
+  | { type: "SET_SELECTED_INDEX"; payload: number }
+  | { type: "HIDE_DROPDOWN" }
+  | { type: "SHOW_RESULTS"; payload: AutocompleteResult[] }
+  | { type: "NAVIGATE_UP" }
+  | { type: "NAVIGATE_DOWN" }
+  | { type: "RESET" };
+
+function autocompleteReducer(state: AutocompleteState, action: AutocompleteAction): AutocompleteState {
+  switch (action.type) {
+    case "SET_QUERY":
+      return {
+        ...state,
+        query: action.payload,
+        selectedIndex: -1, // Reset selection when query changes
+      };
+    case "SET_LOADING":
+      return {
+        ...state,
+        isLoading: action.payload,
+      };
+    case "SET_RESULTS":
+      return {
+        ...state,
+        results: action.payload,
+        isLoading: false,
+      };
+    case "SET_VISIBLE":
+      return {
+        ...state,
+        isVisible: action.payload,
+      };
+    case "SET_SELECTED_INDEX":
+      return {
+        ...state,
+        selectedIndex: action.payload,
+      };
+    case "HIDE_DROPDOWN":
+      return {
+        ...state,
+        isVisible: false,
+        selectedIndex: -1,
+      };
+    case "SHOW_RESULTS":
+      return {
+        ...state,
+        results: action.payload,
+        isVisible: action.payload.length > 0,
+        isLoading: false,
+        selectedIndex: -1,
+      };
+    case "NAVIGATE_UP":
+      return {
+        ...state,
+        selectedIndex: state.selectedIndex > 0 ? state.selectedIndex - 1 : state.results.length - 1,
+      };
+    case "NAVIGATE_DOWN":
+      return {
+        ...state,
+        selectedIndex: state.selectedIndex < state.results.length - 1 ? state.selectedIndex + 1 : 0,
+      };
+    case "RESET":
+      return {
+        query: "",
+        results: [],
+        isLoading: false,
+        isVisible: false,
+        selectedIndex: -1,
+      };
+    default:
+      return state;
+  }
+}
+
 interface AutocompleteEnhancedInputProps {
   originalInput: HTMLInputElement;
   searchType: "anime" | "music";
@@ -26,7 +104,7 @@ interface AutocompleteEnhancedInputProps {
  * This replaces the imperative AutocompleteSearch component logic.
  */
 export function AutocompleteEnhancedInput({ originalInput, searchType }: AutocompleteEnhancedInputProps) {
-  const [autocompleteState, setAutocompleteState] = useState<AutocompleteState>({
+  const [state, dispatch] = useReducer(autocompleteReducer, {
     query: originalInput.value || "",
     results: [],
     isLoading: false,
@@ -40,10 +118,7 @@ export function AutocompleteEnhancedInput({ originalInput, searchType }: Autocom
   // Sync with original input value
   useEffect(() => {
     const handleOriginalChange = () => {
-      setAutocompleteState((prev) => ({
-        ...prev,
-        query: originalInput.value,
-      }));
+      dispatch({ type: "SET_QUERY", payload: originalInput.value });
     };
 
     originalInput.addEventListener("input", handleOriginalChange);
@@ -61,12 +136,7 @@ export function AutocompleteEnhancedInput({ originalInput, searchType }: Autocom
     if (cacheRef.current.has(cacheKey)) {
       const cachedResults = cacheRef.current.get(cacheKey);
       if (cachedResults) {
-        setAutocompleteState((prev) => ({
-          ...prev,
-          results: cachedResults,
-          isVisible: true,
-          isLoading: false,
-        }));
+        dispatch({ type: "SHOW_RESULTS", payload: cachedResults });
         return;
       }
     }
@@ -85,20 +155,10 @@ export function AutocompleteEnhancedInput({ originalInput, searchType }: Autocom
         }
       }
 
-      setAutocompleteState((prev) => ({
-        ...prev,
-        results,
-        isVisible: true,
-        isLoading: false,
-      }));
+      dispatch({ type: "SHOW_RESULTS", payload: results });
     } catch (error) {
       console.error("AB Suite: Autocomplete search failed:", error);
-      setAutocompleteState((prev) => ({
-        ...prev,
-        results: [],
-        isVisible: false,
-        isLoading: false,
-      }));
+      dispatch({ type: "SHOW_RESULTS", payload: [] });
     }
   };
 
@@ -111,11 +171,7 @@ export function AutocompleteEnhancedInput({ originalInput, searchType }: Autocom
     originalInput.value = query;
     originalInput.dispatchEvent(new Event("input", { bubbles: true }));
 
-    setAutocompleteState((prev) => ({
-      ...prev,
-      query,
-      selectedIndex: -1,
-    }));
+    dispatch({ type: "SET_QUERY", payload: query });
 
     // Clear previous debounce timer
     if (debounceTimerRef.current) {
@@ -124,42 +180,31 @@ export function AutocompleteEnhancedInput({ originalInput, searchType }: Autocom
 
     // Debounce the search
     if (query.trim()) {
-      setAutocompleteState((prev) => ({ ...prev, isLoading: true }));
+      dispatch({ type: "SET_LOADING", payload: true });
 
       debounceTimerRef.current = window.setTimeout(() => {
         performSearch(query, searchType);
       }, 200);
     } else {
-      setAutocompleteState((prev) => ({
-        ...prev,
-        results: [],
-        isVisible: false,
-        isLoading: false,
-      }));
+      dispatch({ type: "SHOW_RESULTS", payload: [] });
     }
   };
 
   // Handle keyboard navigation
   const handleKeyDown = (e: KeyboardEvent) => {
-    const { results, selectedIndex, isVisible } = autocompleteState;
+    const { results, selectedIndex, isVisible } = state;
 
     if (!isVisible || results.length === 0) return;
 
     switch (e.key) {
       case "ArrowDown":
         e.preventDefault();
-        setAutocompleteState((prev) => ({
-          ...prev,
-          selectedIndex: Math.min(prev.selectedIndex + 1, results.length - 1),
-        }));
+        dispatch({ type: "NAVIGATE_DOWN" });
         break;
 
       case "ArrowUp":
         e.preventDefault();
-        setAutocompleteState((prev) => ({
-          ...prev,
-          selectedIndex: Math.max(prev.selectedIndex - 1, -1),
-        }));
+        dispatch({ type: "NAVIGATE_UP" });
         break;
 
       case "Enter":
@@ -172,15 +217,15 @@ export function AutocompleteEnhancedInput({ originalInput, searchType }: Autocom
         break;
 
       case "Escape":
-        setAutocompleteState((prev) => ({ ...prev, isVisible: false }));
+        dispatch({ type: "HIDE_DROPDOWN" });
         break;
     }
   };
 
   // Handle focus
   const handleFocus = () => {
-    if (autocompleteState.results.length > 0) {
-      setAutocompleteState((prev) => ({ ...prev, isVisible: true }));
+    if (state.results.length > 0) {
+      dispatch({ type: "SET_VISIBLE", payload: true });
     }
   };
 
@@ -188,7 +233,7 @@ export function AutocompleteEnhancedInput({ originalInput, searchType }: Autocom
   const handleBlur = () => {
     // Hide autocomplete after a delay to allow for clicks
     setTimeout(() => {
-      setAutocompleteState((prev) => ({ ...prev, isVisible: false }));
+      dispatch({ type: "HIDE_DROPDOWN" });
     }, 150);
   };
 
@@ -211,7 +256,7 @@ export function AutocompleteEnhancedInput({ originalInput, searchType }: Autocom
     <div className="ab-autocomplete-wrapper">
       <input
         type="text"
-        value={autocompleteState.query}
+        value={state.query}
         onInput={handleInputChange}
         onKeyDown={handleKeyDown}
         onFocus={handleFocus}
@@ -221,20 +266,20 @@ export function AutocompleteEnhancedInput({ originalInput, searchType }: Autocom
         {...originalAttribs}
       />
 
-      {autocompleteState.isVisible && (
+      {state.isVisible && (
         <ul className="ab-autocomplete-container ab-visible">
-          {autocompleteState.isLoading && <li className="ab-autocomplete-loading">Loading...</li>}
+          {state.isLoading && <li className="ab-autocomplete-loading">Loading...</li>}
 
-          {!autocompleteState.isLoading && autocompleteState.results.length === 0 && autocompleteState.query && (
+          {!state.isLoading && state.results.length === 0 && state.query && (
             <li className="ab-autocomplete-no-results">No results found</li>
           )}
 
-          {autocompleteState.results.slice(0, 10).map((result, index) => {
+          {state.results.slice(0, 10).map((result, index) => {
             const title = result.name.length > 80 ? `${result.name.substring(0, 80).trim()}…` : result.name;
             const yearText = result.year === "0" ? "" : ` [${result.year}]`;
 
             return (
-              <li key={result.id} className={index === autocompleteState.selectedIndex ? "ab-selected" : ""}>
+              <li key={result.id} className={index === state.selectedIndex ? "ab-selected" : ""}>
                 <button
                   type="button"
                   className="ab-autocomplete-item"

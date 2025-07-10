@@ -22,7 +22,31 @@ class ApiError extends Error {
 }
 
 class ApiService {
+  private requestCache = new Map<string, Promise<unknown>>();
+
   private async request<T>(url: string, options: RequestOptions = {}): Promise<T> {
+    const cacheKey = `${url}${JSON.stringify(options)}`;
+
+    // Check if we have a pending request for this exact URL+options combination
+    if (this.requestCache.has(cacheKey)) {
+      return this.requestCache.get(cacheKey) as Promise<T>;
+    }
+
+    // Create new request promise
+    const requestPromise = this.makeRequest<T>(url, options);
+
+    // Store the promise in cache
+    this.requestCache.set(cacheKey, requestPromise);
+
+    // Clean up cache entry when request completes (success or failure)
+    requestPromise.finally(() => {
+      this.requestCache.delete(cacheKey);
+    });
+
+    return requestPromise;
+  }
+
+  private async makeRequest<T>(url: string, options: RequestOptions = {}): Promise<T> {
     const { method = "GET", timeout = 10000, headers = {} } = options;
 
     return new Promise((resolve, reject) => {
@@ -30,6 +54,7 @@ class ApiService {
         method: method as "GET" | "POST" | "HEAD" | undefined,
         url: url.toString(),
         headers,
+        timeout,
         ontimeout: () => reject(new ApiError(`Request timed out after ${timeout}ms`)),
         onerror: () => reject(new ApiError("Network request failed", 0)),
         onload: (response) => {
@@ -47,6 +72,21 @@ class ApiService {
         },
       });
     });
+  }
+
+  /**
+   * Clear the request cache manually if needed
+   * Useful for testing or forcing fresh requests
+   */
+  clearRequestCache(): void {
+    this.requestCache.clear();
+  }
+
+  /**
+   * Get current cache size for debugging
+   */
+  getCacheSize(): number {
+    return this.requestCache.size;
   }
 
   async autocompleteSearch(query: string, type: "anime" | "music"): Promise<AutocompleteResult[]> {

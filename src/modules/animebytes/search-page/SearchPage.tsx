@@ -1,5 +1,5 @@
 import { render } from "preact";
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useEffect, useReducer, useRef } from "preact/hooks";
 import { useSettingsStore } from "@/stores/settings";
 import { log } from "@/utils/logging";
 import { GalleryView } from "../gallery-view";
@@ -10,6 +10,46 @@ interface SearchInputInfo {
   element: HTMLInputElement;
   type: "anime" | "music";
   container: HTMLElement;
+}
+
+interface SearchPageState {
+  searchInputs: SearchInputInfo[];
+  isInitialized: boolean;
+  galleryInitialized: boolean;
+}
+
+type SearchPageAction =
+  | { type: "SET_SEARCH_INPUTS"; payload: SearchInputInfo[] }
+  | { type: "SET_INITIALIZED"; payload: boolean }
+  | { type: "SET_GALLERY_INITIALIZED"; payload: boolean }
+  | { type: "RESET" };
+
+function searchPageReducer(state: SearchPageState, action: SearchPageAction): SearchPageState {
+  switch (action.type) {
+    case "SET_SEARCH_INPUTS":
+      return {
+        ...state,
+        searchInputs: action.payload,
+      };
+    case "SET_INITIALIZED":
+      return {
+        ...state,
+        isInitialized: action.payload,
+      };
+    case "SET_GALLERY_INITIALIZED":
+      return {
+        ...state,
+        galleryInitialized: action.payload,
+      };
+    case "RESET":
+      return {
+        searchInputs: [],
+        isInitialized: false,
+        galleryInitialized: false,
+      };
+    default:
+      return state;
+  }
 }
 
 // Default colors from the legacy userscript
@@ -26,8 +66,11 @@ const SUBCATEGORIES_ACTIVE_COLOR = "#fe2a73";
  */
 export function SearchPage() {
   const { autocompleteSearchEnabled, interactiveSearchEnabled, galleryViewEnabled } = useSettingsStore();
-  const [searchInputs, setSearchInputs] = useState<SearchInputInfo[]>([]);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [state, dispatch] = useReducer(searchPageReducer, {
+    searchInputs: [],
+    isInitialized: false,
+    galleryInitialized: false,
+  });
   const enhancedInputRefs = useRef<Map<HTMLInputElement, HTMLDivElement>>(new Map());
   const galleryContainerRef = useRef<HTMLDivElement>(null);
   const searchState = useSearchState();
@@ -43,7 +86,7 @@ export function SearchPage() {
     }
 
     const initializeSearchPage = () => {
-      if (isInitialized) {
+      if (state.isInitialized) {
         return;
       }
 
@@ -129,8 +172,8 @@ export function SearchPage() {
         enhancedInputRefs.current.set(element, enhancedContainer);
       });
 
-      setSearchInputs(inputs);
-      setIsInitialized(true);
+      dispatch({ type: "SET_SEARCH_INPUTS", payload: inputs });
+      dispatch({ type: "SET_INITIALIZED", payload: true });
 
       log("AB Suite: Search page initialized with", inputs.length, "enhanced inputs");
     };
@@ -148,15 +191,15 @@ export function SearchPage() {
     return () => {
       observer.disconnect();
     };
-  }, [autocompleteSearchEnabled, isInitialized]);
+  }, [autocompleteSearchEnabled, state.isInitialized]);
 
   // Render enhanced inputs when initialized
   useEffect(() => {
-    if (!isInitialized || searchInputs.length === 0) {
+    if (!state.isInitialized || state.searchInputs.length === 0) {
       return;
     }
 
-    searchInputs.forEach((inputInfo) => {
+    state.searchInputs.forEach((inputInfo) => {
       const { element, type } = inputInfo;
       const container = enhancedInputRefs.current.get(element);
 
@@ -165,8 +208,8 @@ export function SearchPage() {
       }
     });
 
-    log("AB Suite: Rendered", searchInputs.length, "enhanced search inputs");
-  }, [isInitialized, searchInputs]);
+    log("AB Suite: Rendered", state.searchInputs.length, "enhanced search inputs");
+  }, [state.isInitialized, state.searchInputs]);
 
   // Handle interactive search enhancements
   useEffect(() => {
@@ -302,7 +345,7 @@ export function SearchPage() {
     }
 
     const initializeGalleryView = () => {
-      if (galleryContainerRef.current) {
+      if (state.galleryInitialized || galleryContainerRef.current) {
         return;
       }
 
@@ -322,6 +365,7 @@ export function SearchPage() {
 
       // Render the gallery view
       render(<GalleryView />, galleryContainer);
+      dispatch({ type: "SET_GALLERY_INITIALIZED", payload: true });
 
       log("AB Suite: Gallery view initialized on search page");
     };

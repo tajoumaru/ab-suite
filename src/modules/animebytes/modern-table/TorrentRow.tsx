@@ -1,6 +1,7 @@
 import { Check, Download, Flag, X } from "lucide-preact";
+import { memo } from "preact/compat";
+import type { ParsedTorrentRow, TableType } from "@/types/modern-table";
 import { TorrentDetails } from "./TorrentDetails";
-import type { ParsedTorrentRow, TableType } from "./types";
 
 interface TorrentRowProps {
   torrent: ParsedTorrentRow;
@@ -17,7 +18,7 @@ interface TorrentRowProps {
 /**
  * Comprehensive torrent row component matching the original implementation
  */
-export function TorrentRow({
+function TorrentRowComponent({
   torrent,
   isExpanded,
   onToggleExpanded,
@@ -297,3 +298,65 @@ export function TorrentRow({
     </>
   );
 }
+
+/**
+ * Memoized TorrentRow component with custom comparison function
+ * Only re-renders when critical props change to optimize performance for large lists
+ */
+export const TorrentRow = memo(TorrentRowComponent, (prevProps, nextProps) => {
+  // Compare torrent identity - most important for performance
+  if (prevProps.torrent.torrentId !== nextProps.torrent.torrentId) {
+    return false;
+  }
+
+  // Compare expansion state
+  if (prevProps.isExpanded !== nextProps.isExpanded) {
+    return false;
+  }
+
+  // Compare table configuration that affects rendering
+  if (prevProps.tableType !== nextProps.tableType) {
+    return false;
+  }
+
+  // Compare display options that affect columns
+  if (
+    prevProps.compactResolutionMode !== nextProps.compactResolutionMode ||
+    prevProps.showRegionColumn !== nextProps.showRegionColumn ||
+    prevProps.showDualAudioColumn !== nextProps.showDualAudioColumn
+  ) {
+    return false;
+  }
+
+  // Compare group styling
+  if (prevProps.isOddGroup !== nextProps.isOddGroup) {
+    return false;
+  }
+
+  // Compare page type for different behaviors
+  if (prevProps.isSeriesPage !== nextProps.isSeriesPage) {
+    return false;
+  }
+
+  // Compare torrent data that affects display
+  // Only check key fields that are commonly dynamic
+  if (
+    prevProps.torrent.seeders !== nextProps.torrent.seeders ||
+    prevProps.torrent.leechers !== nextProps.torrent.leechers ||
+    prevProps.torrent.snatches !== nextProps.torrent.snatches
+  ) {
+    return false;
+  }
+
+  // Compare SeaDex status that affects row styling and flags
+  if (
+    prevProps.torrent.isSeaDexBest !== nextProps.torrent.isSeaDexBest ||
+    prevProps.torrent.isSeaDexAlt !== nextProps.torrent.isSeaDexAlt ||
+    prevProps.torrent.flags.length !== nextProps.torrent.flags.length
+  ) {
+    return false;
+  }
+
+  // If all critical props are the same, prevent re-render
+  return true;
+});

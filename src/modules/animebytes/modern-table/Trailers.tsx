@@ -1,4 +1,5 @@
 import { useEffect, useState } from "preact/hooks";
+import { useAsync } from "@/hooks/useAsync";
 import { fetchAllTrailers, type Trailer, type TrailerCollection } from "@/services/trailers";
 import { useSettingsStore } from "@/stores/settings";
 import type { AnimeApiResponse, MediaInfo } from "../hooks/useMediaInfo";
@@ -10,60 +11,48 @@ interface TrailersProps {
 
 export function Trailers({ apiData, mediaInfo }: TrailersProps) {
   const settings = useSettingsStore();
-  const [trailerData, setTrailerData] = useState<TrailerCollection>({
-    trailers: [],
-    loading: true,
-    error: false,
-  });
   const [selectedTrailerIndex, setSelectedTrailerIndex] = useState(0);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const loadTrailers = async () => {
+  const trailersAsync = useAsync(
+    async (): Promise<TrailerCollection> => {
       if (!apiData.myanimelist && !apiData.themoviedb) {
-        setTrailerData({
+        return {
           trailers: [],
           loading: false,
           error: false,
-        });
-        return;
+        };
       }
 
-      try {
-        setTrailerData((prev) => ({ ...prev, loading: true }));
+      const result = await fetchAllTrailers(
+        {
+          myanimelist: apiData.myanimelist || undefined,
+          themoviedb: apiData.themoviedb || undefined,
+        },
+        mediaInfo?.searchMediaType || "anime",
+        settings.tmdbApiToken,
+        settings.youtubeApiKey,
+      );
 
-        const result = await fetchAllTrailers(
-          {
-            myanimelist: apiData.myanimelist || undefined,
-            themoviedb: apiData.themoviedb || undefined,
-          },
-          mediaInfo?.searchMediaType || "anime",
-          settings.tmdbApiToken,
-          settings.youtubeApiKey,
-        );
-
-        setTrailerData(result);
-      } catch (error) {
+      return result;
+    },
+    {
+      deps: [
+        apiData.myanimelist,
+        apiData.themoviedb,
+        mediaInfo?.searchMediaType,
+        settings.tmdbApiToken,
+        settings.youtubeApiKey,
+      ],
+      onError: (error) => {
         console.error("AB Suite: Failed to load trailers", error);
-        setTrailerData({
-          trailers: [],
-          loading: false,
-          error: true,
-        });
-      }
-    };
+      },
+    },
+  );
 
-    loadTrailers();
-  }, [
-    apiData.myanimelist,
-    apiData.themoviedb,
-    mediaInfo?.searchMediaType,
-    settings.tmdbApiToken,
-    settings.youtubeApiKey,
-  ]);
+  const trailerData = trailersAsync.data || { trailers: [], loading: false, error: false };
 
   // Don't render if no trailers and not loading
-  if (!trailerData.loading && trailerData.trailers.length === 0 && !trailerData.error) {
+  if (!trailersAsync.loading && trailerData.trailers.length === 0 && !trailersAsync.error) {
     return null;
   }
 
@@ -81,7 +70,6 @@ export function Trailers({ apiData, mediaInfo }: TrailersProps) {
   const handleTrailerChange = (event: Event) => {
     const target = event.target as HTMLSelectElement;
     setSelectedTrailerIndex(parseInt(target.value));
-    setError(null); // Reset error when changing trailer
   };
 
   // Reset selected index when trailers change
@@ -95,7 +83,7 @@ export function Trailers({ apiData, mediaInfo }: TrailersProps) {
     <div className="box">
       <div className="head">
         <strong>Trailer</strong>
-        {!trailerData.loading && trailerData.trailers.length > 1 && (
+        {!trailersAsync.loading && trailerData.trailers.length > 1 && (
           <select
             name="trailers"
             id="abtexr-trailer-selection"
@@ -112,9 +100,9 @@ export function Trailers({ apiData, mediaInfo }: TrailersProps) {
         )}
       </div>
       <div className="body" style={{ display: "flex", justifyContent: "center" }}>
-        {trailerData.loading ? (
+        {trailersAsync.loading ? (
           <div style={{ textAlign: "center", padding: "20px", color: "#888" }}>Loading trailers...</div>
-        ) : trailerData.error ? (
+        ) : trailersAsync.error ? (
           <div style={{ textAlign: "center", padding: "20px", color: "#ef4444" }}>Failed to load trailers</div>
         ) : trailerData.trailers.length === 0 ? (
           <div style={{ textAlign: "center", padding: "20px", color: "#888" }}>No trailers available</div>
@@ -130,7 +118,9 @@ export function Trailers({ apiData, mediaInfo }: TrailersProps) {
           />
         )}
       </div>
-      {error && <span style={{ color: "red", display: "block", padding: "10px" }}>{error}</span>}
+      {trailersAsync.error && (
+        <span style={{ color: "red", display: "block", padding: "10px" }}>{trailersAsync.error}</span>
+      )}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import type { SeaDexData } from "../types";
+import type { SeaDexData } from "@/types/modern-table";
 
 interface SeaDexTabProps {
   seadexData: SeaDexData | null;

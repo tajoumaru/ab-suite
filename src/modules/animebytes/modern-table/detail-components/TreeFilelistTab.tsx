@@ -1,7 +1,7 @@
 import { ChevronDown, ChevronRight } from "lucide-preact";
 import type { JSX } from "preact";
 import { useMemo, useState } from "preact/hooks";
-import type { FilelistItem } from "../types";
+import type { FilelistItem } from "@/types/modern-table";
 
 interface TreeFilelistTabProps {
   filelist: FilelistItem[];

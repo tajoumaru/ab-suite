@@ -1,5 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
 import { useSettingsStore } from "@/stores/settings";
+import type { TorrentDetailsData, TorrentDetailsProps } from "@/types/modern-table";
 import { log } from "@/utils/logging";
 import {
   DescriptionTab,
@@ -12,7 +13,6 @@ import {
   UploadDescription,
 } from "./detail-components";
 import { extractTorrentDetailsData, fetchPeerlistData, fetchScreenshotsData } from "./details-extraction";
-import type { TorrentDetailsData, TorrentDetailsProps } from "./types";
 
 /**
  * Modern declarative torrent details component.
@@ -25,7 +25,7 @@ export function TorrentDetails({ torrentId, groupId, detailsHtml, onDataExtracte
   const [peerlistLoading, setPeerlistLoading] = useState(false);
   const [screenshotsLoaded, setScreenshotsLoaded] = useState(false);
   const [peerlistLoaded, setPeerlistLoaded] = useState(false);
-  const { treeFilelistEnabled } = useSettingsStore();
+  const { treeFilelistEnabled } = useSettingsStore(["treeFilelistEnabled"]);
 
   // Extract data on mount
   useEffect(() => {

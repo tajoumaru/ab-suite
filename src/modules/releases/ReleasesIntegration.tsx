@@ -3,7 +3,7 @@ import { useSettingsStore } from "@/stores/settings";
 
 // Component for releases.moe site integration
 export function ReleasesIntegration() {
-  const { seadexEnabled } = useSettingsStore();
+  const { seadexEnabled } = useSettingsStore(["seadexEnabled"]);
 
   useEffect(() => {
     if (!seadexEnabled) return;

@@ -7,7 +7,7 @@ interface ReadMoreProps {
 }
 
 export function ReadMore({ description, torrentLink }: ReadMoreProps) {
-  const { readMoreEnabled } = useSettingsStore();
+  const { readMoreEnabled } = useSettingsStore(["readMoreEnabled"]);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 

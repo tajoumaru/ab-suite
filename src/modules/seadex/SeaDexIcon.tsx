@@ -15,7 +15,7 @@ const SEADEX_ALT_ICON =
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACIAAAAJCAYAAABXLP43AAAAAXNSR0IArs4c6QAAALJJREFUOE/NlMEOgkAMRN961Z/kqAfOfoLxA+S4n+lJMd1QUmohTTRRbi2zs9NhSuFPntLBDTgGeoZM/wl1D/0drhN+qHAyvK2O5rUYETKeA9QFyPQFJ2J20AleaqANoXWF4q9QEYqZhUwEC7whXu0rxotxouS8uL5wy2LSjqxNqo5G783FzfUtTJgRPfRtRwLeOT9pR/Tb+OxkM+IzoW4p78db84B6SG7N1ia9pflXv5UXtZlmWNmuM34AAAAASUVORK5CYII=";
 
 export function SeaDexIcon({ entry, separator = " | " }: SeaDexIconProps) {
-  const { seadexEnabled } = useSettingsStore();
+  const { seadexEnabled } = useSettingsStore(["seadexEnabled"]);
 
   if (!seadexEnabled) {
     return null;

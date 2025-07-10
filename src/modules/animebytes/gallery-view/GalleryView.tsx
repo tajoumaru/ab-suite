@@ -62,6 +62,11 @@ function extractGalleryItems(): GalleryItem[] {
   const items: GalleryItem[] = [];
   const torrentGroups = document.querySelectorAll("div.group_cont.box");
 
+  // Create a document fragment and reusable div for HTML decoding to batch DOM operations
+  const fragment = document.createDocumentFragment();
+  const tempDiv = document.createElement("div");
+  fragment.appendChild(tempDiv);
+
   torrentGroups.forEach((groupDiv, index) => {
     try {
       const coverImgElement = groupDiv.querySelector("div.group_img span.mainimg a img") as HTMLImageElement;
@@ -81,7 +86,7 @@ function extractGalleryItems(): GalleryItem[] {
         if (titleStrongAElement) torrentTitle = titleStrongAElement.textContent?.trim() || "Untitled";
       }
 
-      const tempDiv = document.createElement("div");
+      // Reuse the batched tempDiv for HTML decoding
       tempDiv.innerHTML = torrentTitle;
       torrentTitle = tempDiv.textContent || tempDiv.innerText || "Untitled";
 
@@ -174,14 +179,14 @@ function GalleryItem({ item }: { item: GalleryItem }) {
         )}
       </div>
       <div className="ab-gallery-description-on-hover">
-        <div dangerouslySetInnerHTML={{ __html: item.description }} />
+        <div className="torrent_desc" dangerouslySetInnerHTML={{ __html: item.description }} />
       </div>
     </div>
   );
 }
 
 export function GalleryView({ className }: GalleryViewProps) {
-  const { galleryViewEnabled } = useSettingsStore();
+  const { galleryViewEnabled } = useSettingsStore(["galleryViewEnabled"]);
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
   const [isActive, setIsActive] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -215,11 +220,24 @@ export function GalleryView({ className }: GalleryViewProps) {
         (group as HTMLElement).style.display = "none";
       });
       contentDiv?.classList.add("ab-gallery-content-wrapper-active");
+
+      // Trigger ReadMore integration for gallery view descriptions
+      // Use a small timeout to ensure the DOM is updated
+      setTimeout(() => {
+        const event = new CustomEvent("ab-gallery-view-changed", { detail: { active: true } });
+        document.dispatchEvent(event);
+      }, 50);
     } else {
       originalGroups.forEach((group) => {
         (group as HTMLElement).style.display = "";
       });
       contentDiv?.classList.remove("ab-gallery-content-wrapper-active");
+
+      // Trigger ReadMore integration for regular view descriptions
+      setTimeout(() => {
+        const event = new CustomEvent("ab-gallery-view-changed", { detail: { active: false } });
+        document.dispatchEvent(event);
+      }, 50);
     }
   }, [isActive, galleryViewEnabled]);
 

@@ -1,26 +1,6 @@
-import { useEffect, useState } from "preact/hooks";
-import {
-  fetchAnidbData,
-  fetchAnilistData,
-  fetchImdbData,
-  fetchKitsuData,
-  fetchMyAnimeListData,
-  fetchTmdbData,
-} from "@/services/externalApis";
+import { useRatings } from "@/hooks/useRatings";
 import { useSettingsStore } from "@/stores/settings";
 import type { AnimeApiResponse, MediaInfo } from "../hooks/useMediaInfo";
-
-// Rating Data Interface
-interface PlatformRating {
-  platform: string;
-  score: number | null;
-  maxScore: number;
-  votes: number | null;
-  rank?: number | null;
-  detailsUrl?: string;
-  loading: boolean;
-  error: boolean;
-}
 
 interface RatingsProps {
   apiData: AnimeApiResponse;
@@ -28,6 +8,7 @@ interface RatingsProps {
 }
 
 const PLATFORM_ICONS = {
+  "Weighted Average": "https://mei.kuudere.pw/91pBt8eMes0.jpg",
   MyAnimeList: "https://mei.kuudere.pw/6oHQTbmDfrs.png",
   AniDB: "https://mei.kuudere.pw/iiD0CGjgEl7.png",
   AniList: "https://mei.kuudere.pw/h7552tISkKb.png",
@@ -39,237 +20,97 @@ const PLATFORM_ICONS = {
 
 export function Ratings({ apiData, mediaInfo }: RatingsProps) {
   const settings = useSettingsStore();
-  const [ratings, setRatings] = useState<PlatformRating[]>([
-    {
-      platform: "AnimeBytes",
-      score: null,
+  const { ratings } = useRatings(apiData, mediaInfo, settings.tmdbApiToken);
+
+  // Tooltip explaining the weighted average algorithm
+  const weightedAverageTooltip = `Weighted Average Algorithm:
+
+Source Authority Weights:
+• AnimeBytes: 3.0× (Highest Voting Quality)
+• Anime sites (AniList, MAL, Kitsu, AniDB): 2.0×
+• General sites (TMDb, IMDb): 1.0×
+
+Vote Influence:
+Uses logarithmic scaling to balance popularity with authority.
+Formula: sourceWeight × (1 + min(log₁₀(votes + 1) × 0.5, 2.0))
+
+This prevents any single platform from dominating while respecting both expertise and community consensus.`;
+
+  // Filter out platforms that don't have valid data
+  const validRatings = ratings.filter((rating) => {
+    // Hide platforms that are in error state
+    if (rating.error) return false;
+
+    // Hide platforms that don't have a score (but allow loading state to show)
+    if (!rating.loading && rating.score === null) return false;
+
+    return true;
+  });
+
+  // Calculate weighted average rating
+  const calculateWeightedAverage = () => {
+    const completedRatings = validRatings.filter((r) => !r.loading && r.score !== null && r.votes !== null);
+
+    if (completedRatings.length === 0) return null;
+
+    // Source authority weights
+    const sourceWeights: Record<string, number> = {
+      AnimeBytes: 3.0, // Highest authority for anime torrents
+      AniList: 2.0, // Anime-specific sites
+      MyAnimeList: 2.0,
+      Kitsu: 2.0,
+      AniDB: 2.0,
+      TMDb: 1.0, // Generic movie/TV sites
+      IMDb: 1.0,
+    };
+
+    let totalWeightedScore = 0;
+    let totalWeight = 0;
+    let totalVotes = 0;
+
+    for (const rating of completedRatings) {
+      const sourceWeight = sourceWeights[rating.platform] || 1.0;
+
+      // Use log scale for votes to prevent huge vote counts from dominating
+      // Add 1 to handle zero votes, multiply by 0.5 to moderate the influence
+      const voteWeight = Math.log10((rating.votes || 0) + 1) * 0.5;
+
+      // Combine source authority with vote influence, but cap vote influence
+      const combinedWeight = sourceWeight * (1 + Math.min(voteWeight, 2.0));
+
+      totalWeightedScore += (rating.score || 0) * combinedWeight;
+      totalWeight += combinedWeight;
+      totalVotes += rating.votes || 0;
+    }
+
+    return {
+      score: totalWeightedScore / totalWeight,
+      votes: totalVotes,
+      platform: "Weighted Average",
       maxScore: 10,
-      votes: null,
-      detailsUrl: undefined,
-      loading: false,
-      error: false,
-    },
-    {
-      platform: "AniList",
-      score: null,
-      maxScore: 10,
-      votes: null,
-      detailsUrl: undefined,
-      loading: false,
-      error: false,
-    },
-    {
-      platform: "MyAnimeList",
-      score: null,
-      maxScore: 10,
-      votes: null,
       rank: null,
       detailsUrl: undefined,
       loading: false,
       error: false,
-    },
-    {
-      platform: "IMDb",
-      score: null,
-      maxScore: 10,
-      votes: null,
-      detailsUrl: undefined,
-      loading: false,
-      error: false,
-    },
-    {
-      platform: "Kitsu",
-      score: null,
-      maxScore: 10,
-      votes: null,
-      detailsUrl: undefined,
-      loading: false,
-      error: false,
-    },
-    {
-      platform: "TMDb",
-      score: null,
-      maxScore: 10,
-      votes: null,
-      detailsUrl: undefined,
-      loading: false,
-      error: false,
-    },
-    {
-      platform: "AniDB",
-      score: null,
-      maxScore: 10,
-      votes: null,
-      detailsUrl: undefined,
-      loading: false,
-      error: false,
-    },
-  ]);
-
-  // Update a specific platform's rating
-  const updatePlatformRating = (platformIndex: number, updates: Partial<PlatformRating>) => {
-    setRatings((prev) => prev.map((rating, index) => (index === platformIndex ? { ...rating, ...updates } : rating)));
+    };
   };
 
-  // Fetch all ratings
-  useEffect(() => {
-    const fetchAllRatings = async () => {
-      // AnimeBytes - use rating from mediaInfo if available
-      if (mediaInfo?.siteRating && mediaInfo?.siteVotes) {
-        updatePlatformRating(0, {
-          score: mediaInfo.siteRating,
-          votes: mediaInfo.siteVotes,
-          detailsUrl: undefined, // No external link for site's own rating
-          loading: false,
-          error: false,
-        });
-      }
+  // Sort ratings by vote count (descending), but keep loading states at the end
+  const sortedRatings = [...validRatings].sort((a, b) => {
+    // Keep loading states at the end
+    if (a.loading && !b.loading) return 1;
+    if (!a.loading && b.loading) return -1;
+    if (a.loading && b.loading) return 0;
 
-      // AniList
-      if (apiData.anilist) {
-        updatePlatformRating(1, { loading: true });
-        const anilistData = await fetchAnilistData(apiData.anilist);
-        if (anilistData?.data?.Media) {
-          // Convert AniList score from 0-100 to 0-10 scale
-          const normalizedScore = anilistData.data.Media.averageScore ? anilistData.data.Media.averageScore / 10 : null;
+    // Sort by vote count (descending)
+    const aVotes = a.votes || 0;
+    const bVotes = b.votes || 0;
+    return bVotes - aVotes;
+  });
 
-          updatePlatformRating(1, {
-            score: normalizedScore,
-            votes: anilistData.data.Media.popularity,
-            detailsUrl: `https://anilist.co/anime/${apiData.anilist}`,
-            loading: false,
-            error: false,
-          });
-        } else {
-          updatePlatformRating(1, { loading: false, error: true });
-        }
-      }
-
-      // MyAnimeList
-      if (apiData.myanimelist) {
-        updatePlatformRating(2, { loading: true });
-        const malData = await fetchMyAnimeListData(apiData.myanimelist);
-        if (malData?.data) {
-          updatePlatformRating(2, {
-            score: malData.data.score,
-            votes: malData.data.scored_by,
-            rank: malData.data.rank,
-            detailsUrl: `${malData.data.url}/stats`,
-            loading: false,
-            error: false,
-          });
-        } else {
-          updatePlatformRating(2, { loading: false, error: true });
-        }
-      }
-
-      // IMDb - use direct IMDb ID only
-      if (apiData.imdb) {
-        updatePlatformRating(3, { loading: true });
-
-        const imdbId = apiData.imdb.startsWith("tt") ? apiData.imdb : `tt${apiData.imdb}`;
-        const imdbData = await fetchImdbData(imdbId);
-        if (imdbData?.aggregateRating) {
-          updatePlatformRating(3, {
-            score: imdbData.aggregateRating.ratingValue,
-            votes: imdbData.aggregateRating.ratingCount,
-            detailsUrl: `https://www.imdb.com/title/${imdbId}/ratings/`,
-            loading: false,
-            error: false,
-          });
-        } else {
-          updatePlatformRating(3, { loading: false, error: true });
-        }
-      }
-
-      // Kitsu - use rating from mediaInfo if available
-      if (apiData.kitsu) {
-        updatePlatformRating(4, { loading: true });
-
-        if (mediaInfo?.kitsuRating) {
-          // Use the rating already fetched by useMediaInfo
-          // Convert Kitsu score from 0-100 to 0-10 scale
-          const normalizedScore = mediaInfo.kitsuRating / 10;
-
-          updatePlatformRating(4, {
-            score: normalizedScore,
-            votes: mediaInfo.kitsuVotes,
-            detailsUrl: `https://kitsu.app/anime/${apiData.kitsu}`,
-            loading: false,
-            error: false,
-          });
-        } else {
-          // Fallback to fetching separately
-          const kitsuData = await fetchKitsuData(apiData.kitsu);
-          if (kitsuData?.data?.attributes) {
-            const averageRating = kitsuData.data.attributes.averageRating
-              ? parseFloat(kitsuData.data.attributes.averageRating)
-              : null;
-
-            // Calculate total votes from rating frequencies
-            let totalVotes = 0;
-            if (kitsuData.data.attributes.ratingFrequencies) {
-              totalVotes = Object.values(kitsuData.data.attributes.ratingFrequencies).reduce(
-                (sum, count) => sum + parseInt(count, 10),
-                0,
-              );
-            }
-
-            // Convert Kitsu score from 0-100 to 0-10 scale
-            const normalizedScore = averageRating ? averageRating / 10 : null;
-
-            updatePlatformRating(4, {
-              score: normalizedScore,
-              votes: totalVotes || null,
-              detailsUrl: `https://kitsu.app/anime/${apiData.kitsu}`,
-              loading: false,
-              error: false,
-            });
-          } else {
-            updatePlatformRating(4, { loading: false, error: true });
-          }
-        }
-      }
-
-      // TMDB - check if we have TMDB ID in API data
-      if (apiData.themoviedb && settings.tmdbApiToken) {
-        updatePlatformRating(5, { loading: true });
-        // For anime, we assume it's a TV show unless specified otherwise
-        const mediaType = mediaInfo?.searchMediaType === "anime" ? "tv" : "movie";
-        const tmdbData = await fetchTmdbData(apiData.themoviedb, mediaType, settings.tmdbApiToken);
-        if (tmdbData) {
-          updatePlatformRating(5, {
-            score: tmdbData.vote_average,
-            votes: tmdbData.vote_count,
-            detailsUrl: `https://www.themoviedb.org/${mediaType}/${apiData.themoviedb}`,
-            loading: false,
-            error: false,
-          });
-        } else {
-          updatePlatformRating(5, { loading: false, error: true });
-        }
-      }
-
-      // AniDB
-      if (apiData.anidb) {
-        updatePlatformRating(6, { loading: true });
-        const anidbData = await fetchAnidbData(apiData.anidb);
-        if (anidbData) {
-          updatePlatformRating(6, {
-            score: anidbData.rating,
-            votes: anidbData.votes,
-            detailsUrl: `https://anidb.net/anime/${apiData.anidb}/vote/statistic`,
-            loading: false,
-            error: false,
-          });
-        } else {
-          updatePlatformRating(6, { loading: false, error: true });
-        }
-      }
-    };
-
-    fetchAllRatings();
-  }, [apiData, mediaInfo, settings.tmdbApiToken]);
+  // Add weighted average at the front if we have completed ratings
+  const weightedAverage = calculateWeightedAverage();
+  const finalRatings = weightedAverage ? [weightedAverage, ...sortedRatings] : sortedRatings;
 
   // Format score for display (always out of 10 with 2 decimal places)
   const formatScore = (score: number | null) => {
@@ -277,8 +118,8 @@ export function Ratings({ apiData, mediaInfo }: RatingsProps) {
     return score.toFixed(2);
   };
 
-  // Format votes/stats for display with platform-specific labels
-  const formatVotesDisplay = (votes: number | null, platform: string) => {
+  // Format votes/stats for display with consistent labeling
+  const formatVotesDisplay = (votes: number | null) => {
     if (votes === null) return "N/A";
 
     let formattedNumber: string;
@@ -290,32 +131,56 @@ export function Ratings({ apiData, mediaInfo }: RatingsProps) {
       formattedNumber = votes.toString();
     }
 
-    // Use platform-specific labels
-    if (platform === "AniList") {
-      return `${formattedNumber} saved`;
-    }
+    // Use consistent "votes" labeling for all platforms
     return `${formattedNumber} votes`;
   };
+
+  // Don't render the ratings section if no valid ratings are available
+  if (finalRatings.length === 0) {
+    return null;
+  }
 
   return (
     <div className="ab-ratings box">
       <div className="head">Ratings</div>
       <div className="ab-ratings-grid body">
-        {ratings.map((rating) => (
-          <div key={rating.platform} className="ab-rating-card">
-            <div className="ab-rating-header">
-              {rating.detailsUrl ? (
-                <a
-                  href={rating.detailsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="ab-rating-details-link"
-                  title={`View detailed ${rating.platform} statistics`}
-                >
+        {finalRatings.map((rating) => {
+          const iconSrc = PLATFORM_ICONS[rating.platform as keyof typeof PLATFORM_ICONS];
+          const isWeightedAverage = rating.platform === "Weighted Average";
+
+          return (
+            <div key={rating.platform} className="ab-rating-card">
+              <div className="ab-rating-header">
+                {rating.detailsUrl ? (
+                  <a
+                    href={rating.detailsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="ab-rating-details-link"
+                    title={`View detailed ${rating.platform} statistics`}
+                  >
+                    <img
+                      className="ab-rating-platform-icon"
+                      src={iconSrc}
+                      alt={rating.platform}
+                      title={isWeightedAverage ? weightedAverageTooltip : undefined}
+                      onError={(e) => {
+                        // Fallback for missing icons - show platform name instead
+                        const target = e.currentTarget as HTMLImageElement;
+                        target.style.display = "none";
+                        const fallbackSpan = document.createElement("span");
+                        fallbackSpan.textContent = rating.platform;
+                        fallbackSpan.className = "ab-platform-name-fallback";
+                        target.parentNode?.appendChild(fallbackSpan);
+                      }}
+                    />
+                  </a>
+                ) : (
                   <img
                     className="ab-rating-platform-icon"
-                    src={PLATFORM_ICONS[rating.platform as keyof typeof PLATFORM_ICONS]}
+                    src={iconSrc}
                     alt={rating.platform}
+                    title={isWeightedAverage ? weightedAverageTooltip : undefined}
                     onError={(e) => {
                       // Fallback for missing icons - show platform name instead
                       const target = e.currentTarget as HTMLImageElement;
@@ -326,43 +191,28 @@ export function Ratings({ apiData, mediaInfo }: RatingsProps) {
                       target.parentNode?.appendChild(fallbackSpan);
                     }}
                   />
-                </a>
-              ) : (
-                <img
-                  className="ab-rating-platform-icon"
-                  src={PLATFORM_ICONS[rating.platform as keyof typeof PLATFORM_ICONS]}
-                  alt={rating.platform}
-                  onError={(e) => {
-                    // Fallback for missing icons - show platform name instead
-                    const target = e.currentTarget as HTMLImageElement;
-                    target.style.display = "none";
-                    const fallbackSpan = document.createElement("span");
-                    fallbackSpan.textContent = rating.platform;
-                    fallbackSpan.className = "ab-platform-name-fallback";
-                    target.parentNode?.appendChild(fallbackSpan);
-                  }}
-                />
-              )}
+                )}
+              </div>
+              <div className="ab-rating-content">
+                {rating.loading ? (
+                  <div className="ab-rating-loading">Loading...</div>
+                ) : rating.error ? (
+                  <div className="ab-rating-error">Error</div>
+                ) : (
+                  <>
+                    <div className="ab-rating-score" title={isWeightedAverage ? weightedAverageTooltip : undefined}>
+                      <span className="ab-score-value">{formatScore(rating.score)}</span>
+                      <span className="ab-score-max"> / 10</span>
+                    </div>
+                    <div className="ab-rating-details">
+                      <div className="ab-rating-votes">{formatVotesDisplay(rating.votes)}</div>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
-            <div className="ab-rating-content">
-              {rating.loading ? (
-                <div className="ab-rating-loading">Loading...</div>
-              ) : rating.error ? (
-                <div className="ab-rating-error">Error</div>
-              ) : (
-                <>
-                  <div className="ab-rating-score">
-                    <span className="ab-score-value">{formatScore(rating.score)}</span>
-                    <span className="ab-score-max"> / 10</span>
-                  </div>
-                  <div className="ab-rating-details">
-                    <div className="ab-rating-votes">{formatVotesDisplay(rating.votes, rating.platform)}</div>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

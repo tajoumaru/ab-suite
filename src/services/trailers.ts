@@ -26,7 +26,7 @@ export interface TMDBTrailer extends BaseTrailer {
   site: string;
   size: number;
   official: boolean;
-  published_at: string;
+  published_at?: string;
 }
 
 export interface MALTrailer extends BaseTrailer {
@@ -191,16 +191,18 @@ export function deduplicateTrailers(trailers: Trailer[]): Trailer[] {
   return result;
 }
 
+import type { MALPromo, MALResponse, TMDBVideo, TMDBVideosResponse } from "@/types/external-apis";
+
 // Convert TMDB video data to trailers
-export function tmdbVideosToTrailers(tmdbData: any, tmdbId: number): TMDBTrailer[] {
+export function tmdbVideosToTrailers(tmdbData: TMDBVideosResponse, tmdbId: number): TMDBTrailer[] {
   if (!tmdbData.videos?.results) {
     return [];
   }
 
   return tmdbData.videos.results
-    .filter((video: any) => video.site === "YouTube" && video.type === "Trailer")
+    .filter((video: TMDBVideo) => video.site === "YouTube" && video.type === "Trailer")
     .map(
-      (video: any): TMDBTrailer => ({
+      (video: TMDBVideo): TMDBTrailer => ({
         id: `tmdb-${video.id}`,
         name: video.name,
         youtubeId: video.key,
@@ -221,13 +223,13 @@ export function tmdbVideosToTrailers(tmdbData: any, tmdbId: number): TMDBTrailer
 }
 
 // Convert MAL video data to trailers
-export function malVideosToTrailers(malData: any, malId: number): MALTrailer[] {
+export function malVideosToTrailers(malData: MALResponse, malId: number): MALTrailer[] {
   const trailers: MALTrailer[] = [];
 
   // Process promo videos first to build a map of YouTube IDs to titles
   const promoTitleMap = new Map<string, string>();
   if (malData.data?.promo) {
-    malData.data.promo.forEach((promo: any) => {
+    malData.data.promo.forEach((promo: MALPromo) => {
       if (promo.trailer?.youtube_id && promo.title) {
         // Transform names like legacy code: PV -> Promotional Video, CM -> Commercial
         const transformedName = promo.title.replace(/\bPV\b/gi, "Promotional Video").replace(/\bCM\b/gi, "Commercial");
@@ -256,7 +258,7 @@ export function malVideosToTrailers(malData: any, malId: number): MALTrailer[] {
 
   // Add promo videos if available (skip ones that match main trailer)
   if (malData.data?.promo) {
-    malData.data.promo.forEach((promo: any, index: number) => {
+    malData.data.promo.forEach((promo: MALPromo, index: number) => {
       if (promo.trailer?.youtube_id) {
         // Skip if this promo matches the main trailer (already added above)
         if (malData.data?.trailer?.youtube_id === promo.trailer.youtube_id) {
@@ -270,14 +272,14 @@ export function malVideosToTrailers(malData: any, malId: number): MALTrailer[] {
         trailers.push({
           id: `mal-promo-${malId}-${index}`,
           name: transformedName,
-          youtubeId: promo.trailer.youtube_id,
+          youtubeId: promo.trailer.youtube_id || "",
           provider: {
             name: "MAL",
             sourceId: malId.toString(),
           },
           type: "Promotional Video",
           title: transformedName,
-          images: promo.trailer.images,
+          images: promo.trailer.images || undefined,
         });
       }
     });

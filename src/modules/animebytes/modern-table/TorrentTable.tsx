@@ -1,70 +1,21 @@
-import { ChevronDown, ChevronRight } from "lucide-preact";
+// ChevronDown, ChevronRight now imported in SectionHeader component
 import { Fragment } from "preact";
-import { useEffect, useMemo, useState } from "preact/hooks";
+import { useMemo } from "preact/hooks";
 import { useSeaDexStore, useSeaDexUpdates } from "@/stores/seadex";
 import { useSettingsStore } from "@/stores/settings";
+import type { GroupedTorrents, TorrentTableProps } from "@/types/modern-table";
 import { log, logTime, logTimeEnd } from "@/utils/logging";
+import { SectionHeader } from "./components/SectionHeader";
 import { detectTableType, extractGroupedTorrentData } from "./data-extraction";
+import { useRowExpansion } from "./hooks/useRowExpansion";
+import { useSectionManagement } from "./hooks/useSectionManagement";
+import { useTorrentSorting } from "./hooks/useTorrentSorting";
 import { TorrentHeader } from "./TorrentHeader";
 import { TorrentRow } from "./TorrentRow";
-import type {
-  GroupedTorrents,
-  GroupHeader,
-  ParsedTorrentRow,
-  SortColumn,
-  SortDirection,
-  TableSection,
-  TorrentTableProps,
-} from "./types";
 
 // TorrentTableProps is now imported from types.ts
 
-/**
- * Section header component with expand/collapse functionality
- */
-function SectionHeader({
-  section,
-  isCollapsed,
-  onToggle,
-  isOddSection,
-}: {
-  section: TableSection | GroupHeader;
-  isCollapsed: boolean;
-  onToggle: () => void;
-  isOddSection: boolean;
-}) {
-  // Group headers use their own class, section headers use alternating colors
-  const headerClass =
-    section.type === "group"
-      ? "ab-group-header"
-      : isOddSection
-        ? "ab-section-header ab-group-odd"
-        : "ab-section-header";
-
-  return (
-    <tr className={headerClass} onClick={onToggle} style={{ cursor: "pointer" }}>
-      <td colSpan={100}>
-        {section.type === "group" && section.fullHtml ? (
-          // Render full HTML content for group headers
-          <div style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
-            <div style={{ marginTop: "4px" }}>
-              {isCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
-            </div>
-            <div dangerouslySetInnerHTML={{ __html: section.fullHtml }} />
-          </div>
-        ) : (
-          // Simple text display for section headers with newline support
-          <div style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
-            <div style={{ marginTop: "2px" }}>
-              {isCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
-            </div>
-            <strong style={{ whiteSpace: "pre-line" }}>{section.title}</strong>
-          </div>
-        )}
-      </td>
-    </tr>
-  );
-}
+// SectionHeader component moved to ./components/SectionHeader.tsx
 
 /**
  * The main table component that manages UI state and renders the torrent data.
@@ -86,10 +37,6 @@ export function TorrentTable({ torrents, originalTable, isSeriesPage = false }: 
     sectionsCollapsedByDefault,
   } = useSettingsStore();
   const seadexStore = useSeaDexStore();
-  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
-  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
-  const [sortColumn, setSortColumn] = useState<SortColumn>(null);
-  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 
   // Detect table type based on the original table
   const tableType = useMemo(() => {
@@ -113,21 +60,13 @@ export function TorrentTable({ torrents, originalTable, isSeriesPage = false }: 
     } as GroupedTorrents;
   }, [originalTable, torrents, mediainfoParserEnabled]);
 
-  // Initialize sections as collapsed or expanded based on setting
-  useEffect(() => {
-    const sectionsWithIds = groupedData.sections
-      .filter(({ section }) => section !== null)
-      .map(({ section }) => section?.id)
-      .filter((id): id is string => id !== undefined);
+  // Use custom hooks for state management
+  const { collapsedSections, toggleSectionCollapsed, createToggleAllSections } = useSectionManagement(
+    groupedData,
+    sectionsCollapsedByDefault,
+  );
 
-    if (sectionsWithIds.length > 0) {
-      if (sectionsCollapsedByDefault) {
-        setCollapsedSections(new Set(sectionsWithIds));
-      } else {
-        setCollapsedSections(new Set());
-      }
-    }
-  }, [groupedData, sectionsCollapsedByDefault]);
+  // Section management is now handled by the useSectionManagement hook
 
   // Enhance torrents with Seadex data from the store
   const enhancedGroupedData = useMemo(() => {
@@ -154,108 +93,22 @@ export function TorrentTable({ torrents, originalTable, isSeriesPage = false }: 
     };
   }, [groupedData, seadexStore.data, seadexStore.lastUpdate]);
 
+  // Use custom hooks for state management
+  const { expandedRows, toggleRowExpanded } = useRowExpansion(enhancedGroupedData, isSeriesPage);
+
   // Listen for SeaDex updates and force re-render
   useSeaDexUpdates(() => {
     // The enhancedGroupedData memo will automatically update due to store changes
-    log("AB Suite: SeaDex data updated, table will re-render");
+    log("AB Suite: SeaDx data updated, table will re-render");
   });
 
-  // Auto-expand torrent details if torrentid is in URL (torrent pages only)
-  useEffect(() => {
-    if (!isSeriesPage && enhancedGroupedData.sections.length > 0) {
-      const urlParams = new URLSearchParams(window.location.search);
-      const torrentId = urlParams.get("torrentid");
+  // Row expansion is now handled by the useRowExpansion hook
 
-      if (torrentId) {
-        // Check if this torrent exists in our data
-        const torrentExists = enhancedGroupedData.sections.some(({ torrents: sectionTorrents }) =>
-          sectionTorrents.some((torrent) => torrent.torrentId === torrentId),
-        );
+  // Use custom hooks for state management
+  const { sortColumn, sortDirection, handleSort, sortedGroupedData } = useTorrentSorting(enhancedGroupedData);
 
-        if (torrentExists) {
-          log(`AB Suite: Auto-expanding torrent details for torrentid=${torrentId}`);
-          setExpandedRows(new Set([torrentId]));
-        }
-      }
-    }
-  }, [isSeriesPage, enhancedGroupedData.sections]);
-
-  // Toggle row expansion
-  const toggleRowExpanded = (torrentId: string) => {
-    setExpandedRows((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(torrentId)) {
-        newSet.delete(torrentId);
-      } else {
-        newSet.add(torrentId);
-      }
-      return newSet;
-    });
-  };
-
-  // Toggle section collapse
-  const toggleSectionCollapsed = (sectionId: string) => {
-    setCollapsedSections((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(sectionId)) {
-        newSet.delete(sectionId);
-      } else {
-        newSet.add(sectionId);
-      }
-      return newSet;
-    });
-  };
-
-  // Toggle all sections
-  const toggleAllSections = () => {
-    const sectionsWithIds = sortedGroupedData.sections
-      .filter(({ section }) => section !== null)
-      .map(({ section }) => section?.id)
-      .filter((id): id is string => id !== undefined);
-
-    if (sectionsWithIds.length === 0) return;
-
-    // If all sections are expanded (collapsedSections is empty or doesn't contain any section IDs)
-    const allExpanded = sectionsWithIds.every((id) => !collapsedSections.has(id));
-
-    if (allExpanded) {
-      // Collapse all sections
-      setCollapsedSections(new Set(sectionsWithIds));
-    } else {
-      // Expand all sections
-      setCollapsedSections(new Set());
-    }
-  };
-
-  // Handle sorting
-  const handleSort = (column: SortColumn) => {
-    if (sortColumn === column) {
-      // Cycle through: asc -> desc -> unsorted
-      if (sortDirection === "asc") {
-        setSortDirection("desc");
-      } else {
-        // Reset to unsorted state
-        setSortColumn(null);
-        setSortDirection("asc");
-      }
-    } else {
-      // New column, start with ascending
-      setSortColumn(column);
-      setSortDirection("asc");
-    }
-  };
-
-  // Memoized sorted grouped data - sort within groups, preserve group order
-  const sortedGroupedData = useMemo(() => {
-    if (!sortColumn) return enhancedGroupedData;
-
-    return {
-      sections: enhancedGroupedData.sections.map(({ section, torrents: sectionTorrents }) => ({
-        section,
-        torrents: sortTorrents([...sectionTorrents], sortColumn, sortDirection),
-      })),
-    };
-  }, [enhancedGroupedData, sortColumn, sortDirection]);
+  // Create the toggle all sections function with current data
+  const toggleAllSections = createToggleAllSections(sortedGroupedData);
 
   // Flatten for total count check
   const totalTorrents = sortedGroupedData.sections.reduce(
@@ -349,201 +202,4 @@ export function TorrentTable({ torrents, originalTable, isSeriesPage = false }: 
   return result;
 }
 
-/**
- * Sort torrents based on column and direction - comprehensive sorting logic from original
- */
-function sortTorrents(torrents: ParsedTorrentRow[], column: SortColumn, direction: SortDirection): ParsedTorrentRow[] {
-  if (!column) return torrents;
-
-  const sortFunctions: Record<NonNullable<SortColumn>, (a: ParsedTorrentRow, b: ParsedTorrentRow) => number> = {
-    // Common columns (group is anime-only but kept for compatibility)
-    group: (a, b) => compareStringsWithEmpties(a.group, b.group),
-    size: (a, b) => parseSizeToBytes(a.size) - parseSizeToBytes(b.size),
-    snatches: (a, b) => parseNumeric(a.snatches) - parseNumeric(b.snatches),
-    seeders: (a, b) => parseNumeric(a.seeders) - parseNumeric(b.seeders),
-    leechers: (a, b) => parseNumeric(a.leechers) - parseNumeric(b.leechers),
-    flags: (a, b) => {
-      const aScore = calculateFlagScore(a.flags);
-      const bScore = calculateFlagScore(b.flags);
-
-      // Primary sort by total flag score
-      const scoreDiff = aScore - bScore;
-      if (scoreDiff !== 0) return scoreDiff;
-
-      // Secondary sort by flag count if scores are equal
-      return a.flags.length - b.flags.length;
-    },
-
-    // Anime-specific columns
-    format: (a, b) => compareStringsWithEmpties(a.format, b.format),
-    region: (a, b) => compareStringsWithEmpties(a.region, b.region),
-    container: (a, b) => compareStringsWithEmpties(a.container, b.container),
-    videoCodec: (a, b) => compareStringsWithEmpties(a.videoCodec, b.videoCodec),
-    resolution: (a, b) => {
-      const resA = parseResolutionForSorting(a.resolution, a.aspectRatio);
-      const resB = parseResolutionForSorting(b.resolution, b.aspectRatio);
-
-      // Sort by height first, then width
-      const heightDiff = resA.height - resB.height;
-      if (heightDiff !== 0) return heightDiff;
-
-      const widthDiff = resA.width - resB.width;
-      if (widthDiff !== 0) return widthDiff;
-
-      // Progressive comes after interlaced
-      return (resA.isInterlaced ? 0 : 1) - (resB.isInterlaced ? 0 : 1);
-    },
-    audio: (a, b) => compareStringsWithEmpties(a.audio, b.audio),
-    audioChannels: (a, b) => {
-      const channelsA = parseChannelsForSorting(a.audioChannels);
-      const channelsB = parseChannelsForSorting(b.audioChannels);
-      return channelsA - channelsB;
-    },
-    hasDualAudio: (a, b) => Number(b.hasDualAudio) - Number(a.hasDualAudio), // Dual audio first
-    subtitles: (a, b) => compareStringsWithEmpties(a.subtitles, b.subtitles),
-
-    // Printed Media columns
-    printedMediaType: (a, b) => compareStringsWithEmpties(a.printedMediaType || "", b.printedMediaType || ""),
-    translator: (a, b) => compareStringsWithEmpties(a.translator || "", b.translator || ""),
-    isDigital: (a, b) => Number(b.isDigital) - Number(a.isDigital), // Digital first
-    printedFormat: (a, b) => compareStringsWithEmpties(a.printedFormat || "", b.printedFormat || ""),
-    isOngoing: (a, b) => Number(b.isOngoing) - Number(a.isOngoing), // Ongoing first
-
-    // Games columns
-    gameType: (a, b) => compareStringsWithEmpties(a.gameType || "", b.gameType || ""),
-    platform: (a, b) => compareStringsWithEmpties(a.platform || "", b.platform || ""),
-    gameRegion: (a, b) => compareStringsWithEmpties(a.gameRegion || "", b.gameRegion || ""),
-    isArchived: (a, b) => Number(b.isArchived) - Number(a.isArchived), // Archived first
-
-    // Music columns
-    musicCodec: (a, b) => compareStringsWithEmpties(a.musicCodec || "", b.musicCodec || ""),
-    bitrate: (a, b) => compareStringsWithEmpties(a.bitrate || "", b.bitrate || ""),
-    media: (a, b) => compareStringsWithEmpties(a.media || "", b.media || ""),
-    hasLog: (a, b) => Number(b.hasLog) - Number(a.hasLog), // Log first
-    hasCue: (a, b) => Number(b.hasCue) - Number(a.hasCue), // Cue first
-  };
-
-  const sortFn = sortFunctions[column];
-  return torrents.sort((a, b) => {
-    const result = sortFn(a, b);
-    return direction === "desc" ? -result : result;
-  });
-}
-
-// Helper functions for sorting
-
-function compareStringsWithEmpties(a: string, b: string): number {
-  if (!a && !b) return 0;
-  if (!a) return 1; // Empty strings go to the end
-  if (!b) return -1;
-  return a.localeCompare(b);
-}
-
-function parseNumeric(value: string): number {
-  const parsed = parseInt(value.replace(/[^\d]/g, ""), 10);
-  return Number.isNaN(parsed) ? 0 : parsed;
-}
-
-function parseSizeToBytes(sizeStr: string): number {
-  if (!sizeStr) return 0;
-
-  const match = sizeStr.match(/^([0-9,.]+)\s*([KMGT]?i?B)$/i);
-  if (!match) return 0;
-
-  const value = parseFloat(match[1].replace(/,/g, ""));
-  const unit = match[2].toUpperCase();
-
-  const multipliers: Record<string, number> = {
-    B: 1,
-    KB: 1024,
-    MB: 1024 ** 2,
-    GB: 1024 ** 3,
-    TB: 1024 ** 4,
-    KIB: 1024,
-    MIB: 1024 ** 2,
-    GIB: 1024 ** 3,
-    TIB: 1024 ** 4,
-  };
-
-  return value * (multipliers[unit] || 1);
-}
-
-function parseResolutionForSorting(
-  resolutionStr: string,
-  aspectRatio?: string,
-): { width: number; height: number; isInterlaced: boolean } {
-  const result = { width: 0, height: 0, isInterlaced: false };
-
-  if (!resolutionStr) return result;
-
-  // Handle direct width x height format
-  const wxhMatch = resolutionStr.match(/^(\d+)x(\d+)([ip]?)$/);
-  if (wxhMatch) {
-    result.width = parseInt(wxhMatch[1], 10);
-    result.height = parseInt(wxhMatch[2], 10);
-    result.isInterlaced = wxhMatch[3] === "i";
-    return result;
-  }
-
-  // Handle p/i format (720p, 1080p, etc.)
-  const pMatch = resolutionStr.match(/^(\d+)([pi])$/);
-  if (pMatch) {
-    const height = parseInt(pMatch[1], 10);
-    result.height = height;
-    result.isInterlaced = pMatch[2] === "i";
-
-    // Use aspect ratio if available, otherwise assume 16:9
-    if (aspectRatio?.includes(":")) {
-      const [w, h] = aspectRatio.split(":").map((n) => parseFloat(n));
-      if (w && h) {
-        result.width = Math.round((height * w) / h);
-      } else {
-        result.width = Math.round((height * 16) / 9); // fallback to 16:9
-      }
-    } else {
-      result.width = Math.round((height * 16) / 9); // default to 16:9
-    }
-
-    return result;
-  }
-
-  // Handle special cases
-  if (resolutionStr === "4K" || resolutionStr === "2160p") {
-    result.width = 3840;
-    result.height = 2160;
-    result.isInterlaced = false;
-  }
-
-  return result;
-}
-
-function parseChannelsForSorting(channelsStr: string): number {
-  if (!channelsStr) return 0;
-
-  // Parse formats like "7.1", "5.1", "2.0", etc.
-  const match = channelsStr.match(/^(\d+(?:\.\d+)?)(?:\s*ch)?$/i);
-  if (match) {
-    return parseFloat(match[1]);
-  }
-
-  return 0;
-}
-
-function calculateFlagScore(flags: string[]): number {
-  let score = 0;
-
-  for (const flag of flags) {
-    const flagLower = flag.toLowerCase();
-
-    // SeaDex Best (highest value)
-    if (flagLower.includes("seadex") && flagLower.includes("best")) score += 8;
-    // SeaDex Alt
-    else if (flagLower.includes("seadex")) score += 4;
-    // Freeleech
-    else if (flagLower.includes("freeleech")) score += 2;
-    // Remaster
-    else if (flagLower.includes("remastered")) score += 1;
-  }
-
-  return score;
-}
+// Sorting logic has been moved to ./utils/sorting.ts

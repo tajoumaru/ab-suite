@@ -1,4 +1,4 @@
-import type { UploadDescriptionData } from "../types";
+import type { UploadDescriptionData } from "@/types/modern-table";
 
 interface UploadDescriptionProps {
   uploadDescription: UploadDescriptionData;

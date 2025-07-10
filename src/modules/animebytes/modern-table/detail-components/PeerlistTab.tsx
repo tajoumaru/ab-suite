@@ -1,5 +1,5 @@
 import { Loader2 } from "lucide-preact";
-import type { PeerlistItem } from "../types";
+import type { PeerlistItem } from "@/types/modern-table";
 
 interface PeerlistTabProps {
   peerlist: PeerlistItem[];
@@ -65,7 +65,7 @@ export function PeerlistTab({ peerlist, torrentId, isLoading, isLoaded }: Peerli
                       {peer.username}
                     </a>
                   )}
-                  {peer.badges.map((badge, badgeIndex) => (
+                  {peer.badges.map((badge: string, badgeIndex: number) => (
                     <span key={`${peer.username}-badge-${badgeIndex}`} dangerouslySetInnerHTML={{ __html: badge }} />
                   ))}
                 </div>

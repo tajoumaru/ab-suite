@@ -1,4 +1,4 @@
-import type { FilelistItem } from "../types";
+import type { FilelistItem } from "@/types/modern-table";
 
 interface FilelistTabProps {
   filelist: FilelistItem[];

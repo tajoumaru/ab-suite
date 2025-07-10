@@ -1,4 +1,3 @@
-import { log } from "@/utils/logging";
 import type {
   FilelistItem,
   PeerlistItem,
@@ -6,7 +5,8 @@ import type {
   SeaDexData,
   TorrentDetailsData,
   UploadDescriptionData,
-} from "./types";
+} from "@/types/modern-table";
+import { log } from "@/utils/logging";
 
 /**
  * Extract structured torrent details data from the original HTML

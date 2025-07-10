@@ -19,7 +19,7 @@ declare global {
 }
 
 export function SeaDexIntegration() {
-  const { seadexEnabled } = useSettingsStore();
+  const { seadexEnabled } = useSettingsStore(["seadexEnabled"]);
 
   const getTorrentsOnPage = (): TorrentInfo[] => {
     const torrentSelectors = [
