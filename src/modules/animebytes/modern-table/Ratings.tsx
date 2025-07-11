@@ -40,7 +40,7 @@ Source Authority Weights:
 
 Vote Influence:
 Uses logarithmic scaling to balance popularity with authority.
-Formula: sourceWeight × (1 + min(log₁₀(votes + 1) × 0.5, 2.0))
+Formula: sourceWeight × (0.1 + log₁₀(votes + 1) × 1.2)
 
 This prevents any single platform from dominating while respecting both expertise and community consensus.`;
 
@@ -78,21 +78,24 @@ This prevents any single platform from dominating while respecting both expertis
 
     for (const rating of completedRatings) {
       const sourceWeight = sourceWeights[rating.platform] || 1.0;
+      const votes = rating.votes || 0;
 
-      // Use log scale for votes to prevent huge vote counts from dominating
-      // Add 1 to handle zero votes, multiply by 0.5 to moderate the influence
-      const voteWeight = Math.log10((rating.votes || 0) + 1) * 0.5;
+      // Use logarithmic scaling with parameters that create larger differences between vote counts
+      // Reduce the base weight and increase the log multiplier for bigger spread
+      const voteWeight = Math.log10(votes + 1) * 1.2;
 
-      // Combine source authority with vote influence, but cap vote influence
-      const combinedWeight = sourceWeight * (1 + Math.min(voteWeight, 2.0));
+      // Combine source authority with vote influence - smaller base weight
+      const combinedWeight = sourceWeight * (0.1 + voteWeight);
 
       totalWeightedScore += (rating.score || 0) * combinedWeight;
       totalWeight += combinedWeight;
       totalVotes += rating.votes || 0;
     }
 
+    const finalScore = totalWeightedScore / totalWeight;
+
     return {
-      score: totalWeightedScore / totalWeight,
+      score: finalScore,
       votes: totalVotes,
       platform: "Weighted Average",
       maxScore: 10,
