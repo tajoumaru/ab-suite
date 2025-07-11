@@ -77,12 +77,29 @@ export function DescriptionIntegration() {
     // Initialize immediately
     initializeDescriptions();
 
-    // Watch for dynamic content changes
-    const observer = new MutationObserver(() => {
-      initializeDescriptions();
+    // Watch for dynamic content changes with debouncing
+    let timeoutId: ReturnType<typeof setTimeout>;
+    const observer = new MutationObserver((mutations) => {
+      // Only react to added nodes, not style or attribute changes
+      const hasAddedNodes = mutations.some(
+        (mutation) => mutation.type === "childList" && mutation.addedNodes.length > 0,
+      );
+
+      if (!hasAddedNodes) return;
+
+      // Debounce to avoid rapid successive calls
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        initializeDescriptions();
+      }, 150);
     });
 
-    observer.observe(document.body, { childList: true, subtree: true });
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: false,
+      characterData: false,
+    });
 
     // Listen for gallery view changes
     const handleGalleryViewChange = () => {
@@ -97,6 +114,7 @@ export function DescriptionIntegration() {
 
     return () => {
       observer.disconnect();
+      clearTimeout(timeoutId);
       document.removeEventListener("ab-gallery-view-changed", handleGalleryViewChange);
       isInitialized.current = false;
     };

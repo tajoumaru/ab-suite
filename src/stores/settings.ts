@@ -20,6 +20,7 @@ export interface Settings {
   galleryViewEnabled: boolean;
   treeFilelistEnabled: boolean;
   readMoreEnabled: boolean;
+  enhancedTagStylingEnabled: boolean;
   simklClientId: string;
   tmdbApiToken: string;
   youtubeApiKey: string;
@@ -60,6 +61,7 @@ const DEFAULT_SETTINGS: Settings = {
   galleryViewEnabled: false,
   treeFilelistEnabled: false,
   readMoreEnabled: true,
+  enhancedTagStylingEnabled: true,
   simklClientId: "",
   tmdbApiToken: "",
   youtubeApiKey: "",

@@ -184,6 +184,15 @@ export const SETTINGS_CONFIG: SettingConfig[] = [
     type: "boolean",
     category: "features",
   },
+  {
+    key: "enhancedTagStylingEnabled",
+    label: "Enhanced Tag Styling",
+    description:
+      "Transforms tag display (e.g., 'school.life' → 'School Life') with color coding across the entire site",
+    type: "boolean",
+    category: "display",
+    requiresReload: true,
+  },
 
   // API Configuration
   {

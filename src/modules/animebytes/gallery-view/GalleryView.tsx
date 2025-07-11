@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import { useDescriptionStore } from "@/stores/descriptions";
 import { useSettingsStore } from "@/stores/settings";
 import { log } from "@/utils/logging";
+import { formatTagName, getTagStyle } from "@/utils/tags";
 import { DescriptionRenderer } from "../DescriptionRenderer";
 
 interface GalleryItem {
@@ -16,49 +17,6 @@ interface GalleryItem {
 interface GalleryViewProps {
   className?: string;
 }
-
-const tagColors: Record<string, string | { background: string; color?: string; border?: string }> = {
-  action: "#FF6347",
-  adventure: { background: "#FFD700", color: "#333333" },
-  classic: "#D2B48C",
-  comedy: { background: "#90EE90", color: "#333333" },
-  "contemporary.fantasy": "#DA70D6",
-  drama: "#4682B4",
-  ecchi: { background: "#FFB6C1", color: "#333333" },
-  fantasy: "#8A2BE2",
-  fighting: "#B22222",
-  "gender.bender": "#FF69B4",
-  harem: { background: "#FFA07A", color: "#333333" },
-  historical: "#8B4513",
-  isekai: "#20B2AA",
-  "love.polygon": { background: "#FFC0CB", color: "#333333" },
-  magic: "#9370DB",
-  "mahou.shoujo": "#DB7093",
-  mecha: "#708090",
-  military: "#556B2F",
-  music: "#1E90FF",
-  mystery: { background: "#4B0082", color: "#FFFFFF" },
-  new: { background: "#FFFFFF", color: "#333333", border: "1px solid #ccc" },
-  "piloted.robot": "#607D8B",
-  psychological: { background: "#2F4F4F", color: "#FFFFFF" },
-  romance: "#FF1493",
-  "school.life": { background: "#87CEEB", color: "#333333" },
-  "science.fiction": "#00CED1",
-  seinen: "#696969",
-  shoujo: { background: "#FFDAE9", color: "#333333" },
-  shounen: "#FFA500",
-  "shounen.ai": { background: "#ADD8E6", color: "#333333" },
-  slapstick: { background: "#FFFFE0", color: "#555555" },
-  "slice.of.life": { background: "#98FB98", color: "#333333" },
-  steampunk: "#CD853F",
-  "super.power": "#DC143C",
-  supernatural: { background: "#483D8B", color: "#FFFFFF" },
-  thriller: { background: "#1A1A1A", color: "#FFFFFF" },
-  underworld: { background: "#333333", color: "#FFFFFF" },
-  violence: "#8B0000",
-  yaoi: { background: "#AFEEEE", color: "#333333" },
-  yuri: { background: "#F08080", color: "#333333" },
-};
 
 function extractGalleryItems(): GalleryItem[] {
   const items: GalleryItem[] = [];
@@ -131,30 +89,11 @@ function extractGalleryItems(): GalleryItem[] {
 }
 
 function GalleryItem({ item }: { item: GalleryItem }) {
+  const { enhancedTagStylingEnabled } = useSettingsStore(["enhancedTagStylingEnabled"]);
   const [imageError, setImageError] = useState(false);
 
   const handleImageError = () => {
     setImageError(true);
-  };
-
-  const getTagStyle = (tag: string) => {
-    const colorStyle = tagColors[tag];
-    if (typeof colorStyle === "object") {
-      return {
-        backgroundColor: colorStyle.background,
-        color: colorStyle.color || "#e2e8f0",
-        border: colorStyle.border || "none",
-      };
-    } else if (typeof colorStyle === "string") {
-      return {
-        backgroundColor: colorStyle,
-        color: "#e2e8f0",
-      };
-    }
-    return {
-      backgroundColor: "#4a5568",
-      color: "#e2e8f0",
-    };
   };
 
   const fallbackImageUrl = imageError
@@ -172,8 +111,8 @@ function GalleryItem({ item }: { item: GalleryItem }) {
       <div className="ab-gallery-tags-container">
         {item.tags.length > 0 ? (
           item.tags.map((tag) => (
-            <span key={tag} className="ab-gallery-tag" style={getTagStyle(tag)}>
-              {tag.replace(/\./g, " ")}
+            <span key={tag} className="ab-gallery-tag" style={enhancedTagStylingEnabled ? getTagStyle(tag) : {}}>
+              {enhancedTagStylingEnabled ? formatTagName(tag) : tag}
             </span>
           ))
         ) : (
@@ -216,7 +155,7 @@ export function GalleryView({ className }: GalleryViewProps) {
     setIsActive(savedState === "true");
 
     log("AB Suite Gallery: Initialized with", items.length, "items");
-  }, [galleryViewEnabled, descriptionStore]);
+  }, [galleryViewEnabled]);
 
   useEffect(() => {
     if (!galleryViewEnabled) return;

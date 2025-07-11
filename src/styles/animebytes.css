@@ -1689,3 +1689,108 @@ li.ab-selected .ab-autocomplete-item {
   font-size: 12px;
   line-height: 1.4;
 }
+
+/* ============================================================
+   Enhanced Tag Styling
+   ============================================================ */
+
+/* Global enhanced tag styles */
+.ab-enhanced-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  margin: 1px 2px;
+  border-radius: 4px;
+  font-weight: 500;
+  line-height: 1.5;
+  text-decoration: none;
+  font-style: normal;
+  transition: all 0.2s ease;
+}
+
+.ab-enhanced-tag:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Tag cloud specific styles */
+#browse_nav_tags .ab-enhanced-tag {
+  margin: 2px 4px;
+}
+
+/* Tag voting page specific styles */
+.tag_name.ab-enhanced-tag {
+  font-size: 0.9em;
+  padding: 3px 10px;
+}
+
+/* Simple tag list styles */
+.stats.nobullet li a.ab-enhanced-tag {
+  display: inline-block;
+  margin: 1px 3px;
+}
+
+/* ============================================================
+   Custom Tag Cloud Component
+   ============================================================ */
+
+.ab-tag-cloud-container {
+  margin: 10px 0;
+}
+
+.ab-tag-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  line-height: 1.6;
+}
+
+.ab-tag-cloud-item {
+  display: inline-block;
+  padding: 4px 12px;
+  margin: 2px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 0.9em;
+  font-weight: 500;
+  line-height: 1.4;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.ab-tag-cloud-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+  text-decoration: none;
+}
+
+/* Level-based sizing (mimicking original tag cloud levels) */
+.ab-tag-cloud-item[data-level="5"] {
+  font-size: 1.3em;
+  font-weight: 600;
+  padding: 5px 14px;
+}
+
+.ab-tag-cloud-item[data-level="4"] {
+  font-size: 1.2em;
+  font-weight: 600;
+  padding: 4px 13px;
+}
+
+.ab-tag-cloud-item[data-level="3"] {
+  font-size: 1.1em;
+  font-weight: 500;
+  padding: 4px 12px;
+}
+
+.ab-tag-cloud-item[data-level="2"] {
+  font-size: 1em;
+  font-weight: 500;
+  padding: 3px 11px;
+}
+
+.ab-tag-cloud-item[data-level="1"] {
+  font-size: 0.9em;
+  font-weight: 400;
+  padding: 3px 10px;
+}

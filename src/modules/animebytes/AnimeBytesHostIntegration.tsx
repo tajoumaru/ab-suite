@@ -1,9 +1,9 @@
 import { render } from "preact";
 import { useEffect, useRef } from "preact/hooks";
 import { log } from "@/utils/logging";
-import { DescriptionIntegration } from "./DescriptionIntegration";
-import { ReadMoreIntegration } from "./ReadMoreIntegration";
+import { EnhancedTagStyling } from "./EnhancedTagStyling";
 import { SettingsButton } from "./SettingsModal";
+import { UnifiedDescriptionIntegration } from "./UnifiedDescriptionIntegration";
 
 /**
  * AnimeBytesHostIntegration component that implements declarative takeover for AnimeBytes site integration.
@@ -73,11 +73,11 @@ export function AnimeBytesHostIntegration() {
   }, [isInitialized.current]);
 
   // This component doesn't render anything directly - it manages DOM takeover
-  // Also render the integrations for descriptions and read more functionality
+  // Also render the integrations for descriptions and enhanced tag styling
   return (
     <>
-      <DescriptionIntegration />
-      <ReadMoreIntegration />
+      <UnifiedDescriptionIntegration />
+      <EnhancedTagStyling />
     </>
   );
 }
