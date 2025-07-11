@@ -214,6 +214,7 @@
 
 .ab-modern-table-container {
   overflow-x: auto;
+  width: 100%;
 }
 
 .ab-modern-torrent-table {

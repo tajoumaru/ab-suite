@@ -4,6 +4,7 @@ import { useSettingsStore } from "@/stores/settings";
 import { log } from "@/utils/logging";
 import { GalleryView } from "../gallery-view";
 import { AutocompleteEnhancedInput } from "./AutocompleteEnhancedInput";
+import { ModernTableIntegration } from "./ModernTableIntegration";
 import { createCategoryUrl, createCrossNavigationUrl, useSearchState } from "./useSearchState";
 
 interface SearchInputInfo {
@@ -404,5 +405,6 @@ export function SearchPage() {
   }, [galleryViewEnabled]);
 
   // This component doesn't render anything directly - it manages DOM takeover
-  return null;
+  // Also render the modern table integration for search pages
+  return <ModernTableIntegration />;
 }

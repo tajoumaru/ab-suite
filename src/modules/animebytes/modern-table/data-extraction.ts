@@ -177,8 +177,8 @@ export function extractGroupedTorrentData(
 
       log("AB Suite: Found group header:", groupTitle);
     }
-    // Check if this is a torrent row
-    if (row.classList.contains("group_torrent")) {
+    // Check if this is a torrent row (both group_torrent and torrent classes for search pages)
+    if (row.classList.contains("group_torrent") || row.classList.contains("torrent")) {
       const torrent = parseTorrentRow(row, mediainfoParserEnabled, actualTableType);
       if (torrent) {
         // Add section information to the torrent
@@ -250,7 +250,8 @@ function parseTorrentRow(
     if (!mainCell) return null;
 
     // Extract download and details links
-    const downloadLink = mainCell.querySelector('a[href*="/torrent/"]')?.getAttribute("href") || "";
+    const downloadLink =
+      mainCell.querySelector('a[href*="/torrent/"], a[href*="/download/"]')?.getAttribute("href") || "";
     const detailsLink = mainCell.querySelector(
       'a[href*="torrents.php"], a[href*="torrents2.php"]',
     ) as HTMLAnchorElement;
@@ -259,8 +260,16 @@ function parseTorrentRow(
     // Extract torrent and group IDs
     const torrentIdMatch = detailsLink.href.match(/torrentid=(\d+)/);
     const groupIdMatch = detailsLink.href.match(/id=(\d+)/);
-    const torrentId = torrentIdMatch ? torrentIdMatch[1] : "";
+    let torrentId = torrentIdMatch ? torrentIdMatch[1] : "";
     const groupId = groupIdMatch ? groupIdMatch[1] : "";
+
+    // For search pages, torrent ID might be in the row id attribute
+    if (!torrentId && row.id) {
+      const rowIdMatch = row.id.match(/torrent_(\d+)/);
+      if (rowIdMatch) {
+        torrentId = rowIdMatch[1];
+      }
+    }
 
     // Get the text content and parse format information
     const linkText = detailsLink.textContent?.trim() || "";
