@@ -39,10 +39,10 @@ Source Authority Weights:
 • General sites (TMDb, IMDb): 1.0×
 
 Vote Influence:
-Uses logarithmic scaling to balance popularity with authority.
-Formula: sourceWeight × (0.1 + log₁₀(votes + 1) × 1.2)
+Uses simple vote-weighted averaging with authority weights.
+Formula: (score × votes × sourceWeight) / (votes × sourceWeight)
 
-This prevents any single platform from dominating while respecting both expertise and community consensus.`;
+Each vote is weighted by the platform's authority, creating a natural balance between vote count and source reliability.`;
 
   // Filter out platforms that don't have valid data
   const validRatings = ratings.filter((rating) => {
@@ -80,16 +80,13 @@ This prevents any single platform from dominating while respecting both expertis
       const sourceWeight = sourceWeights[rating.platform] || 1.0;
       const votes = rating.votes || 0;
 
-      // Use logarithmic scaling with parameters that create larger differences between vote counts
-      // Reduce the base weight and increase the log multiplier for bigger spread
-      const voteWeight = Math.log10(votes + 1) * 1.2;
+      // Simple vote-weighted average: score * votes * authority weight
+      const weightedScore = (rating.score || 0) * votes * sourceWeight;
+      const weightedVotes = votes * sourceWeight;
 
-      // Combine source authority with vote influence - smaller base weight
-      const combinedWeight = sourceWeight * (0.1 + voteWeight);
-
-      totalWeightedScore += (rating.score || 0) * combinedWeight;
-      totalWeight += combinedWeight;
-      totalVotes += rating.votes || 0;
+      totalWeightedScore += weightedScore;
+      totalWeight += weightedVotes;
+      totalVotes += votes;
     }
 
     const finalScore = totalWeightedScore / totalWeight;
