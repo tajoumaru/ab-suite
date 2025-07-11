@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "preact/hooks";
+import { useDescriptionStore } from "@/stores/descriptions";
 import { useSettingsStore } from "@/stores/settings";
 import { log } from "@/utils/logging";
+import { DescriptionRenderer } from "../DescriptionRenderer";
 
 interface GalleryItem {
   id: string;
@@ -179,7 +181,7 @@ function GalleryItem({ item }: { item: GalleryItem }) {
         )}
       </div>
       <div className="ab-gallery-description-on-hover">
-        <div className="torrent_desc" dangerouslySetInnerHTML={{ __html: item.description }} />
+        <DescriptionRenderer torrentLink={item.torrentPageUrl} className="torrent_desc" />
       </div>
     </div>
   );
@@ -187,6 +189,7 @@ function GalleryItem({ item }: { item: GalleryItem }) {
 
 export function GalleryView({ className }: GalleryViewProps) {
   const { galleryViewEnabled } = useSettingsStore(["galleryViewEnabled"]);
+  const descriptionStore = useDescriptionStore();
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
   const [isActive, setIsActive] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -200,6 +203,12 @@ export function GalleryView({ className }: GalleryViewProps) {
     }
 
     const items = extractGalleryItems();
+
+    // Initialize descriptions in the store
+    items.forEach((item) => {
+      descriptionStore.initializeDescription(item.torrentPageUrl, item.description);
+    });
+
     setGalleryItems(items);
 
     // Load saved view state
@@ -207,7 +216,7 @@ export function GalleryView({ className }: GalleryViewProps) {
     setIsActive(savedState === "true");
 
     log("AB Suite Gallery: Initialized with", items.length, "items");
-  }, [galleryViewEnabled]);
+  }, [galleryViewEnabled, descriptionStore]);
 
   useEffect(() => {
     if (!galleryViewEnabled) return;

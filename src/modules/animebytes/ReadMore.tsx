@@ -1,44 +1,39 @@
-import { useState } from "preact/hooks";
+import { useDescriptionStore } from "@/stores/descriptions";
 import { useSettingsStore } from "@/stores/settings";
 
 interface ReadMoreProps {
-  description: HTMLElement;
   torrentLink: string;
 }
 
-export function ReadMore({ description, torrentLink }: ReadMoreProps) {
+export function ReadMore({ torrentLink }: ReadMoreProps) {
   const { readMoreEnabled } = useSettingsStore(["readMoreEnabled"]);
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const descriptionStore = useDescriptionStore();
 
   if (!readMoreEnabled) {
-    console.log("AB Suite: ReadMore disabled via settings");
     return null;
   }
 
-  // Check if description ends with "..." indicating truncation (trim to handle spaces)
-  const isTruncated = description.textContent?.trim().endsWith("...");
+  const isLoading = descriptionStore.isDescriptionLoading(torrentLink);
+  const isExpanded = descriptionStore.isDescriptionExpanded(torrentLink);
+  const needsReadMore = descriptionStore.needsReadMore(torrentLink);
 
-  if (!isTruncated) {
+  if (!needsReadMore) {
     return null;
   }
 
   const handleReadMore = async () => {
     if (isExpanded || isLoading) return;
 
-    setIsLoading(true);
+    descriptionStore.setLoading(torrentLink, true);
     try {
       const fullDescription = await getFullDescription(torrentLink);
-      description.innerHTML = fullDescription;
-      setIsExpanded(true);
+      descriptionStore.setFullDescription(torrentLink, fullDescription);
     } catch (error) {
       console.error("AB Suite: Failed to fetch full description", error);
-    } finally {
-      setIsLoading(false);
+      descriptionStore.setLoading(torrentLink, false);
     }
   };
 
-  console.log("AB Suite: ReadMore rendering button");
   return (
     <button
       onClick={handleReadMore}

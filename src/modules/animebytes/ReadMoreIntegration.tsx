@@ -1,11 +1,13 @@
 import { render } from "preact";
 import { useEffect, useRef } from "preact/hooks";
+import { useDescriptionStore } from "@/stores/descriptions";
 import { useSettingsStore } from "@/stores/settings";
 import { log } from "@/utils/logging";
 import { ReadMore } from "./ReadMore";
 
 export function ReadMoreIntegration() {
   const { readMoreEnabled } = useSettingsStore(["readMoreEnabled"]);
+  const descriptionStore = useDescriptionStore();
   const isInitialized = useRef(false);
 
   useEffect(() => {
@@ -56,6 +58,8 @@ export function ReadMoreIntegration() {
             }
 
             if (torrentLink) {
+              // Initialize description state
+              descriptionStore.initializeDescription(torrentLink.href, descElement.innerHTML);
               elementsToProcess.push({ descElement, torrentLink });
             }
           }
@@ -80,7 +84,7 @@ export function ReadMoreIntegration() {
             descElement.appendChild(tempFragment);
 
             // Render the ReadMore component
-            render(<ReadMore description={descElement} torrentLink={torrentLink.href} />, container);
+            render(<ReadMore torrentLink={torrentLink.href} />, container);
           });
         }
 
