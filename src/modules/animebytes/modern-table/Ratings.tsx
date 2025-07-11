@@ -1,3 +1,4 @@
+import { useEffect, useState } from "preact/hooks";
 import { useRatings } from "@/hooks/useRatings";
 import { useSettingsStore } from "@/stores/settings";
 import type { AnimeApiResponse, MediaInfo } from "../hooks/useMediaInfo";
@@ -21,6 +22,13 @@ const PLATFORM_ICONS = {
 export function Ratings({ apiData, mediaInfo }: RatingsProps) {
   const settings = useSettingsStore();
   const { ratings } = useRatings(apiData, mediaInfo, settings.tmdbApiToken);
+
+  // Track if this is the first render to show loading state immediately
+  const [hasInitialized, setHasInitialized] = useState(false);
+
+  useEffect(() => {
+    setHasInitialized(true);
+  }, []);
 
   // Tooltip explaining the weighted average algorithm
   const weightedAverageTooltip = `Weighted Average Algorithm:
@@ -135,30 +143,62 @@ This prevents any single platform from dominating while respecting both expertis
     return `${formattedNumber} votes`;
   };
 
-  // Don't render the ratings section if no valid ratings are available
-  if (finalRatings.length === 0) {
-    return null;
-  }
+  // Show loading state immediately with proper structure
+  // On first render (!hasInitialized), always show loading
+  // After initialization, check actual loading state
+  const isInitialLoading = !hasInitialized || ratings.every((r) => r.loading);
 
   return (
     <div className="ab-ratings box">
       <div className="head">Ratings</div>
       <div className="ab-ratings-grid body">
-        {finalRatings.map((rating) => {
-          const iconSrc = PLATFORM_ICONS[rating.platform as keyof typeof PLATFORM_ICONS];
-          const isWeightedAverage = rating.platform === "Weighted Average";
-
-          return (
-            <div key={rating.platform} className="ab-rating-card">
+        {isInitialLoading ? (
+          // Show loading cards to maintain layout during initial load
+          ["MyAnimeList", "AniList", "AniDB", "Kitsu", "TMDb", "IMDb"].map((platform) => (
+            <div key={`loading-${platform}`} className="ab-rating-card">
               <div className="ab-rating-header">
-                {rating.detailsUrl ? (
-                  <a
-                    href={rating.detailsUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="ab-rating-details-link"
-                    title={`View detailed ${rating.platform} statistics`}
-                  >
+                <div className="ab-rating-platform-skeleton" />
+              </div>
+              <div className="ab-rating-content">
+                <div className="ab-rating-loading">Loading...</div>
+              </div>
+            </div>
+          ))
+        ) : finalRatings.length === 0 ? (
+          <div className="ab-ratings-empty">No ratings available</div>
+        ) : (
+          finalRatings.map((rating) => {
+            const iconSrc = PLATFORM_ICONS[rating.platform as keyof typeof PLATFORM_ICONS];
+            const isWeightedAverage = rating.platform === "Weighted Average";
+
+            return (
+              <div key={rating.platform} className="ab-rating-card">
+                <div className="ab-rating-header">
+                  {rating.detailsUrl ? (
+                    <a
+                      href={rating.detailsUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ab-rating-details-link"
+                      title={`View detailed ${rating.platform} statistics`}
+                    >
+                      <img
+                        className="ab-rating-platform-icon"
+                        src={iconSrc}
+                        alt={rating.platform}
+                        title={isWeightedAverage ? weightedAverageTooltip : undefined}
+                        onError={(e) => {
+                          // Fallback for missing icons - show platform name instead
+                          const target = e.currentTarget as HTMLImageElement;
+                          target.style.display = "none";
+                          const fallbackSpan = document.createElement("span");
+                          fallbackSpan.textContent = rating.platform;
+                          fallbackSpan.className = "ab-platform-name-fallback";
+                          target.parentNode?.appendChild(fallbackSpan);
+                        }}
+                      />
+                    </a>
+                  ) : (
                     <img
                       className="ab-rating-platform-icon"
                       src={iconSrc}
@@ -174,45 +214,29 @@ This prevents any single platform from dominating while respecting both expertis
                         target.parentNode?.appendChild(fallbackSpan);
                       }}
                     />
-                  </a>
-                ) : (
-                  <img
-                    className="ab-rating-platform-icon"
-                    src={iconSrc}
-                    alt={rating.platform}
-                    title={isWeightedAverage ? weightedAverageTooltip : undefined}
-                    onError={(e) => {
-                      // Fallback for missing icons - show platform name instead
-                      const target = e.currentTarget as HTMLImageElement;
-                      target.style.display = "none";
-                      const fallbackSpan = document.createElement("span");
-                      fallbackSpan.textContent = rating.platform;
-                      fallbackSpan.className = "ab-platform-name-fallback";
-                      target.parentNode?.appendChild(fallbackSpan);
-                    }}
-                  />
-                )}
+                  )}
+                </div>
+                <div className="ab-rating-content">
+                  {rating.loading ? (
+                    <div className="ab-rating-loading">Loading...</div>
+                  ) : rating.error ? (
+                    <div className="ab-rating-error">Error</div>
+                  ) : (
+                    <>
+                      <div className="ab-rating-score" title={isWeightedAverage ? weightedAverageTooltip : undefined}>
+                        <span className="ab-score-value">{formatScore(rating.score)}</span>
+                        <span className="ab-score-max"> / 10</span>
+                      </div>
+                      <div className="ab-rating-details">
+                        <div className="ab-rating-votes">{formatVotesDisplay(rating.votes)}</div>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
-              <div className="ab-rating-content">
-                {rating.loading ? (
-                  <div className="ab-rating-loading">Loading...</div>
-                ) : rating.error ? (
-                  <div className="ab-rating-error">Error</div>
-                ) : (
-                  <>
-                    <div className="ab-rating-score" title={isWeightedAverage ? weightedAverageTooltip : undefined}>
-                      <span className="ab-score-value">{formatScore(rating.score)}</span>
-                      <span className="ab-score-max"> / 10</span>
-                    </div>
-                    <div className="ab-rating-details">
-                      <div className="ab-rating-votes">{formatVotesDisplay(rating.votes)}</div>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          );
-        })}
+            );
+          })
+        )}
       </div>
     </div>
   );

@@ -4,7 +4,7 @@ import { useSeaDexUpdates } from "@/stores/seadex";
 import { useSettingsStore } from "@/stores/settings";
 import { log } from "@/utils/logging";
 import { GalleryView } from "../gallery-view";
-import { useMediaInfo } from "../hooks/useMediaInfo";
+import { type AnimeApiResponse, useMediaInfo } from "../hooks/useMediaInfo";
 import {
   detectTableType,
   ExternalLinksBar,
@@ -14,6 +14,35 @@ import {
   TorrentTable,
   Trailers,
 } from "../modern-table";
+
+// Default empty AnimeApiResponse for when no data is available
+const DEFAULT_API_DATA: AnimeApiResponse = {
+  title: "",
+  anidb: null,
+  anilist: null,
+  animenewsnetwork: null,
+  animeplanet: null,
+  anisearch: null,
+  annict: null,
+  imdb: null,
+  kaize: null,
+  kaize_id: null,
+  kitsu: null,
+  livechart: null,
+  myanimelist: null,
+  nautiljon: null,
+  nautiljon_id: null,
+  notify: null,
+  otakotaku: null,
+  simkl: null,
+  shikimori: null,
+  shoboi: null,
+  silveryasha: null,
+  themoviedb: null,
+  trakt: null,
+  trakt_type: null,
+  trakt_season: null,
+};
 
 /**
  * Comprehensive component that implements declarative takeover for the entire torrent group page.
@@ -225,9 +254,13 @@ export function TorrentGroupPage() {
     if (sectionsContainerRef.current && isInitialized) {
       const SectionsContainer = () => (
         <>
-          {TrailersEnabled && mediaInfo?.apiData && <Trailers apiData={mediaInfo.apiData} mediaInfo={mediaInfo} />}
+          {TrailersEnabled && (
+            <Trailers apiData={mediaInfo?.apiData || DEFAULT_API_DATA} mediaInfo={mediaInfo || undefined} />
+          )}
           {plotSynopsisHtml && <div dangerouslySetInnerHTML={{ __html: plotSynopsisHtml }} />}
-          {RatingsEnabled && mediaInfo?.apiData && <Ratings apiData={mediaInfo.apiData} mediaInfo={mediaInfo} />}
+          {RatingsEnabled && (
+            <Ratings apiData={mediaInfo?.apiData || DEFAULT_API_DATA} mediaInfo={mediaInfo || undefined} />
+          )}
         </>
       );
 

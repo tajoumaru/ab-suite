@@ -12,6 +12,13 @@ AB Suite is a TypeScript userscript that enhances the user experience on anime-r
 2. **Linting/Formatting**: Use `pnpm format` to lint and format code
 3. **Building**: Use `pnpm build:minified` to build the userscript
 
+### Other miscellaneous commands available
+
+- `rg` (Ripgrep)
+- `fd` (Rust based find)
+- `dust` (rust based du)
+- `eza` (rust based ls)
+
 ## Architecture
 
 ### Entry Point & Routing

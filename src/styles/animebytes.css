@@ -1285,9 +1285,53 @@ li.ab-selected .ab-autocomplete-item {
   color: #fff;
 }
 
+/* Loading skeleton for rating platform icon */
+.ab-rating-platform-skeleton {
+  width: 54px;
+  height: 54px;
+  border-radius: 25%;
+  background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Empty state for ratings */
+.ab-ratings-empty {
+  text-align: center;
+  color: #999;
+  font-style: italic;
+  padding: 20px;
+}
+
 /* Hide the original rating stats since we display it in our ratings section */
 #rating_stats {
   display: none !important;
+}
+
+/* Trailer loading styles */
+.ab-trailer-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.ab-trailer-placeholder {
+  width: 693px;
+  height: 390px;
+  background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
 }
 
 /* ============================================================

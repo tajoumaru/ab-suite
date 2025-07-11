@@ -12,6 +12,11 @@ interface TrailersProps {
 export function Trailers({ apiData, mediaInfo }: TrailersProps) {
   const settings = useSettingsStore();
   const [selectedTrailerIndex, setSelectedTrailerIndex] = useState(0);
+  const [hasInitialized, setHasInitialized] = useState(false);
+
+  useEffect(() => {
+    setHasInitialized(true);
+  }, []);
 
   const trailersAsync = useAsync(
     async (): Promise<TrailerCollection> => {
@@ -50,11 +55,6 @@ export function Trailers({ apiData, mediaInfo }: TrailersProps) {
   );
 
   const trailerData = trailersAsync.data || { trailers: [], loading: false, error: false };
-
-  // Don't render if no trailers and not loading
-  if (!trailersAsync.loading && trailerData.trailers.length === 0 && !trailersAsync.error) {
-    return null;
-  }
 
   const formatTrailerTitle = (trailer: Trailer) => {
     // Use the trailer name as-is, without adding provider info
@@ -99,9 +99,15 @@ export function Trailers({ apiData, mediaInfo }: TrailersProps) {
           </select>
         )}
       </div>
-      <div className="body" style={{ display: "flex", justifyContent: "center" }}>
-        {trailersAsync.loading ? (
-          <div style={{ textAlign: "center", padding: "20px", color: "#888" }}>Loading trailers...</div>
+      <div
+        className="body"
+        style={{ display: "flex", justifyContent: "center", minHeight: "430px", alignItems: "center" }}
+      >
+        {!hasInitialized || trailersAsync.loading ? (
+          <div className="ab-trailer-loading">
+            <div className="ab-trailer-placeholder" />
+            <div style={{ textAlign: "center", marginTop: "20px", color: "#888" }}>Loading trailers...</div>
+          </div>
         ) : trailersAsync.error ? (
           <div style={{ textAlign: "center", padding: "20px", color: "#ef4444" }}>Failed to load trailers</div>
         ) : trailerData.trailers.length === 0 ? (
