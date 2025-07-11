@@ -1,5 +1,12 @@
 import { useEffect, useState } from "preact/hooks";
-import { useSettingsStore } from "@/stores/settings";
+import { type Settings, useSettingsStore } from "@/stores/settings";
+import {
+  getSettingsByCategory,
+  isSettingEnabled,
+  SETTING_CATEGORIES,
+  type SettingConfig,
+  type SettingValue,
+} from "@/stores/settingsConfig";
 import "@/styles/animebytes.css";
 import { log } from "@/utils/logging";
 
@@ -26,30 +33,151 @@ const CloseIcon = () => (
   </svg>
 );
 
-export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
-  const {
-    anilistIntegrationEnabled,
-    seadexEnabled,
-    tableRestructureEnabled,
-    compactResolutionMode,
-    showRegionColumn,
-    showDualAudioColumn,
-    mediainfoParserEnabled,
-    interactiveSearchEnabled,
-    autocompleteSearchEnabled,
-    sectionsCollapsedByDefault,
-    debugLoggingEnabled,
-    RatingsEnabled,
-    galleryViewEnabled,
-    treeFilelistEnabled,
-    readMoreEnabled,
-    simklClientId,
-    tmdbApiToken,
-    toggleSetting,
-    updateStringSetting,
-  } = useSettingsStore();
+const ChevronIcon = ({ expanded }: { expanded: boolean }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+    className={`ab-settings-chevron ${expanded ? "expanded" : ""}`}
+  >
+    <path d="m9 18 6-6-6-6" />
+  </svg>
+);
 
+const ExternalLinkIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+    <polyline points="15 3 21 3 21 9" />
+    <line x1="10" y1="14" x2="21" y2="3" />
+  </svg>
+);
+
+interface SettingItemProps {
+  config: SettingConfig;
+  value: SettingValue;
+  onChange: (key: string, value: SettingValue) => void;
+  disabled?: boolean;
+}
+
+function SettingItem({ config, value, onChange, disabled }: SettingItemProps) {
+  const handleToggle = () => {
+    if (config.type === "boolean" && !disabled) {
+      onChange(config.key, !value);
+      if (config.requiresReload) {
+        log("AB Suite: Setting updated. Some changes may require a page reload.");
+      }
+    }
+  };
+
+  const handleStringChange = (e: Event) => {
+    const target = e.target as HTMLInputElement;
+    onChange(config.key, target.value);
+  };
+
+  return (
+    <div className={`ab-settings-option ${disabled ? "disabled" : ""}`}>
+      <div className="ab-settings-option-content">
+        <div className="ab-settings-option-header">
+          <strong>{config.label}</strong>
+          {config.helpUrl && (
+            <a
+              href={config.helpUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ab-settings-help-link"
+              aria-label={`Get help for ${config.label}`}
+            >
+              <ExternalLinkIcon />
+            </a>
+          )}
+        </div>
+        <div className="ab-settings-option-description">{config.description}</div>
+        {config.type === "string" && (
+          <input
+            type="text"
+            placeholder={config.placeholder}
+            value={(value as string) || ""}
+            onChange={handleStringChange}
+            className="ab-settings-input"
+            disabled={disabled}
+          />
+        )}
+      </div>
+      {config.type === "boolean" && (
+        <button
+          className={`ab-settings-toggle ${value ? "active" : ""}`}
+          onClick={handleToggle}
+          aria-label={`Toggle ${config.label} ${value ? "off" : "on"}`}
+          type="button"
+          disabled={disabled}
+        />
+      )}
+    </div>
+  );
+}
+
+interface CategorySectionProps {
+  category: (typeof SETTING_CATEGORIES)[0];
+  settings: SettingConfig[];
+  settingsValues: Settings;
+  onChange: (key: string, value: SettingValue) => void;
+}
+
+function CategorySection({ category, settings, settingsValues, onChange }: CategorySectionProps) {
+  const [expanded, setExpanded] = useState(true);
+
+  return (
+    <div className="ab-settings-category">
+      <button
+        className="ab-settings-category-header"
+        onClick={() => setExpanded(!expanded)}
+        type="button"
+        aria-expanded={expanded}
+        aria-controls={`category-${category.id}`}
+      >
+        <div className="ab-settings-category-info">
+          <h4>{category.label}</h4>
+          {category.description && <p>{category.description}</p>}
+        </div>
+        <ChevronIcon expanded={expanded} />
+      </button>
+      <div id={`category-${category.id}`} className={`ab-settings-category-content ${expanded ? "expanded" : ""}`}>
+        {settings.map((setting) => (
+          <SettingItem
+            key={setting.key}
+            config={setting}
+            value={settingsValues[setting.key]}
+            onChange={onChange}
+            disabled={!isSettingEnabled(settingsValues, setting)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
+  const settingsStore = useSettingsStore();
   const [isClosing, setIsClosing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Handle escape key
   useEffect(() => {
@@ -91,48 +219,32 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     }
   };
 
-  const handleToggle = (
-    key:
-      | "anilistIntegrationEnabled"
-      | "seadexEnabled"
-      | "tableRestructureEnabled"
-      | "compactResolutionMode"
-      | "showRegionColumn"
-      | "showDualAudioColumn"
-      | "mediainfoParserEnabled"
-      | "interactiveSearchEnabled"
-      | "autocompleteSearchEnabled"
-      | "sectionsCollapsedByDefault"
-      | "debugLoggingEnabled"
-      | "RatingsEnabled"
-      | "galleryViewEnabled"
-      | "treeFilelistEnabled"
-      | "readMoreEnabled",
-  ) => {
-    toggleSetting(key);
-
-    // Show a brief notification that settings will apply after reload
-    if (
-      key === "anilistIntegrationEnabled" ||
-      key === "seadexEnabled" ||
-      key === "tableRestructureEnabled" ||
-      key === "compactResolutionMode" ||
-      key === "showRegionColumn" ||
-      key === "showDualAudioColumn" ||
-      key === "mediainfoParserEnabled" ||
-      key === "interactiveSearchEnabled" ||
-      key === "autocompleteSearchEnabled" ||
-      key === "sectionsCollapsedByDefault" ||
-      key === "debugLoggingEnabled" ||
-      key === "RatingsEnabled" ||
-      key === "galleryViewEnabled" ||
-      key === "treeFilelistEnabled" ||
-      key === "readMoreEnabled"
-    ) {
-      // Could add a toast notification here in the future
-      log("AB Suite: Setting updated. Some changes may require a page reload.");
+  const handleSettingChange = (key: string, value: SettingValue) => {
+    if (typeof value === "string") {
+      settingsStore.updateStringSetting(
+        key as keyof Pick<Settings, "simklClientId" | "tmdbApiToken" | "youtubeApiKey">,
+        value,
+      );
+    } else if (typeof value === "boolean") {
+      settingsStore.toggleSetting(key as keyof Omit<Settings, "simklClientId" | "tmdbApiToken" | "youtubeApiKey">);
     }
   };
+
+  // Get all settings values
+  const settingsValues = settingsStore.getAllSettings();
+
+  // Filter settings based on search
+  const filteredCategories = SETTING_CATEGORIES.map((category) => {
+    const categorySettings = getSettingsByCategory(category.id);
+    const filteredSettings = searchQuery
+      ? categorySettings.filter(
+          (setting) =>
+            setting.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            setting.description.toLowerCase().includes(searchQuery.toLowerCase()),
+        )
+      : categorySettings;
+    return { category, settings: filteredSettings };
+  }).filter((item) => item.settings.length > 0);
 
   if (!isOpen && !isClosing) {
     return null;
@@ -156,255 +268,34 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           </button>
         </div>
 
-        <div className="ab-settings-option">
-          <div className="ab-settings-option-content">
-            <strong>AniList Integration</strong>
-            <div>Adds AB buttons to AniList and AniList/MD links to AB.</div>
-          </div>
-          <button
-            className={`ab-settings-toggle ${anilistIntegrationEnabled ? "active" : ""}`}
-            onClick={() => handleToggle("anilistIntegrationEnabled")}
-            aria-label={`Toggle AniList integration ${anilistIntegrationEnabled ? "off" : "on"}`}
-            type="button"
+        <div className="ab-settings-search">
+          <input
+            type="text"
+            placeholder="Search settings..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery((e.target as HTMLInputElement).value)}
+            className="ab-settings-search-input"
+            aria-label="Search settings"
           />
         </div>
 
-        <div className="ab-settings-option">
-          <div className="ab-settings-option-content">
-            <strong>Comprehensive Ratings</strong>
-            <div>
-              Shows ratings from AniDB, AniList, Kitsu, MyAnimeList, TMDB, and IMDb with detailed score breakdowns.
-            </div>
-          </div>
-          <button
-            className={`ab-settings-toggle ${RatingsEnabled ? "active" : ""}`}
-            onClick={() => handleToggle("RatingsEnabled")}
-            aria-label={`Toggle comprehensive ratings ${RatingsEnabled ? "off" : "on"}`}
-            type="button"
-          />
-        </div>
-
-        <div className="ab-settings-option">
-          <div className="ab-settings-option-content">
-            <strong>SIMKL Client ID</strong>
-            <div>
-              Optional API key for SIMKL integration to fetch additional IDs (TMDB, IMDB). Get yours at{" "}
-              <a href="https://simkl.com/settings/developer" target="_blank" rel="noopener noreferrer">
-                simkl.com/settings/developer
-              </a>
-            </div>
-            <input
-              type="text"
-              placeholder="Enter SIMKL Client ID (optional)"
-              value={simklClientId}
-              onChange={(e) => updateStringSetting("simklClientId", (e.target as HTMLInputElement).value)}
-              className="ab-settings-input"
+        <div className="ab-settings-body">
+          {filteredCategories.map(({ category, settings }) => (
+            <CategorySection
+              key={category.id}
+              category={category}
+              settings={settings}
+              settingsValues={settingsValues}
+              onChange={handleSettingChange}
             />
-          </div>
-        </div>
-
-        <div className="ab-settings-option">
-          <div className="ab-settings-option-content">
-            <strong>TMDB API Token</strong>
-            <div>
-              Required for TMDB ratings in Comprehensive Ratings. Get yours at{" "}
-              <a href="https://themoviedb.org/settings/api" target="_blank" rel="noopener noreferrer">
-                themoviedb.org/settings/api
-              </a>
-            </div>
-            <input
-              type="text"
-              placeholder="Enter TMDB API Bearer Token (required for TMDB/IMDb ratings)"
-              value={tmdbApiToken}
-              onChange={(e) => updateStringSetting("tmdbApiToken", (e.target as HTMLInputElement).value)}
-              className="ab-settings-input"
-            />
-          </div>
-        </div>
-
-        <div className="ab-settings-option">
-          <div className="ab-settings-option-content">
-            <strong>SeaDex Integration</strong>
-            <div>Tags recommended releases on torrent pages.</div>
-          </div>
-          <button
-            className={`ab-settings-toggle ${seadexEnabled ? "active" : ""}`}
-            onClick={() => handleToggle("seadexEnabled")}
-            aria-label={`Toggle SeaDex integration ${seadexEnabled ? "off" : "on"}`}
-            type="button"
-          />
-        </div>
-
-        <div className="ab-settings-option">
-          <div className="ab-settings-option-content">
-            <strong>Modern Table Layout</strong>
-            <div>Restructures torrent tables with organized columns for format info.</div>
-          </div>
-          <button
-            className={`ab-settings-toggle ${tableRestructureEnabled ? "active" : ""}`}
-            onClick={() => handleToggle("tableRestructureEnabled")}
-            aria-label={`Toggle modern table layout ${tableRestructureEnabled ? "off" : "on"}`}
-            type="button"
-          />
-        </div>
-
-        <div className="ab-settings-option">
-          <div className="ab-settings-option-content">
-            <strong>Gallery View</strong>
-            <div>Adds a gallery view option to torrent search pages with cover images, tags, and descriptions.</div>
-          </div>
-          <button
-            className={`ab-settings-toggle ${galleryViewEnabled ? "active" : ""}`}
-            onClick={() => handleToggle("galleryViewEnabled")}
-            aria-label={`Toggle gallery view ${galleryViewEnabled ? "off" : "on"}`}
-            type="button"
-          />
-        </div>
-
-        <div className="ab-settings-option">
-          <div className="ab-settings-option-content">
-            <strong>Compact Resolution Display</strong>
-            <div>Shows resolution as width×height instead of separate aspect ratio and resolution columns.</div>
-          </div>
-          <button
-            className={`ab-settings-toggle ${compactResolutionMode ? "active" : ""}`}
-            onClick={() => handleToggle("compactResolutionMode")}
-            aria-label={`Toggle compact resolution display ${compactResolutionMode ? "off" : "on"}`}
-            type="button"
-          />
-        </div>
-
-        <div className="ab-settings-option">
-          <div className="ab-settings-option-content">
-            <strong>Show Region Column</strong>
-            <div>Displays the region column (R1, R2, A, B, etc.) in the modern table layout.</div>
-          </div>
-          <button
-            className={`ab-settings-toggle ${showRegionColumn ? "active" : ""}`}
-            onClick={() => handleToggle("showRegionColumn")}
-            aria-label={`Toggle region column ${showRegionColumn ? "off" : "on"}`}
-            type="button"
-          />
-        </div>
-
-        <div className="ab-settings-option">
-          <div className="ab-settings-option-content">
-            <strong>Show Dual Audio Column</strong>
-            <div>Displays the dual audio column (checkmark/X indicator) in the modern table layout.</div>
-          </div>
-          <button
-            className={`ab-settings-toggle ${showDualAudioColumn ? "active" : ""}`}
-            onClick={() => handleToggle("showDualAudioColumn")}
-            aria-label={`Toggle dual audio column ${showDualAudioColumn ? "off" : "on"}`}
-            type="button"
-          />
-        </div>
-
-        <div className="ab-settings-option">
-          <div className="ab-settings-option-content">
-            <strong>MediaInfo Parser</strong>
-            <div>Uses MediaInfo data to correct potentially mislabeled torrent information with actual file specs.</div>
-          </div>
-          <button
-            className={`ab-settings-toggle ${mediainfoParserEnabled ? "active" : ""}`}
-            onClick={() => handleToggle("mediainfoParserEnabled")}
-            aria-label={`Toggle MediaInfo parser ${mediainfoParserEnabled ? "off" : "on"}`}
-            type="button"
-          />
-        </div>
-
-        <div className="ab-settings-option">
-          <div className="ab-settings-option-content">
-            <strong>Interactive Search Categories</strong>
-            <div>
-              Highlights current categories and preserves search parameters when switching between Anime and Music
-              sections.
-            </div>
-          </div>
-          <button
-            className={`ab-settings-toggle ${interactiveSearchEnabled ? "active" : ""}`}
-            onClick={() => handleToggle("interactiveSearchEnabled")}
-            aria-label={`Toggle interactive search ${interactiveSearchEnabled ? "off" : "on"}`}
-            type="button"
-          />
-        </div>
-
-        <div className="ab-settings-option">
-          <div className="ab-settings-option-content">
-            <strong>Search Autocomplete</strong>
-            <div>
-              Adds autocomplete functionality to search bars with keyboard navigation and caching for improved search
-              experience.
-            </div>
-          </div>
-          <button
-            className={`ab-settings-toggle ${autocompleteSearchEnabled ? "active" : ""}`}
-            onClick={() => handleToggle("autocompleteSearchEnabled")}
-            aria-label={`Toggle search autocomplete ${autocompleteSearchEnabled ? "off" : "on"}`}
-            type="button"
-          />
-        </div>
-
-        <div className="ab-settings-option">
-          <div className="ab-settings-option-content">
-            <strong>Load Sections Collapsed</strong>
-            <div>
-              When enabled, torrent table sections and groups will load collapsed by default. When disabled, they will
-              load expanded.
-            </div>
-          </div>
-          <button
-            className={`ab-settings-toggle ${sectionsCollapsedByDefault ? "active" : ""}`}
-            onClick={() => handleToggle("sectionsCollapsedByDefault")}
-            aria-label={`Toggle load sections collapsed ${sectionsCollapsedByDefault ? "off" : "on"}`}
-            type="button"
-          />
-        </div>
-
-        <div className="ab-settings-option">
-          <div className="ab-settings-option-content">
-            <strong>Tree-Style Filelist</strong>
-            <div>
-              Displays filelists in a tree structure with folders and files, similar to U2's filelist. Folders can be
-              expanded/collapsed and show total size.
-            </div>
-          </div>
-          <button
-            className={`ab-settings-toggle ${treeFilelistEnabled ? "active" : ""}`}
-            onClick={() => handleToggle("treeFilelistEnabled")}
-            aria-label={`Toggle tree-style filelist ${treeFilelistEnabled ? "off" : "on"}`}
-            type="button"
-          />
-        </div>
-
-        <div className="ab-settings-option">
-          <div className="ab-settings-option-content">
-            <strong>Read More Links</strong>
-            <div>Adds "Read all" links to truncated torrent descriptions that expand to show the full description.</div>
-          </div>
-          <button
-            className={`ab-settings-toggle ${readMoreEnabled ? "active" : ""}`}
-            onClick={() => handleToggle("readMoreEnabled")}
-            aria-label={`Toggle read more links ${readMoreEnabled ? "off" : "on"}`}
-            type="button"
-          />
-        </div>
-
-        <div className="ab-settings-option">
-          <div className="ab-settings-option-content">
-            <strong>Debug Logging</strong>
-            <div>Enables debug logging for troubleshooting purposes.</div>
-          </div>
-          <button
-            className={`ab-settings-toggle ${debugLoggingEnabled ? "active" : ""}`}
-            onClick={() => handleToggle("debugLoggingEnabled")}
-            aria-label={`Toggle debug logging ${debugLoggingEnabled ? "off" : "on"}`}
-            type="button"
-          />
+          ))}
         </div>
 
         <div className="ab-settings-footer">
           <p>Some changes may require refreshing the page to take effect.</p>
+          <button className="ab-settings-reset" onClick={() => settingsStore.resetToDefaults()} type="button">
+            Reset to Defaults
+          </button>
         </div>
       </div>
     </div>

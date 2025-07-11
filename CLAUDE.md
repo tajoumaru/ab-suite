@@ -69,3 +69,8 @@ AB Suite is a TypeScript userscript that enhances the user experience on anime-r
 - Settings-aware components use `useSettingsStore()` hook
 - Conditional rendering based on settings flags
 - Modal/dialog components for complex UI interactions
+
+### Development Workflow
+
+- Make sure once you complete a task to check for type issues and format the code. Both `pnpm check` and `pnpm format` should report no errors or warnings.
+- When no more warnings or errors are found run `pnpm build:minified` to finish off your task
