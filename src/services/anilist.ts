@@ -88,7 +88,7 @@ export interface AniListMediaData {
   } | null;
 }
 
-const ANILIST_MEDIA_QUERY = `
+const ANILIST_MEDIA_QUERY = /*gql*/ `
 query Media($mediaId: Int) {
   Media(id: $mediaId) {
     id

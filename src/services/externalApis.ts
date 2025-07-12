@@ -245,7 +245,7 @@ export async function fetchAnidbData(anidbId: number): Promise<AnidbAnimeRespons
 export async function fetchAnilistData(anilistId: number): Promise<AnilistAnimeResponse | null> {
   const cacheKey = `anilist-anime-${anilistId}`;
 
-  const query = `
+  const query = /*gql*/`
     query ($id: Int) {
       Media (id: $id, type: ANIME) {
         id

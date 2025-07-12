@@ -1,6 +1,8 @@
 import { transform as lightningcss } from "lightningcss";
 import type { Plugin } from "rolldown-vite";
 
+export { graphqlMinifyPlugin } from "./graphql-minify";
+
 // Plugin to inject CSS into JS for userscripts
 export function cssInjectionPlugin(options: { minify?: boolean } = {}): Plugin {
   let collectedCSS = "";

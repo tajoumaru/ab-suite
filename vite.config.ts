@@ -2,7 +2,12 @@ import path from "node:path";
 import preact from "@preact/preset-vite";
 import { defineConfig } from "rolldown-vite";
 import pkg from "./package.json";
-import { cssInjectionPlugin, type UserscriptMeta, userscriptHeaderPlugin } from "./src/vite-plugins";
+import {
+  cssInjectionPlugin,
+  graphqlMinifyPlugin,
+  type UserscriptMeta,
+  userscriptHeaderPlugin,
+} from "./src/vite-plugins";
 
 // Function to create build configuration
 function createBuildConfig(isMinified: boolean) {
@@ -55,7 +60,12 @@ function createBuildConfig(isMinified: boolean) {
         "@": path.resolve(__dirname, "src"),
       },
     },
-    plugins: [preact(), cssInjectionPlugin({ minify: isMinified }), userscriptHeaderPlugin(userscriptMeta, fileName)],
+    plugins: [
+      preact(),
+      cssInjectionPlugin({ minify: isMinified }),
+      userscriptHeaderPlugin(userscriptMeta, fileName),
+      graphqlMinifyPlugin(),
+    ],
     build: {
       emptyOutDir: !isMinified,
       lib: {
