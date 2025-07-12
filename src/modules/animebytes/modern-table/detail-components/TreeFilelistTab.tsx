@@ -229,57 +229,25 @@ export function TreeFilelistTab({ filelist }: TreeFilelistTabProps) {
           {hasChildren ? (
             <button
               type="button"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                background: "none",
-                border: "none",
-                color: "inherit",
-                font: "inherit",
-                cursor: "pointer",
-                padding: 0,
-                textAlign: "left",
-                width: "100%",
-              }}
+              className="ab-tree-node-button"
               onClick={() => toggleNode(node.id)}
               aria-label={`${isExpanded ? "Collapse" : "Expand"} ${node.displayName}`}
             >
               <span dangerouslySetInnerHTML={{ __html: indent }} />
-              <span style={{ marginRight: "4px" }}>
+              <span className="ab-tree-chevron-margin">
                 {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
               </span>
-              <code
-                style={{
-                  fontFamily: "monospace",
-                  fontSize: "1.2em",
-                  fontWeight: "bold",
-                }}
-              >
-                {node.displayName}
-              </code>
+              <code className="ab-tree-node-folder">{node.displayName}</code>
             </button>
           ) : (
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-              }}
-            >
+            <div className="ab-tree-node-container">
               <span dangerouslySetInnerHTML={{ __html: indent }} />
-              <code
-                style={{
-                  fontFamily: "monospace",
-                  fontSize: "1.2em",
-                  fontWeight: "normal",
-                }}
-              >
-                {node.displayName}
-              </code>
+              <code className="ab-tree-node-file">{node.displayName}</code>
             </div>
           )}
         </td>
         <td className="ab-filelist-cell ab-filelist-cell-size">
-          <span style={{ opacity: node.isFile ? "100%" : "60%" }}>
+          <span className={node.isFile ? "ab-tree-size-file" : "ab-tree-size-folder"}>
             {node.isFile ? bytesToText(node.size) : `[${bytesToText(node.size)}]`}
           </span>
         </td>
@@ -309,27 +277,14 @@ export function TreeFilelistTab({ filelist }: TreeFilelistTabProps) {
 
   return (
     <div className="ab-details-tab-content">
-      <div className="ab-tree-filelist-header" style={{ marginBottom: "10px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div className="ab-tree-filelist-header ab-tree-header-container">
+        <div className="ab-tree-header-flex">
           <span>
             <strong>Tree View</strong> - {fileCount} file{fileCount !== 1 ? "s" : ""}
             {folderCount > 0 && ` in ${folderCount} folder${folderCount !== 1 ? "s" : ""}`}
           </span>
           {folderCount > 0 && (
-            <button
-              type="button"
-              className="ab-tree-toggle-all"
-              onClick={toggleAll}
-              style={{
-                background: "none",
-                border: "none",
-                color: "inherit",
-                cursor: "pointer",
-                fontFamily: "monospace",
-                fontSize: "1.2em",
-                padding: "2px 8px",
-              }}
-            >
+            <button type="button" className="ab-tree-toggle-all ab-tree-toggle-button" onClick={toggleAll}>
               {allExpanded ? "[-]" : "[+]"}
             </button>
           )}

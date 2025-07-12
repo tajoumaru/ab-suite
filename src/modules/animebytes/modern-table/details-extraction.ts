@@ -6,13 +6,13 @@ import type {
   TorrentDetailsData,
   UploadDescriptionData,
 } from "@/types/modern-table";
-import { log } from "@/utils/logging";
+import { err, log } from "@/utils/logging";
 
 /**
  * Extract structured torrent details data from the original HTML
  */
 export function extractTorrentDetailsData(torrentId: string, groupId: string, detailsHtml: string): TorrentDetailsData {
-  log("AB Suite: Extracting torrent details data", { torrentId, groupId });
+  log("Extracting torrent details data", { torrentId, groupId });
 
   const parser = new DOMParser();
   const doc = parser.parseFromString(detailsHtml, "text/html");
@@ -46,7 +46,7 @@ export function extractTorrentDetailsData(torrentId: string, groupId: string, de
     seadexData,
   };
 
-  log("AB Suite: Extracted torrent details data", {
+  log("Extracted torrent details data", {
     torrentId,
     uploaderName: uploadDescription.uploader.name,
     descriptionLength: description.length,
@@ -129,7 +129,7 @@ function extractDescription(doc: Document, torrentId: string): string {
     const blockquote = descriptionDiv?.querySelector("blockquote");
     return blockquote?.innerHTML || "";
   } catch (error) {
-    console.error(`AB Suite: Error extracting description for torrent ${torrentId}:`, error);
+    err(`Error extracting description for torrent ${torrentId}:`, error);
     return "";
   }
 }
@@ -192,7 +192,7 @@ function extractSeaDexData(doc: Document, torrentId: string): SeaDexData | null 
  */
 export async function fetchScreenshotsData(torrentId: string, groupId: string): Promise<ScreenshotItem[]> {
   try {
-    log("AB Suite: Fetching screenshots data", { torrentId, groupId });
+    log("Fetching screenshots data", { torrentId, groupId });
 
     const response = await fetch(`/torrents.php?id=${groupId}&torrentid=${torrentId}&screenshots=${torrentId}`);
     if (!response.ok) {
@@ -206,7 +206,7 @@ export async function fetchScreenshotsData(torrentId: string, groupId: string): 
     const escapedId = CSS.escape(`${torrentId}_screenshots`);
     const screenshotsDiv = doc.querySelector(`#${escapedId}`);
     if (!screenshotsDiv) {
-      log("AB Suite: No screenshots div found in response");
+      log("No screenshots div found in response");
       return [];
     }
 
@@ -235,14 +235,14 @@ export async function fetchScreenshotsData(torrentId: string, groupId: string): 
       }
     });
 
-    log("AB Suite: Extracted screenshots data", {
+    log("Extracted screenshots data", {
       torrentId,
       screenshotCount: screenshots.length,
     });
 
     return screenshots;
   } catch (error) {
-    console.error("AB Suite: Error fetching screenshots data", error);
+    err("Error fetching screenshots data", error);
     return [];
   }
 }
@@ -252,7 +252,7 @@ export async function fetchScreenshotsData(torrentId: string, groupId: string): 
  */
 export async function fetchPeerlistData(torrentId: string, groupId: string): Promise<PeerlistItem[]> {
   try {
-    log("AB Suite: Fetching peerlist data", { torrentId, groupId });
+    log("Fetching peerlist data", { torrentId, groupId });
 
     const response = await fetch(`/torrents.php?id=${groupId}&torrentid=${torrentId}&peers=${torrentId}`);
     if (!response.ok) {
@@ -266,7 +266,7 @@ export async function fetchPeerlistData(torrentId: string, groupId: string): Pro
     const escapedId = CSS.escape(`${torrentId}_peerlist`);
     const peerlistDiv = doc.querySelector(`#${escapedId}`);
     if (!peerlistDiv) {
-      log("AB Suite: No peerlist div found in response");
+      log("No peerlist div found in response");
       return [];
     }
 
@@ -312,14 +312,14 @@ export async function fetchPeerlistData(torrentId: string, groupId: string): Pro
       }
     });
 
-    log("AB Suite: Extracted peerlist data", {
+    log("Extracted peerlist data", {
       torrentId,
       peerCount: peerlist.length,
     });
 
     return peerlist;
   } catch (error) {
-    console.error("AB Suite: Error fetching peerlist data", error);
+    err("Error fetching peerlist data", error);
     return [];
   }
 }

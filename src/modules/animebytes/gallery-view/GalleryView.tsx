@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import { useDescriptionStore } from "@/stores/descriptions";
 import { useSettingsStore } from "@/stores/settings";
-import { log } from "@/utils/logging";
+import { err, log } from "@/utils/logging";
 import { formatTagName, getTagStyle } from "@/utils/tags";
 import { DescriptionRenderer } from "../DescriptionRenderer";
 
@@ -81,7 +81,7 @@ function extractGalleryItems(): GalleryItem[] {
         description,
       });
     } catch (error) {
-      console.error("AB Suite Gallery: Error processing torrent group", error);
+      err("AB Suite Gallery: Error processing torrent group", error);
     }
   });
 
@@ -116,7 +116,7 @@ function GalleryItem({ item }: { item: GalleryItem }) {
             </span>
           ))
         ) : (
-          <span style={{ fontSize: "0.8em", color: "#777" }}>No tags</span>
+          <span className="ab-gallery-no-tags">No tags</span>
         )}
       </div>
       <div className="ab-gallery-description-on-hover">
@@ -205,7 +205,10 @@ export function GalleryView({ className }: GalleryViewProps) {
         {isActive ? "Show Original View" : "Show Gallery View"}
       </button>
 
-      <div ref={containerRef} className="ab-gallery-container" style={{ display: isActive ? "flex" : "none" }}>
+      <div
+        ref={containerRef}
+        className={`ab-gallery-container ${isActive ? "ab-gallery-display-control" : "ab-gallery-display-none"}`}
+      >
         {galleryItems.map((item) => (
           <GalleryItem key={item.id} item={item} />
         ))}

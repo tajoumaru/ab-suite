@@ -109,7 +109,7 @@ export function checkRateLimit(
       const oldestInWindow = entry.timestamps.find((ts) => ts > cutoff);
       const retryAfter = oldestInWindow ? oldestInWindow + check.window - now : check.window;
 
-      log(`AB Suite: Rate limit exceeded for ${apiKey}: ${count}/${check.limit} per ${check.name}`);
+      log(`Rate limit exceeded for ${apiKey}: ${count}/${check.limit} per ${check.name}`);
       return {
         allowed: false,
         reason: `Rate limit exceeded: ${count}/${check.limit} requests per ${check.name}`,
@@ -134,7 +134,7 @@ export function recordRequest(apiKey: string): void {
   }
 
   entry.timestamps.push(now);
-  log(`AB Suite: Recorded request for ${apiKey}. Total recent requests: ${entry.timestamps.length}`);
+  log(`Recorded request for ${apiKey}. Total recent requests: ${entry.timestamps.length}`);
 }
 
 /**
@@ -186,7 +186,7 @@ export function getRateLimitStats(
  */
 export function clearRateLimit(apiKey: string): void {
   rateLimitStore.delete(apiKey);
-  log(`AB Suite: Cleared rate limit data for ${apiKey}`);
+  log(`Cleared rate limit data for ${apiKey}`);
 }
 
 /**
@@ -194,7 +194,7 @@ export function clearRateLimit(apiKey: string): void {
  */
 export function clearAllRateLimits(): void {
   rateLimitStore.clear();
-  log("AB Suite: Cleared all rate limit data");
+  log("Cleared all rate limit data");
 }
 
 /**
@@ -203,7 +203,7 @@ export function clearAllRateLimits(): void {
 export async function rateLimitedDelay(apiKey: string, config?: RateLimitConfig): Promise<void> {
   const check = checkRateLimit(apiKey, config);
   if (!check.allowed && check.retryAfter) {
-    log(`AB Suite: Rate limited, waiting ${check.retryAfter} seconds for ${apiKey}`);
+    log(`Rate limited, waiting ${check.retryAfter} seconds for ${apiKey}`);
     await new Promise((resolve) => setTimeout(resolve, check.retryAfter * 1000));
   }
 }

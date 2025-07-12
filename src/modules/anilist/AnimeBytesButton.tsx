@@ -3,7 +3,7 @@ import { useMediaPageReady, useNavigation } from "@/hooks/useNavigation";
 import { useSettingsStore } from "@/stores/settings";
 import "@/styles/anilist.css";
 import { buildAnimeBytesUrl, getAnimeBytesFormats, getMediaTypeFromFormat } from "@/utils/format-mapping";
-import { log } from "@/utils/logging";
+import { err, log } from "@/utils/logging";
 import { extractMediaInfo } from "./utils";
 
 interface ButtonData {
@@ -19,7 +19,7 @@ export function AnimeBytesButton() {
 
   const buttonAsync = useAsync(
     async (): Promise<ButtonData> => {
-      log("AB Suite: AnimeBytesButton async function triggered", {
+      log("AnimeBytesButton async function triggered", {
         anilistIntegrationEnabled,
         isAnimePage,
         isMangaPage,
@@ -29,7 +29,7 @@ export function AnimeBytesButton() {
       });
 
       if (!anilistIntegrationEnabled || (!isAnimePage && !isMangaPage) || !isPageReady) {
-        log("AB Suite: AnimeBytesButton early return", {
+        log("AnimeBytesButton early return", {
           anilistIntegrationEnabled,
           isOnMediaPage: isAnimePage || isMangaPage,
           isPageReady,
@@ -38,22 +38,22 @@ export function AnimeBytesButton() {
       }
 
       const mediaInfo = extractMediaInfo();
-      log("AB Suite: Extracted media info", mediaInfo);
+      log("Extracted media info", mediaInfo);
 
       if (!mediaInfo) {
-        log("AB Suite: No media info extracted");
+        log("No media info extracted");
         throw new Error("Could not extract media information");
       }
 
       const { title, year, format } = mediaInfo;
       const urlType = window.location.pathname.split("/")[1];
-      log("AB Suite: Processing media", { title, year, format, urlType });
+      log("Processing media", { title, year, format, urlType });
 
       const abFormats = getAnimeBytesFormats(format, urlType as "anime" | "manga");
-      log("AB Suite: AB formats", abFormats);
+      log("AB formats", abFormats);
 
       if (abFormats.length === 0) {
-        log("AB Suite: No supported formats for", format);
+        log("No supported formats for", format);
         throw new Error(`Unsupported format: ${format}`);
       }
 
@@ -65,7 +65,7 @@ export function AnimeBytesButton() {
         formats: abFormats,
       });
 
-      log("AB Suite: Button will be visible", { searchUrl });
+      log("Button will be visible", { searchUrl });
 
       return {
         visible: true,
@@ -76,14 +76,14 @@ export function AnimeBytesButton() {
     {
       deps: [anilistIntegrationEnabled, isAnimePage, isMangaPage, isPageReady],
       onError: (error) => {
-        console.error("AB Suite: Failed to initialize AnimeBytes button", error);
+        err("Failed to initialize AnimeBytes button", error);
       },
     },
   );
 
   const buttonData = buttonAsync.data || { visible: false, title: "", url: "#" };
 
-  log("AB Suite: AnimeBytesButton render", {
+  log("AnimeBytesButton render", {
     visible: buttonData.visible,
     loading: buttonAsync.loading,
     error: buttonAsync.error,

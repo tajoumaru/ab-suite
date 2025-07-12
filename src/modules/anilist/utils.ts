@@ -1,4 +1,4 @@
-import { log } from "@/utils/logging";
+import { err, log } from "@/utils/logging";
 /**
  * AniList-specific utility functions
  */
@@ -13,11 +13,11 @@ export function extractMediaInfo(): {
   format: string;
 } | null {
   try {
-    log("AB Suite: extractMediaInfo starting");
+    log("extractMediaInfo starting");
 
     const data = Array.from(document.querySelectorAll(".sidebar > .data .type"));
     log(
-      "AB Suite: Found data elements",
+      "Found data elements",
       data.length,
       data.map((el) => el.textContent?.trim()),
     );
@@ -29,7 +29,7 @@ export function extractMediaInfo(): {
     const englishElement = data.find((el) => el.textContent?.trim() === "English");
     const romajiElement = data.find((el) => el.textContent?.trim() === "Romaji");
 
-    log("AB Suite: Found elements", {
+    log("Found elements", {
       formatElement: !!formatElement,
       yearElement: !!yearElement,
       englishElement: !!englishElement,
@@ -37,43 +37,43 @@ export function extractMediaInfo(): {
     });
 
     if (!formatElement) {
-      log("AB Suite: No format element found");
+      log("No format element found");
       return null;
     }
 
     const format = formatElement.nextElementSibling?.textContent?.trim();
-    log("AB Suite: Extracted format", format);
+    log("Extracted format", format);
 
     if (!format) {
-      log("AB Suite: Format element has no next sibling or no text content");
+      log("Format element has no next sibling or no text content");
       return null;
     }
 
     const title =
       englishElement?.nextElementSibling?.textContent?.trim() || romajiElement?.nextElementSibling?.textContent?.trim();
 
-    log("AB Suite: Extracted title candidates", {
+    log("Extracted title candidates", {
       english: englishElement?.nextElementSibling?.textContent?.trim(),
       romaji: romajiElement?.nextElementSibling?.textContent?.trim(),
       finalTitle: title,
     });
 
     if (!title) {
-      log("AB Suite: No title found");
+      log("No title found");
       return null;
     }
 
     const year = yearElement?.nextElementSibling?.textContent?.trim()?.slice(-4) || "";
-    log("AB Suite: Extracted year", {
+    log("Extracted year", {
       yearText: yearElement?.nextElementSibling?.textContent?.trim(),
       finalYear: year,
     });
 
     const result = { title, year, format };
-    log("AB Suite: extractMediaInfo result", result);
+    log("extractMediaInfo result", result);
     return result;
   } catch (error) {
-    console.error("AB Suite: Failed to extract media info", error);
+    err("Failed to extract media info", error);
     return null;
   }
 }

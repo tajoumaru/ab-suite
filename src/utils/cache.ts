@@ -43,14 +43,14 @@ export async function getCachedValue<T>(key: string): Promise<T | null> {
     if (now > entry.expiresAt) {
       // Expired, remove from cache
       GM_deleteValue(cacheKey);
-      log(`AB Suite: Cache expired for key: ${key}`);
+      log(`Cache expired for key: ${key}`);
       return null;
     }
 
-    log(`AB Suite: Cache hit for key: ${key}`);
+    log(`Cache hit for key: ${key}`);
     return entry.data;
   } catch (error) {
-    log("AB Suite: Cache get error", error);
+    log("Cache get error", error);
     return null;
   }
 }
@@ -71,9 +71,9 @@ export async function setCachedValue<T>(key: string, data: T, options: CacheOpti
     };
 
     GM_setValue(cacheKey, JSON.stringify(entry));
-    log(`AB Suite: Cached data for key: ${key} (TTL: ${ttl}ms)`);
+    log(`Cached data for key: ${key} (TTL: ${ttl}ms)`);
   } catch (error) {
-    log("AB Suite: Cache set error", error);
+    log("Cache set error", error);
   }
 }
 
@@ -115,9 +115,9 @@ export async function clearAllCache(): Promise<void> {
       GM_deleteValue(key);
     }
 
-    log(`AB Suite: Cleared ${cacheKeys.length} cache entries`);
+    log(`Cleared ${cacheKeys.length} cache entries`);
   } catch (error) {
-    log("AB Suite: Cache clear error", error);
+    log("Cache clear error", error);
   }
 }
 
@@ -140,7 +140,7 @@ export function getCacheStats(): { totalEntries: number; totalSize: number } {
       totalSize,
     };
   } catch (error) {
-    log("AB Suite: Cache stats error", error);
+    log("Cache stats error", error);
     return { totalEntries: 0, totalSize: 0 };
   }
 }
@@ -157,10 +157,10 @@ export async function cachedApiCall<T>(
   const cached = await getCachedValue<T>(cacheKey);
   if (cached !== null) {
     if (isCachedFailure(cached)) {
-      log(`AB Suite: Returning cached failure for: ${cacheKey}`);
+      log(`Returning cached failure for: ${cacheKey}`);
       return null;
     }
-    log(`AB Suite: Cache hit for: ${cacheKey}`);
+    log(`Cache hit for: ${cacheKey}`);
     return cached;
   }
 
@@ -168,7 +168,7 @@ export async function cachedApiCall<T>(
   if (options.apiKey) {
     const rateLimitCheck = checkRateLimit(options.apiKey, options.rateLimits);
     if (!rateLimitCheck.allowed) {
-      log(`AB Suite: Rate limit exceeded for ${options.apiKey}: ${rateLimitCheck.reason}`);
+      log(`Rate limit exceeded for ${options.apiKey}: ${rateLimitCheck.reason}`);
 
       // Cache the rate limit failure temporarily to avoid repeated checks
       await setCachedFailure(cacheKey, new Error(`Rate limited: ${rateLimitCheck.reason}`), {
@@ -182,7 +182,7 @@ export async function cachedApiCall<T>(
 
   // Make API call
   try {
-    log(`AB Suite: Making API call for: ${cacheKey}`);
+    log(`Making API call for: ${cacheKey}`);
     const result = await apiCall();
 
     // Record the request for rate limiting (only if apiKey is provided and request succeeded)
@@ -196,7 +196,7 @@ export async function cachedApiCall<T>(
 
     return result;
   } catch (error) {
-    log(`AB Suite: API call failed for: ${cacheKey}`, error);
+    log(`API call failed for: ${cacheKey}`, error);
 
     // Still record the request for rate limiting even if it failed
     if (options.apiKey) {

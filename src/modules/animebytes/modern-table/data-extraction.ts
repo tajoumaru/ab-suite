@@ -1,6 +1,6 @@
 import { parseMediaInfo } from "mi-parser";
 import type { GroupedTorrents, GroupHeader, ParsedTorrentRow, TableSection, TableType } from "@/types/modern-table";
-import { log } from "@/utils/logging";
+import { err, log } from "@/utils/logging";
 
 /**
  * Detects the table type based on context (series page table ID or torrents page title)
@@ -117,7 +117,7 @@ export function extractGroupedTorrentData(
       if (sectionTitle) {
         // Only add non-empty titles
         pendingSectionTitles.push(sectionTitle);
-        log("AB Suite: Found section header:", sectionTitle);
+        log("Found section header:", sectionTitle);
       }
       continue; // Don't create section yet, wait for non-edition_info row
     }
@@ -146,7 +146,7 @@ export function extractGroupedTorrentData(
         };
         currentTorrents = [];
 
-        log("AB Suite: Created merged section header:", mergedTitle);
+        log("Created merged section header:", mergedTitle);
       }
       pendingSectionTitles = []; // Clear pending titles regardless
     }
@@ -175,7 +175,7 @@ export function extractGroupedTorrentData(
       };
       currentTorrents = [];
 
-      log("AB Suite: Found group header:", groupTitle);
+      log("Found group header:", groupTitle);
     }
     // Check if this is a torrent row (both group_torrent and torrent classes for search pages)
     if (row.classList.contains("group_torrent") || row.classList.contains("torrent")) {
@@ -221,7 +221,7 @@ export function extractGroupedTorrentData(
       };
       currentTorrents = [];
 
-      log("AB Suite: Created final merged section header:", mergedTitle);
+      log("Created final merged section header:", mergedTitle);
     }
   }
 
@@ -359,10 +359,10 @@ function parseTorrentRow(
     // First check if SeaDex integration has already processed this row
     if (row.classList.contains("seadex-best")) {
       parsed.isSeaDexBest = true;
-      log("AB Suite: Found SeaDex Best via row class for torrent", torrentId);
+      log("Found SeaDex Best via row class for torrent", torrentId);
     } else if (row.classList.contains("seadex-alt")) {
       parsed.isSeaDexAlt = true;
-      log("AB Suite: Found SeaDex Alt via row class for torrent", torrentId);
+      log("Found SeaDex Alt via row class for torrent", torrentId);
     }
 
     // Look for specific SeaDex elements (icons/buttons added by SeaDex integration)
@@ -375,16 +375,16 @@ function parseTorrentRow(
 
       if (iconContent.includes("best") || iconClasses.includes("best") || iconTitle.includes("best")) {
         parsed.isSeaDexBest = true;
-        log("AB Suite: Found SeaDex Best via icon for torrent", torrentId);
+        log("Found SeaDex Best via icon for torrent", torrentId);
       } else {
         parsed.isSeaDexAlt = true;
-        log("AB Suite: Found SeaDex Alt via icon for torrent", torrentId);
+        log("Found SeaDex Alt via icon for torrent", torrentId);
       }
     }
 
     // Add debugging for SeaDex status
     if (parsed.isSeaDexBest || parsed.isSeaDexAlt) {
-      log("AB Suite: SeaDex status for torrent", torrentId, ":", {
+      log("SeaDex status for torrent", torrentId, ":", {
         isSeaDexBest: parsed.isSeaDexBest,
         isSeaDexAlt: parsed.isSeaDexAlt,
         flagsCount: parsed.flags.length,
@@ -398,7 +398,7 @@ function parseTorrentRow(
 
     return parsed;
   } catch (error) {
-    console.error("AB Suite: Failed to parse torrent row", error);
+    err("Failed to parse torrent row", error);
     return null;
   }
 }
@@ -945,6 +945,6 @@ function parseMediaInfoFromDetails(detailsRow: HTMLElement, torrentId: string, p
       })),
     };
   } catch (error) {
-    console.error(`AB Suite: Error parsing mediainfo for torrent ${torrentId}:`, error);
+    err(`Error parsing mediainfo for torrent ${torrentId}:`, error);
   }
 }

@@ -21,23 +21,23 @@ export function SectionHeader({ section, isCollapsed, onToggle, isOddSection }: 
         : "ab-section-header";
 
   return (
-    <tr className={headerClass} onClick={onToggle} style={{ cursor: "pointer" }}>
+    <tr className={`${headerClass} ab-section-header-clickable`} onClick={onToggle}>
       <td colSpan={100}>
         {section.type === "group" && section.fullHtml ? (
           // Render full HTML content for group headers
-          <div style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
-            <div style={{ marginTop: "4px" }}>
+          <div className="ab-section-content-container">
+            <div className="ab-section-chevron-container">
               {isCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
             </div>
             <div dangerouslySetInnerHTML={{ __html: section.fullHtml }} />
           </div>
         ) : (
           // Simple text display for section headers with newline support
-          <div style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
-            <div style={{ marginTop: "2px" }}>
+          <div className="ab-section-content-container">
+            <div className="ab-section-chevron-container-text">
               {isCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
             </div>
-            <strong style={{ whiteSpace: "pre-line" }}>{section.title}</strong>
+            <strong className="ab-section-title-preformatted">{section.title}</strong>
           </div>
         )}
       </td>

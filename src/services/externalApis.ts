@@ -134,16 +134,16 @@ export async function fetchMyAnimeListData(malId: number): Promise<JikanAnimeRes
                 const data = JSON.parse(response.responseText);
                 resolve(data);
               } catch (error) {
-                log("AB Suite: Failed to parse Jikan API response", error);
+                log("Failed to parse Jikan API response", error);
                 resolve(null);
               }
             } else {
-              log("AB Suite: Jikan API returned status", response.status);
+              log("Jikan API returned status", response.status);
               resolve(null);
             }
           },
           onerror: () => {
-            log("AB Suite: Failed to fetch Jikan API data");
+            log("Failed to fetch Jikan API data");
             resolve(null);
           },
         });
@@ -172,16 +172,16 @@ export async function fetchMalVideosData(malId: number): Promise<JikanVideosResp
                 const data = JSON.parse(response.responseText);
                 resolve(data);
               } catch (error) {
-                log("AB Suite: Failed to parse Jikan videos API response", error);
+                log("Failed to parse Jikan videos API response", error);
                 resolve(null);
               }
             } else {
-              log("AB Suite: Jikan videos API returned status", response.status);
+              log("Jikan videos API returned status", response.status);
               resolve(null);
             }
           },
           onerror: () => {
-            log("AB Suite: Failed to fetch Jikan videos API data");
+            log("Failed to fetch Jikan videos API data");
             resolve(null);
           },
         });
@@ -219,16 +219,16 @@ export async function fetchAnidbData(anidbId: number): Promise<AnidbAnimeRespons
                   resolve({ rating: null, votes: null });
                 }
               } catch (error) {
-                log("AB Suite: Failed to parse AniDB API response", error);
+                log("Failed to parse AniDB API response", error);
                 resolve(null);
               }
             } else {
-              log("AB Suite: AniDB API returned status", response.status);
+              log("AniDB API returned status", response.status);
               resolve(null);
             }
           },
           onerror: () => {
-            log("AB Suite: Failed to fetch AniDB API data");
+            log("Failed to fetch AniDB API data");
             resolve(null);
           },
         });
@@ -281,16 +281,16 @@ export async function fetchAnilistData(anilistId: number): Promise<AnilistAnimeR
                 const data = JSON.parse(response.responseText);
                 resolve(data);
               } catch (error) {
-                log("AB Suite: Failed to parse AniList API response", error);
+                log("Failed to parse AniList API response", error);
                 resolve(null);
               }
             } else {
-              log("AB Suite: AniList API returned status", response.status);
+              log("AniList API returned status", response.status);
               resolve(null);
             }
           },
           onerror: () => {
-            log("AB Suite: Failed to fetch AniList API data");
+            log("Failed to fetch AniList API data");
             resolve(null);
           },
         });
@@ -322,16 +322,16 @@ export async function fetchKitsuData(kitsuId: number): Promise<KitsuAnimeRespons
                 const data = JSON.parse(response.responseText);
                 resolve(data);
               } catch (error) {
-                log("AB Suite: Failed to parse Kitsu API response", error);
+                log("Failed to parse Kitsu API response", error);
                 resolve(null);
               }
             } else {
-              log("AB Suite: Kitsu API returned status", response.status);
+              log("Kitsu API returned status", response.status);
               resolve(null);
             }
           },
           onerror: () => {
-            log("AB Suite: Failed to fetch Kitsu API data");
+            log("Failed to fetch Kitsu API data");
             resolve(null);
           },
         });
@@ -368,16 +368,16 @@ export async function fetchTmdbData(
                 const data = JSON.parse(response.responseText);
                 resolve(data);
               } catch (error) {
-                log("AB Suite: Failed to parse TMDB API response", error);
+                log("Failed to parse TMDB API response", error);
                 resolve(null);
               }
             } else {
-              log("AB Suite: TMDB API returned status", response.status);
+              log("TMDB API returned status", response.status);
               resolve(null);
             }
           },
           onerror: () => {
-            log("AB Suite: Failed to fetch TMDB API data");
+            log("Failed to fetch TMDB API data");
             resolve(null);
           },
         });
@@ -409,7 +409,7 @@ export async function fetchImdbData(imdbId: string): Promise<ImdbJsonLd | null> 
                   /<script type="application\/ld\+json"[^>]*>(.*?)<\/script>/s,
                 );
                 if (!jsonLdMatch) {
-                  log("AB Suite: IMDb JSON-LD script not found");
+                  log("IMDb JSON-LD script not found");
                   resolve(null);
                   return;
                 }
@@ -417,23 +417,23 @@ export async function fetchImdbData(imdbId: string): Promise<ImdbJsonLd | null> 
                 const jsonData = JSON.parse(jsonLdMatch[1]);
 
                 if (!jsonData.aggregateRating || !jsonData.url) {
-                  log("AB Suite: Invalid IMDb JSON-LD data", jsonData);
+                  log("Invalid IMDb JSON-LD data", jsonData);
                   resolve(null);
                   return;
                 }
 
                 resolve(jsonData);
               } catch (error) {
-                log("AB Suite: Failed to parse IMDb page", error);
+                log("Failed to parse IMDb page", error);
                 resolve(null);
               }
             } else {
-              log("AB Suite: IMDb returned status", response.status);
+              log("IMDb returned status", response.status);
               resolve(null);
             }
           },
           onerror: () => {
-            log("AB Suite: Failed to fetch IMDb data");
+            log("Failed to fetch IMDb data");
             resolve(null);
           },
         });
@@ -489,7 +489,7 @@ export async function fetchYouTubeVideoInfo(videoId: string, youtubeApiKey: stri
                             kind: caption.snippet.trackKind === "ASR" ? "asr" : "standard",
                           })) || [];
                       } catch (error) {
-                        log("AB Suite: Failed to parse YouTube captions response", error);
+                        log("Failed to parse YouTube captions response", error);
                       }
                     }
 
@@ -519,16 +519,16 @@ export async function fetchYouTubeVideoInfo(videoId: string, youtubeApiKey: stri
                   },
                 });
               } catch (error) {
-                log("AB Suite: Failed to parse YouTube API response", error);
+                log("Failed to parse YouTube API response", error);
                 resolve(null);
               }
             } else {
-              log("AB Suite: YouTube API returned status", response.status);
+              log("YouTube API returned status", response.status);
               resolve(null);
             }
           },
           onerror: () => {
-            log("AB Suite: Failed to fetch YouTube API data");
+            log("Failed to fetch YouTube API data");
             resolve(null);
           },
         });

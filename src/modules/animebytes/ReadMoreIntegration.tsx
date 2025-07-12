@@ -2,7 +2,7 @@ import { render } from "preact";
 import { useEffect, useRef } from "preact/hooks";
 import { useDescriptionStore } from "@/stores/descriptions";
 import { useSettingsStore } from "@/stores/settings";
-import { log } from "@/utils/logging";
+import { err, log } from "@/utils/logging";
 import { ReadMore } from "./ReadMore";
 
 export function ReadMoreIntegration() {
@@ -24,7 +24,7 @@ export function ReadMoreIntegration() {
           return;
         }
 
-        log(`AB Suite: Found ${descriptions.length} torrent descriptions`);
+        log(`Found ${descriptions.length} torrent descriptions`);
 
         // Batch DOM operations for ReadMore containers
         const elementsToProcess: Array<{
@@ -90,10 +90,10 @@ export function ReadMoreIntegration() {
 
         if (!isInitialized.current) {
           isInitialized.current = true;
-          log("AB Suite: ReadMore integration initialized");
+          log("ReadMore integration initialized");
         }
       } catch (error) {
-        console.error("AB Suite: Failed to initialize ReadMore", error);
+        err("Failed to initialize ReadMore", error);
       }
     };
 

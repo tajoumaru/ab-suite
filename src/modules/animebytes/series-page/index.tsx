@@ -2,7 +2,7 @@ import { render } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import { useSeaDexUpdates } from "@/stores/seadex";
 import { useSettingsStore } from "@/stores/settings";
-import { log, logTime, logTimeEnd } from "@/utils/logging";
+import { err, log, time, timeEnd } from "@/utils/logging";
 import { detectTableType, extractTorrentData, type ParsedTorrentRow, type TableType } from "../modern-table";
 import { SeriesTableContainer } from "./SeriesTableContainer";
 
@@ -67,7 +67,7 @@ export function SeriesPage() {
       return;
     }
 
-    log(`AB Suite: Found ${originalTables.length} tables on series page`);
+    log(`Found ${originalTables.length} tables on series page`);
 
     const newTablesData: SeriesTableData[] = [];
 
@@ -80,11 +80,11 @@ export function SeriesPage() {
         const extractedTorrents = extractTorrentData(originalTable, mediainfoParserEnabled, tableType);
 
         if (extractedTorrents.length === 0) {
-          log(`AB Suite: No torrents found in table ${i}, skipping`);
+          log(`No torrents found in table ${i}, skipping`);
           continue;
         }
 
-        log(`AB Suite: Detected table type '${tableType}' for table ${i}`);
+        log(`Detected table type '${tableType}' for table ${i}`);
 
         // Hide the original table
         originalTable.style.display = "none";
@@ -100,39 +100,39 @@ export function SeriesPage() {
           originalTable,
         });
 
-        log(`AB Suite: Initialized table ${i} with ${extractedTorrents.length} torrents`);
+        log(`Initialized table ${i} with ${extractedTorrents.length} torrents`);
       } catch (error) {
-        console.error(`AB Suite: Failed to initialize table ${i}:`, error);
+        err(`Failed to initialize table ${i}:`, error);
       }
     }
 
     if (newTablesData.length > 0) {
       setTablesData(newTablesData);
       setIsInitialized(true);
-      log(`AB Suite: Series page initialized with ${newTablesData.length} tables`);
+      log(`Series page initialized with ${newTablesData.length} tables`);
     }
   };
 
   // Toggle collapse state for a specific table
   const toggleTableCollapse = (tableId: string) => {
-    logTime(`AB Suite: toggleTableCollapse-${tableId}`);
-    log(`AB Suite: Starting toggle for table ${tableId}`);
+    time(`toggleTableCollapse-${tableId}`);
+    log(`Starting toggle for table ${tableId}`);
 
     setCollapsedTables((prev) => {
-      logTime(`AB Suite: toggleTableCollapse-setState-${tableId}`);
+      time(`toggleTableCollapse-setState-${tableId}`);
       const newSet = new Set(prev);
       if (newSet.has(tableId)) {
         newSet.delete(tableId);
-        log(`AB Suite: Expanding table ${tableId}`);
+        log(`Expanding table ${tableId}`);
       } else {
         newSet.add(tableId);
-        log(`AB Suite: Collapsing table ${tableId}`);
+        log(`Collapsing table ${tableId}`);
       }
-      logTimeEnd(`AB Suite: toggleTableCollapse-setState-${tableId}`);
+      timeEnd(`toggleTableCollapse-setState-${tableId}`);
       return newSet;
     });
 
-    logTimeEnd(`AB Suite: toggleTableCollapse-${tableId}`);
+    timeEnd(`toggleTableCollapse-${tableId}`);
   };
 
   useEffect(() => {
@@ -152,7 +152,7 @@ export function SeriesPage() {
   useSeaDexUpdates(() => {
     if (!isInitialized || tablesData.length === 0) return;
 
-    log("AB Suite: Seadex processing complete, re-extracting data for all tables");
+    log("Seadex processing complete, re-extracting data for all tables");
 
     try {
       const updatedTablesData = tablesData.map((tableData) => {
@@ -165,25 +165,25 @@ export function SeriesPage() {
 
       setTablesData(updatedTablesData);
     } catch (error) {
-      console.error("AB Suite: Failed to re-extract data after Seadex update", error);
+      err("Failed to re-extract data after Seadex update", error);
     }
   });
 
   // Create a container in the DOM and render our components initially
   useEffect(() => {
-    logTime("AB Suite: SeriesPage initial setup");
-    log("AB Suite: Initial setup triggered", {
+    time("SeriesPage initial setup");
+    log("Initial setup triggered", {
       isInitialized,
       tablesDataLength: tablesData.length,
     });
 
     if (!isInitialized || tablesData.length === 0) {
-      log("AB Suite: Initial setup early return - not initialized or no data");
-      logTimeEnd("AB Suite: SeriesPage initial setup");
+      log("Initial setup early return - not initialized or no data");
+      timeEnd("SeriesPage initial setup");
       return;
     }
 
-    logTime("AB Suite: DOM manipulation");
+    time("DOM manipulation");
     // Create a single container for all our tables
     const existingContainer = document.getElementById("ab-series-tables-container");
     if (existingContainer) {
@@ -197,9 +197,9 @@ export function SeriesPage() {
     const firstTable = document.querySelector(".torrent_table");
     if (firstTable?.parentNode) {
       firstTable.parentNode.insertBefore(container, firstTable);
-      logTimeEnd("AB Suite: DOM manipulation");
+      timeEnd("DOM manipulation");
 
-      logTime("AB Suite: Initial Preact render");
+      time("Initial Preact render");
       // Render all table containers
       render(
         <div>
@@ -217,30 +217,30 @@ export function SeriesPage() {
         </div>,
         container,
       );
-      logTimeEnd("AB Suite: Initial Preact render");
+      timeEnd("Initial Preact render");
     } else {
-      logTimeEnd("AB Suite: DOM manipulation");
+      timeEnd("DOM manipulation");
     }
 
-    logTimeEnd("AB Suite: SeriesPage initial setup");
+    timeEnd("SeriesPage initial setup");
   }, [isInitialized, tablesData]); // Remove collapsedTables from dependencies
 
   // Separate effect to handle collapse state changes without re-rendering everything
   useEffect(() => {
-    logTime("AB Suite: SeriesPage collapse update");
-    log("AB Suite: Collapse state update", {
+    time("SeriesPage collapse update");
+    log("Collapse state update", {
       collapsedTablesSize: collapsedTables.size,
       collapsedTableIds: Array.from(collapsedTables),
     });
 
     if (!isInitialized || tablesData.length === 0) {
-      logTimeEnd("AB Suite: SeriesPage collapse update");
+      timeEnd("SeriesPage collapse update");
       return;
     }
 
     const container = document.getElementById("ab-series-tables-container");
     if (container) {
-      logTime("AB Suite: Collapse state Preact render");
+      time("Collapse state Preact render");
       // Only update collapse states, don't recreate the entire structure
       render(
         <div>
@@ -258,10 +258,10 @@ export function SeriesPage() {
         </div>,
         container,
       );
-      logTimeEnd("AB Suite: Collapse state Preact render");
+      timeEnd("Collapse state Preact render");
     }
 
-    logTimeEnd("AB Suite: SeriesPage collapse update");
+    timeEnd("SeriesPage collapse update");
   }, [collapsedTables]); // Only depend on collapse state changes
 
   // This component doesn't render anything directly - it manages DOM takeover

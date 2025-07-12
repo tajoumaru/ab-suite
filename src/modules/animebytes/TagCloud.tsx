@@ -93,7 +93,7 @@ export function TagCloud({ className }: TagCloudProps) {
       setIsReplaced(true);
     }
 
-    log("AB Suite: TagCloud initialized with", sortedTags.length, "tags");
+    log("TagCloud initialized with", sortedTags.length, "tags");
   }, [enhancedTagStylingEnabled]);
 
   // Don't render if enhanced styling is disabled or no tags

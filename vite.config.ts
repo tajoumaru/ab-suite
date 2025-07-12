@@ -19,7 +19,13 @@ function createBuildConfig(isMinified: boolean) {
     supportURL: `${pkg.homepage}/issues`,
     updateURL: `${pkg.homepage}/releases/latest/download/${fileName}`,
     downloadURL: `${pkg.homepage}/releases/latest/download/${fileName}`,
-    match: ["https://animebytes.tv/*", "https://anilist.co/*", "https://releases.moe/*"],
+    match: [
+      "https://animebytes.tv/*",
+      "https://anilist.co/*",
+      "https://releases.moe/*",
+      "https://www.youtube-nocookie.com/*",
+      "https://www.youtube.com/*",
+    ],
     connect: [
       "releases.moe",
       "anime-api-tajoumarus-projects.vercel.app",
@@ -32,7 +38,15 @@ function createBuildConfig(isMinified: boolean) {
       "kitsu.app",
     ],
     runAt: "document-idle",
-    grant: ["GM_addStyle", "GM_setValue", "GM_getValue", "GM_listValues", "GM_deleteValue", "GM_xmlhttpRequest"],
+    grant: [
+      "GM_addStyle",
+      "GM_setValue",
+      "GM_getValue",
+      "GM_listValues",
+      "GM_deleteValue",
+      "GM_xmlhttpRequest",
+      "GM_addElement",
+    ],
   };
 
   return defineConfig({
@@ -66,6 +80,7 @@ function createBuildConfig(isMinified: boolean) {
             GM_listValues: "GM_listValues",
             GM_deleteValue: "GM_deleteValue",
             GM_xmlhttpRequest: "GM_xmlhttpRequest",
+            GM_addElement: "GM_addElement",
             GM: "GM",
             unsafeWindow: "unsafeWindow",
           },

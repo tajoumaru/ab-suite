@@ -191,9 +191,9 @@ function calculateFlagScore(flags: string[]): number {
     const flagLower = flag.toLowerCase();
 
     // SeaDex Best (highest value)
-    if (flagLower.includes("seadx") && flagLower.includes("best")) score += 8;
+    if (flagLower.includes("seadex") && flagLower.includes("best")) score += 8;
     // SeaDex Alt
-    else if (flagLower.includes("seadx")) score += 4;
+    else if (flagLower.includes("seadex")) score += 4;
     // Freeleech
     else if (flagLower.includes("freeleech")) score += 2;
     // Remaster

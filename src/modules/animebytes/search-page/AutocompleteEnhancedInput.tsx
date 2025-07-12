@@ -1,5 +1,6 @@
 import { useEffect, useReducer, useRef } from "preact/hooks";
 import { apiService } from "@/services/api";
+import { err } from "@/utils/logging";
 
 interface AutocompleteResult {
   id: string;
@@ -157,7 +158,7 @@ export function AutocompleteEnhancedInput({ originalInput, searchType }: Autocom
 
       dispatch({ type: "SHOW_RESULTS", payload: results });
     } catch (error) {
-      console.error("AB Suite: Autocomplete search failed:", error);
+      err("Autocomplete search failed:", error);
       dispatch({ type: "SHOW_RESULTS", payload: [] });
     }
   };
@@ -262,8 +263,11 @@ export function AutocompleteEnhancedInput({ originalInput, searchType }: Autocom
         onFocus={handleFocus}
         onBlur={handleBlur}
         autoComplete="off"
-        style={{ boxSizing: "border-box" }}
-        {...originalAttribs}
+        className={`ab-autocomplete-input ${originalAttribs.className || ""}`}
+        name={originalAttribs.name}
+        placeholder={originalAttribs.placeholder}
+        size={originalAttribs.size}
+        maxLength={originalAttribs.maxLength}
       />
 
       {state.isVisible && (

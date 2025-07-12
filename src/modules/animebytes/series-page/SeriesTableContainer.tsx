@@ -1,6 +1,6 @@
 import { render } from "preact";
 import { useEffect, useRef } from "preact/hooks";
-import { log, logTime, logTimeEnd } from "@/utils/logging";
+import { log, time, timeEnd } from "@/utils/logging";
 import type { ParsedTorrentRow, TableType } from "../modern-table";
 import { TorrentTable } from "../modern-table";
 import { SeriesTableTitle } from "./SeriesTableTitle";
@@ -32,8 +32,8 @@ export function SeriesTableContainer({
 
   // Only render when actually necessary (expanding or data changes)
   useEffect(() => {
-    logTime(`AB Suite: SeriesTableContainer render - ${title}`);
-    log(`AB Suite: SeriesTableContainer effect triggered`, {
+    time(`SeriesTableContainer render - ${title}`);
+    log(`SeriesTableContainer effect triggered`, {
       title,
       tableType,
       torrentsLength: torrents.length,
@@ -59,15 +59,15 @@ export function SeriesTableContainer({
       (dataChanged && !isCollapsed && hasRenderedRef.current);
 
     if (containerRef.current && torrents.length > 0 && !isCollapsed && shouldRender) {
-      logTime(`AB Suite: TorrentTable render - ${title}`);
+      time(`TorrentTable render - ${title}`);
       render(
         <TorrentTable torrents={torrents} originalTable={originalTable} isSeriesPage={true} />,
         containerRef.current,
       );
-      logTimeEnd(`AB Suite: TorrentTable render - ${title}`);
+      timeEnd(`TorrentTable render - ${title}`);
       hasRenderedRef.current = true;
     } else {
-      log(`AB Suite: SeriesTableContainer skipping render`, {
+      log(`SeriesTableContainer skipping render`, {
         title,
         hasContainer: !!containerRef.current,
         torrentsLength: torrents.length,
@@ -83,13 +83,16 @@ export function SeriesTableContainer({
     prevCollapsedRef.current = isCollapsed;
     prevTorrentsRef.current = torrents;
 
-    logTimeEnd(`AB Suite: SeriesTableContainer render - ${title}`);
+    timeEnd(`SeriesTableContainer render - ${title}`);
   }, [torrents, originalTable, isCollapsed]);
 
   return (
     <div className="ab-series-table-section">
       <SeriesTableTitle title={title} isCollapsed={isCollapsed} onToggle={onToggleCollapse} />
-      <div ref={containerRef} className="ab-series-table-content" style={{ display: isCollapsed ? "none" : "block" }} />
+      <div
+        ref={containerRef}
+        className={`ab-series-table-content ${isCollapsed ? "ab-gallery-display-none" : "ab-gallery-display-block"}`}
+      />
     </div>
   );
 }

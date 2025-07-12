@@ -55,6 +55,7 @@ AB Suite is a TypeScript userscript that enhances the user experience on anime-r
 ### Styling
 - CSS modules are NOT used - styles are injected directly via GM_addStyle
 - Site-specific CSS files in `src/styles/` (animebytes.css, anilist.css, etc.)
+- Inline styles are forbidden - Never use `style={{` etc
 - Custom Vite plugin handles CSS injection during build
 
 ### API Integration

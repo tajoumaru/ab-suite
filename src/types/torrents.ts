@@ -124,8 +124,8 @@ export interface ParsedTorrentRow {
   // Media info (if available)
   mediaInfo?: MediaInfo;
 
-  // SeaDx integration data (populated later)
-  seadx?: {
+  // Seadex integration data (populated later)
+  seadex?: {
     alID: string;
     notes: string;
     isBest: boolean;

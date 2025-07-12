@@ -1,7 +1,7 @@
 import { render } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { useSettingsStore } from "@/stores/settings";
-import { log } from "@/utils/logging";
+import { err, log } from "@/utils/logging";
 import { extractTorrentData } from "../modern-table/data-extraction";
 import { TorrentTable } from "../modern-table/TorrentTable";
 
@@ -84,7 +84,7 @@ export function ModernTableIntegration() {
 
       if (tables.length > 0) {
         setSearchTables((prev) => [...prev, ...tables]);
-        log("AB Suite: Found", tables.length, "search page torrent tables to enhance");
+        log("Found", tables.length, "search page torrent tables to enhance");
       }
     };
 
@@ -159,10 +159,10 @@ export function ModernTableIntegration() {
           // Render the modern table with proper data extraction
           render(<TorrentTable torrents={torrents} originalTable={table} isSeriesPage={false} />, container);
 
-          log("AB Suite: Rendered modern table for search page with", torrents.length, "torrents");
+          log("Rendered modern table for search page with", torrents.length, "torrents");
         }
       } catch (error) {
-        console.error("AB Suite: Error rendering modern table for search page:", error);
+        err("Error rendering modern table for search page:", error);
 
         // Restore original table on error
         const originalContainer = searchTables.find((info) => info.table === table)?.container;

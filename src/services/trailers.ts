@@ -7,7 +7,7 @@ export interface BaseTrailer {
   name: string;
   youtubeId: string;
   provider: {
-    name: "TMDB" | "MAL";
+    name: "TMDB" | "MAL" | "AniList";
     sourceId: string;
   };
   type: string;
@@ -44,7 +44,15 @@ export interface MALTrailer extends BaseTrailer {
   };
 }
 
-export type Trailer = TMDBTrailer | MALTrailer;
+export interface AniListTrailer extends BaseTrailer {
+  provider: {
+    name: "AniList";
+    sourceId: string;
+  };
+  site: string;
+}
+
+export type Trailer = TMDBTrailer | MALTrailer | AniListTrailer;
 
 export interface TrailerCollection {
   trailers: Trailer[];
@@ -139,6 +147,8 @@ export async function sortTrailers(
   return tierSort(
     trailers,
     [
+      // Prioritize AniList trailers as the main/first option
+      (trailer) => trailer.provider.name === "AniList",
       // Prefer MAL for anime seasons/parts
       (trailer) => preferMal && trailer.provider.name === "MAL",
       // Dubs vs subs preference
@@ -223,6 +233,28 @@ export function tmdbVideosToTrailers(tmdbData: TMDBVideosResponse, tmdbId: numbe
 }
 
 // Convert MAL video data to trailers
+// Convert AniList trailer data to trailers
+export function aniListTrailerToTrailer(
+  aniListId: number,
+  trailer: { id: string; site: string },
+): AniListTrailer | null {
+  if (trailer.site !== "youtube") {
+    return null; // Only support YouTube trailers for now
+  }
+
+  return {
+    id: `anilist-trailer-${aniListId}`,
+    name: "Official Trailer",
+    youtubeId: trailer.id,
+    provider: {
+      name: "AniList",
+      sourceId: aniListId.toString(),
+    },
+    type: "Trailer",
+    site: trailer.site,
+  };
+}
+
 export function malVideosToTrailers(malData: MALResponse, malId: number): MALTrailer[] {
   const trailers: MALTrailer[] = [];
 
@@ -307,6 +339,8 @@ export async function fetchMalTrailerData(malId: number) {
   return combinedData;
 }
 
+// Import AniListService and type
+import type { AniListMediaData } from "./anilist";
 // Import MAL function from external APIs
 import { fetchMyAnimeListData } from "./externalApis";
 
@@ -315,6 +349,7 @@ export async function fetchAllTrailers(
   apiData: {
     myanimelist?: number;
     themoviedb?: number;
+    anilist?: AniListMediaData;
   },
   mediaType: "anime" | "manga" = "anime",
   tmdbApiToken?: string,
@@ -324,6 +359,19 @@ export async function fetchAllTrailers(
   let hasError = false;
 
   try {
+    // Add AniList trailer first (highest priority)
+    if (apiData.anilist?.trailer) {
+      try {
+        const aniListTrailer = aniListTrailerToTrailer(apiData.anilist.id, apiData.anilist.trailer);
+        if (aniListTrailer) {
+          allTrailers.push(aniListTrailer);
+        }
+      } catch (error) {
+        log("Failed to process AniList trailer", error);
+        hasError = true;
+      }
+    }
+
     // Fetch TMDB trailers
     if (apiData.themoviedb && tmdbApiToken) {
       try {
@@ -334,7 +382,7 @@ export async function fetchAllTrailers(
           allTrailers.push(...tmdbTrailers);
         }
       } catch (error) {
-        log("AB Suite: Failed to fetch TMDB trailers", error);
+        log("Failed to fetch TMDB trailers", error);
         hasError = true;
       }
     }
@@ -348,7 +396,7 @@ export async function fetchAllTrailers(
           allTrailers.push(...malTrailers);
         }
       } catch (error) {
-        log("AB Suite: Failed to fetch MAL trailers", error);
+        log("Failed to fetch MAL trailers", error);
         hasError = true;
       }
     }
@@ -365,7 +413,7 @@ export async function fetchAllTrailers(
             trailer.youtubeInfo = youtubeInfo;
           }
         } catch (error) {
-          log(`AB Suite: Failed to fetch YouTube info for ${trailer.youtubeId}`, error);
+          log(`Failed to fetch YouTube info for ${trailer.youtubeId}`, error);
           // Don't mark as error since this is optional enhancement
         }
       }
@@ -380,7 +428,7 @@ export async function fetchAllTrailers(
       error: hasError,
     };
   } catch (error) {
-    log("AB Suite: Failed to fetch trailers", error);
+    log("Failed to fetch trailers", error);
     return {
       trailers: [],
       loading: false,

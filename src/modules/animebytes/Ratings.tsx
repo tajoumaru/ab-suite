@@ -1,7 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
 import { useRatings } from "@/hooks/useRatings";
 import { useSettingsStore } from "@/stores/settings";
-import type { AnimeApiResponse, MediaInfo } from "../hooks/useMediaInfo";
+import type { AnimeApiResponse, MediaInfo } from "./hooks/useMediaInfo";
 
 interface RatingsProps {
   apiData: AnimeApiResponse;
@@ -52,12 +52,17 @@ Each vote is weighted by the platform's authority, creating a natural balance be
     // Hide platforms that don't have a score (but allow loading state to show)
     if (!rating.loading && rating.score === null) return false;
 
+    // Hide platforms that have 0 votes (but allow loading state to show)
+    if (!rating.loading && rating.votes === 0) return false;
+
     return true;
   });
 
   // Calculate weighted average rating
   const calculateWeightedAverage = () => {
-    const completedRatings = validRatings.filter((r) => !r.loading && r.score !== null && r.votes !== null);
+    const completedRatings = validRatings.filter(
+      (r) => !r.loading && r.score !== null && r.votes !== null && r.votes > 0,
+    );
 
     if (completedRatings.length === 0) return null;
 

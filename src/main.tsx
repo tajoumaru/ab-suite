@@ -10,7 +10,8 @@ import { SeriesPage } from "@/modules/animebytes/series-page";
 import { TorrentGroupPage } from "@/modules/animebytes/torrent-page";
 import { ReleasesIntegration } from "@/modules/releases";
 import { SeaDexIntegration } from "@/modules/seadex";
-import { log } from "@/utils/logging";
+import { YouTubeIntegration } from "@/modules/youtube";
+import { log, warn } from "@/utils/logging";
 // Styles
 import "@/styles/common.css";
 
@@ -34,28 +35,35 @@ function ReleasesAppBase() {
   return <ReleasesIntegration />;
 }
 
+function YouTubeAppBase() {
+  return <YouTubeIntegration />;
+}
+
 // Wrap all page components with settings HOC
 const AniListApp = withSettings(AniListAppBase);
 const AnimeBytesApp = withSettings(AnimeBytesAppBase);
 const ReleasesApp = withSettings(ReleasesAppBase);
+const YouTubeApp = withSettings(YouTubeAppBase);
 
 // Hostname-based routing configuration
 const pageMap: Record<string, ComponentType<object>> = {
   "anilist.co": AniListApp,
   "animebytes.tv": AnimeBytesApp,
   "releases.moe": ReleasesApp,
+  "www.youtube-nocookie.com": YouTubeApp,
+  "www.youtube.com": YouTubeApp,
 };
 
 function App() {
   const hostname = window.location.hostname;
 
   // Log initialization
-  log("AB Suite: Initialized on", hostname);
+  log("Initialized on", hostname);
 
   const PageComponent = pageMap[hostname];
 
   if (!PageComponent) {
-    console.warn("AB Suite: Unknown hostname", hostname);
+    warn("Unknown hostname", hostname);
     return null;
   }
 

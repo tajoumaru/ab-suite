@@ -1,5 +1,5 @@
 import { ChevronDown, ChevronRight } from "lucide-preact";
-import { log, logTime, logTimeEnd } from "@/utils/logging";
+import { log, time, timeEnd } from "@/utils/logging";
 
 interface SeriesTableTitleProps {
   title: string;
@@ -12,10 +12,10 @@ interface SeriesTableTitleProps {
  */
 export function SeriesTableTitle({ title, isCollapsed, onToggle }: SeriesTableTitleProps) {
   const handleClick = () => {
-    logTime(`AB Suite: SeriesTableTitle onClick - ${title}`);
-    log(`AB Suite: SeriesTableTitle clicked`, { title, isCollapsed });
+    time(`SeriesTableTitle onClick - ${title}`);
+    log(`SeriesTableTitle clicked`, { title, isCollapsed });
     onToggle();
-    logTimeEnd(`AB Suite: SeriesTableTitle onClick - ${title}`);
+    timeEnd(`SeriesTableTitle onClick - ${title}`);
   };
 
   const handleKeyDown = (e: KeyboardEvent) => {

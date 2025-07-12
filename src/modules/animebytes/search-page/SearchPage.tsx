@@ -1,7 +1,7 @@
 import { render } from "preact";
 import { useEffect, useReducer, useRef } from "preact/hooks";
 import { useSettingsStore } from "@/stores/settings";
-import { log } from "@/utils/logging";
+import { err, log } from "@/utils/logging";
 import { GalleryView } from "../gallery-view";
 import { AutocompleteEnhancedInput } from "./AutocompleteEnhancedInput";
 import { ModernTableIntegration } from "./ModernTableIntegration";
@@ -176,7 +176,7 @@ export function SearchPage() {
       dispatch({ type: "SET_SEARCH_INPUTS", payload: inputs });
       dispatch({ type: "SET_INITIALIZED", payload: true });
 
-      log("AB Suite: Search page initialized with", inputs.length, "enhanced inputs");
+      log("Search page initialized with", inputs.length, "enhanced inputs");
     };
 
     // Try to initialize immediately
@@ -227,7 +227,7 @@ export function SearchPage() {
       }
     });
 
-    log("AB Suite: Rendered", state.searchInputs.length, "enhanced search inputs");
+    log("Rendered", state.searchInputs.length, "enhanced search inputs");
   }, [state.isInitialized, state.searchInputs]);
 
   // Handle interactive search enhancements
@@ -248,7 +248,7 @@ export function SearchPage() {
               }
             }
           } catch (error) {
-            console.error("AB Suite: Error parsing URL in categoryKeyFromLink:", error);
+            err("Error parsing URL in categoryKeyFromLink:", error);
           }
           return "";
         };
@@ -305,9 +305,9 @@ export function SearchPage() {
           });
         }
 
-        log("AB Suite: Interactive search enhancements applied");
+        log("Interactive search enhancements applied");
       } catch (error) {
-        console.error("AB Suite: Error in interactive search enhancement:", error);
+        err("Error in interactive search enhancement:", error);
       }
     };
 
@@ -386,7 +386,7 @@ export function SearchPage() {
       render(<GalleryView />, galleryContainer);
       dispatch({ type: "SET_GALLERY_INITIALIZED", payload: true });
 
-      log("AB Suite: Gallery view initialized on search page");
+      log("Gallery view initialized on search page");
     };
 
     // Try to initialize immediately

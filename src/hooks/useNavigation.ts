@@ -82,10 +82,10 @@ export function useMediaPageReady(): boolean {
   const { isAnimePage, isMangaPage } = useNavigation();
 
   useEffect(() => {
-    log("AB Suite: useMediaPageReady effect", { isAnimePage, isMangaPage });
+    log("useMediaPageReady effect", { isAnimePage, isMangaPage });
 
     if (!isAnimePage && !isMangaPage) {
-      log("AB Suite: Not on anime/manga page, setting ready to false");
+      log("Not on anime/manga page, setting ready to false");
       setIsReady(false);
       return;
     }
@@ -98,7 +98,7 @@ export function useMediaPageReady(): boolean {
       );
 
       const ready = !!(sidebar && formatElement);
-      log("AB Suite: checkReady", {
+      log("checkReady", {
         sidebar: !!sidebar,
         formatElement: !!formatElement,
         ready,
@@ -126,6 +126,6 @@ export function useMediaPageReady(): boolean {
     };
   }, [isAnimePage, isMangaPage]);
 
-  log("AB Suite: useMediaPageReady returning", isReady);
+  log("useMediaPageReady returning", isReady);
   return isReady;
 }

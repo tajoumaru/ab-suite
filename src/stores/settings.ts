@@ -1,10 +1,12 @@
 import { useEffect, useState } from "preact/hooks";
+import { err } from "@/utils/logging";
 
 // Constant for settings keys prefix to avoid magic strings
 const SETTINGS_KEY_PREFIX = "ab-suite-";
 
 export interface Settings {
   anilistIntegrationEnabled: boolean;
+  aniListMetadataEnabled: boolean;
   seadexEnabled: boolean;
   tableRestructureEnabled: boolean;
   compactResolutionMode: boolean;
@@ -21,6 +23,9 @@ export interface Settings {
   treeFilelistEnabled: boolean;
   readMoreEnabled: boolean;
   enhancedTagStylingEnabled: boolean;
+  youtubeOverlayHidingEnabled: boolean;
+  youtubePrivacyModeEnabled: boolean;
+  quickNavigationEnabled: boolean;
   simklClientId: string;
   tmdbApiToken: string;
   youtubeApiKey: string;
@@ -46,6 +51,7 @@ interface SettingsStore extends Settings {
 
 const DEFAULT_SETTINGS: Settings = {
   anilistIntegrationEnabled: true,
+  aniListMetadataEnabled: false,
   seadexEnabled: true,
   tableRestructureEnabled: true,
   compactResolutionMode: true,
@@ -62,6 +68,9 @@ const DEFAULT_SETTINGS: Settings = {
   treeFilelistEnabled: false,
   readMoreEnabled: true,
   enhancedTagStylingEnabled: true,
+  youtubeOverlayHidingEnabled: true,
+  youtubePrivacyModeEnabled: false,
+  quickNavigationEnabled: true,
   simklClientId: "",
   tmdbApiToken: "",
   youtubeApiKey: "",
@@ -127,7 +136,7 @@ class SimpleSettingsStore {
       };
       this.notifySubscribers();
     } catch (error) {
-      console.error("AB Suite: Failed to load settings", error);
+      err("Failed to load settings", error);
       this.state = { ...this.state, isLoaded: true };
       this.notifySubscribers();
     }
@@ -139,7 +148,7 @@ class SimpleSettingsStore {
       this.state = { ...this.state, [key]: value };
       this.notifySubscribers([key]);
     } catch (error) {
-      console.error(`AB Suite: Failed to save setting ${key}`, error);
+      err(`Failed to save setting ${key}`, error);
     }
   };
 
@@ -197,7 +206,7 @@ class SimpleSettingsStore {
       };
       this.notifySubscribers(Object.keys(DEFAULT_SETTINGS) as (keyof Settings)[]);
     } catch (error) {
-      console.error("AB Suite: Failed to reset settings", error);
+      err("Failed to reset settings", error);
     }
   };
 

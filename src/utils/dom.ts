@@ -1,3 +1,5 @@
+import { warn } from "./logging";
+
 /**
  * Shared DOM manipulation utilities to reduce code duplication
  */
@@ -133,7 +135,7 @@ export const QueryUtils = {
     try {
       return context.querySelector(selector) as T | null;
     } catch (error) {
-      console.warn(`Invalid selector: ${selector}`, error);
+      warn(`Invalid selector: ${selector}`, error);
       return null;
     }
   },
@@ -145,7 +147,7 @@ export const QueryUtils = {
     try {
       return Array.from(context.querySelectorAll(selector)) as T[];
     } catch (error) {
-      console.warn(`Invalid selector: ${selector}`, error);
+      warn(`Invalid selector: ${selector}`, error);
       return [];
     }
   },
@@ -167,7 +169,7 @@ export const QueryUtils = {
     try {
       return element.closest(selector) as T | null;
     } catch (error) {
-      console.warn(`Invalid selector: ${selector}`, error);
+      warn(`Invalid selector: ${selector}`, error);
       return null;
     }
   },

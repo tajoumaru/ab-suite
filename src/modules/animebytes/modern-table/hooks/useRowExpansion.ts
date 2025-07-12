@@ -18,7 +18,7 @@ export function useRowExpansion(enhancedGroupedData: GroupedTorrents, isSeriesPa
         );
 
         if (torrentExists) {
-          log(`AB Suite: Auto-expanding torrent details for torrentid=${torrentId}`);
+          log(`Auto-expanding torrent details for torrentid=${torrentId}`);
           setExpandedRows(new Set([torrentId]));
         }
       }

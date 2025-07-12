@@ -4,7 +4,7 @@ import { useMemo } from "preact/hooks";
 import { useSeaDexStore, useSeaDexUpdates } from "@/stores/seadex";
 import { useSettingsStore } from "@/stores/settings";
 import type { GroupedTorrents, TorrentTableProps } from "@/types/modern-table";
-import { log, logTime, logTimeEnd } from "@/utils/logging";
+import { log, time, timeEnd } from "@/utils/logging";
 import { SectionHeader } from "./components/SectionHeader";
 import { detectTableType, extractGroupedTorrentData } from "./data-extraction";
 import { useRowExpansion } from "./hooks/useRowExpansion";
@@ -24,8 +24,8 @@ import { TorrentRow } from "./TorrentRow";
  * Now supports section headers with group-aware sorting and section collapse/expand.
  */
 export function TorrentTable({ torrents, originalTable, isSeriesPage = false }: TorrentTableProps) {
-  logTime("AB Suite: TorrentTable component render");
-  log("AB Suite: TorrentTable component rendering", {
+  time("TorrentTable component render");
+  log("TorrentTable component rendering", {
     torrentsLength: torrents.length,
     hasOriginalTable: !!originalTable,
   });
@@ -99,7 +99,7 @@ export function TorrentTable({ torrents, originalTable, isSeriesPage = false }: 
   // Listen for SeaDex updates and force re-render
   useSeaDexUpdates(() => {
     // The enhancedGroupedData memo will automatically update due to store changes
-    log("AB Suite: SeaDx data updated, table will re-render");
+    log("Seadex data updated, table will re-render");
   });
 
   // Row expansion is now handled by the useRowExpansion hook
@@ -125,7 +125,7 @@ export function TorrentTable({ torrents, originalTable, isSeriesPage = false }: 
     .every(({ section }) => section?.id && !collapsedSections.has(section.id));
 
   if (totalTorrents === 0) {
-    logTimeEnd("AB Suite: TorrentTable component render");
+    timeEnd("TorrentTable component render");
     return null;
   }
 
@@ -198,7 +198,7 @@ export function TorrentTable({ torrents, originalTable, isSeriesPage = false }: 
     </div>
   );
 
-  logTimeEnd("AB Suite: TorrentTable component render");
+  timeEnd("TorrentTable component render");
   return result;
 }
 

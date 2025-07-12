@@ -1,4 +1,4 @@
-import type { MediaInfo } from "../hooks/useMediaInfo";
+import type { MediaInfo } from "./hooks/useMediaInfo";
 
 interface ExternalLinksBarProps {
   mediaInfo: MediaInfo;
@@ -13,7 +13,7 @@ export function ExternalLinksBar({ mediaInfo }: ExternalLinksBarProps) {
 
   return (
     <span className="ab-external-links">
-      {externalLinks.map((link) => (
+      {externalLinks.map((link: { name: string; url: string }) => (
         <span key={link.name}>
           <span> | </span>
           <a

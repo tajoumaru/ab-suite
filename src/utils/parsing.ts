@@ -1,3 +1,5 @@
+import { log } from "@/utils/logging";
+
 /**
  * Shared parsing utilities for consistent data extraction across components
  */
@@ -67,7 +69,7 @@ export function createParser<T extends Record<string, unknown>>(
           (result as Record<string, unknown>)[rule.field] = value;
 
           if (debug) {
-            console.log(`Parsing: "${trimmed}" -> ${rule.field} = ${value}`);
+            log(`Parsing: "${trimmed}" -> ${rule.field} = ${value}`);
           }
 
           // Stop processing if exclusive rule

@@ -120,6 +120,11 @@ declare global {
   function GM_getTab(callback: (tab: object) => void): void;
   function GM_saveTab(tab: object): void;
   function GM_getTabs(callback: (tabs: { [key: number]: object }) => void): void;
+  function GM_addElement(
+    parentNode: Node,
+    tagName: string,
+    attributes: Record<string, string | (() => void)>,
+  ): HTMLElement;
   const GM_info: {
     script: {
       author: string;

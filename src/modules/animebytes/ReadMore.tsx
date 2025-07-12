@@ -1,5 +1,6 @@
 import { useDescriptionStore } from "@/stores/descriptions";
 import { useSettingsStore } from "@/stores/settings";
+import { err } from "@/utils/logging";
 
 interface ReadMoreProps {
   torrentLink: string;
@@ -29,26 +30,13 @@ export function ReadMore({ torrentLink }: ReadMoreProps) {
       const fullDescription = await getFullDescription(torrentLink);
       descriptionStore.setFullDescription(torrentLink, fullDescription);
     } catch (error) {
-      console.error("AB Suite: Failed to fetch full description", error);
+      err("Failed to fetch full description", error);
       descriptionStore.setLoading(torrentLink, false);
     }
   };
 
   return (
-    <button
-      onClick={handleReadMore}
-      style={{
-        color: "#007bff",
-        textDecoration: "none",
-        cursor: "pointer",
-        fontSize: "0.9em",
-        marginLeft: "4px",
-        background: "none",
-        border: "none",
-        padding: 0,
-      }}
-      type="button"
-    >
+    <button onClick={handleReadMore} className="ab-read-more-button" type="button">
       {isLoading ? "Loading..." : "Read all"}
     </button>
   );

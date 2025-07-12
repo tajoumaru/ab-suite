@@ -2,18 +2,13 @@ import { render } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { useSeaDexUpdates } from "@/stores/seadex";
 import { useSettingsStore } from "@/stores/settings";
-import { log } from "@/utils/logging";
+import { err, log } from "@/utils/logging";
+import { ExternalLinksBar } from "../ExternalLinksBar";
 import { GalleryView } from "../gallery-view";
 import { type AnimeApiResponse, useMediaInfo } from "../hooks/useMediaInfo";
-import {
-  detectTableType,
-  ExternalLinksBar,
-  extractTorrentData,
-  type ParsedTorrentRow,
-  Ratings,
-  TorrentTable,
-  Trailers,
-} from "../modern-table";
+import { detectTableType, extractTorrentData, type ParsedTorrentRow, TorrentTable } from "../modern-table";
+import { Ratings } from "../Ratings";
+import { Trailers } from "../Trailers";
 
 // Default empty AnimeApiResponse for when no data is available
 const DEFAULT_API_DATA: AnimeApiResponse = {
@@ -91,7 +86,7 @@ export function TorrentGroupPage() {
         return;
       }
 
-      log(`AB Suite: Detected table type '${tableType}' for torrent group page`);
+      log(`Detected table type '${tableType}' for torrent group page`);
 
       // Store reference to original table for re-extraction
       originalTableRef.current = originalTable;
@@ -119,9 +114,9 @@ export function TorrentGroupPage() {
       setTorrents(extractedTorrents);
       setIsInitialized(true);
 
-      log("AB Suite: Torrent group page initialized with", extractedTorrents.length, "torrents");
+      log("Torrent group page initialized with", extractedTorrents.length, "torrents");
     } catch (error) {
-      console.error("AB Suite: Failed to initialize torrent group page", error);
+      err("Failed to initialize torrent group page", error);
     }
   };
 
@@ -143,14 +138,14 @@ export function TorrentGroupPage() {
   useSeaDexUpdates(() => {
     if (!isInitialized || !originalTableRef.current) return;
 
-    log("AB Suite: SeaDex processing complete, re-extracting torrent data");
+    log("SeaDex processing complete, re-extracting torrent data");
 
     try {
       const tableType = detectTableType(originalTableRef.current);
       const updatedTorrents = extractTorrentData(originalTableRef.current, mediainfoParserEnabled, tableType);
       setTorrents(updatedTorrents);
     } catch (error) {
-      console.error("AB Suite: Failed to re-extract torrent data after SeaDex update", error);
+      err("Failed to re-extract torrent data after SeaDex update", error);
     }
   });
 
@@ -186,7 +181,7 @@ export function TorrentGroupPage() {
       // Store the container reference
       headerContainerRef.current = linksContainer;
 
-      log("AB Suite: External links container created");
+      log("External links container created");
     };
 
     integrateExternalLinks();
@@ -226,7 +221,7 @@ export function TorrentGroupPage() {
         }
       }
 
-      log("AB Suite: Sections container created");
+      log("Sections container created");
     };
 
     integrateSections();
@@ -249,17 +244,18 @@ export function TorrentGroupPage() {
     }
   }, [anilistIntegrationEnabled, mediaInfo]);
 
-  // Render all sections in proper order
+  // Render all sections in proper order: ratings > synopsis > characters > trailers
   useEffect(() => {
     if (sectionsContainerRef.current && isInitialized) {
       const SectionsContainer = () => (
         <>
-          {TrailersEnabled && (
-            <Trailers apiData={mediaInfo?.apiData || DEFAULT_API_DATA} mediaInfo={mediaInfo || undefined} />
-          )}
-          {plotSynopsisHtml && <div dangerouslySetInnerHTML={{ __html: plotSynopsisHtml }} />}
           {RatingsEnabled && (
             <Ratings apiData={mediaInfo?.apiData || DEFAULT_API_DATA} mediaInfo={mediaInfo || undefined} />
+          )}
+          {plotSynopsisHtml && <div dangerouslySetInnerHTML={{ __html: plotSynopsisHtml }} />}
+          <div id="ab-characters-placeholder" />
+          {TrailersEnabled && (
+            <Trailers apiData={mediaInfo?.apiData || DEFAULT_API_DATA} mediaInfo={mediaInfo || undefined} />
           )}
         </>
       );

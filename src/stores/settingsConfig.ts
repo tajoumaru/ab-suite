@@ -193,6 +193,37 @@ export const SETTINGS_CONFIG: SettingConfig[] = [
     category: "display",
     requiresReload: true,
   },
+  {
+    key: "aniListMetadataEnabled",
+    label: "AniList Metadata Enhancement",
+    description:
+      "Replace basic metadata sections with enhanced AniList data including improved synopsis, extended info, and character cards with images",
+    type: "boolean",
+    category: "features",
+    requiresReload: true,
+  },
+  {
+    key: "youtubeOverlayHidingEnabled",
+    label: "Hide YouTube Video Overlays",
+    description: "Hides related videos and pause overlays when YouTube videos are embedded from AB Suite",
+    type: "boolean",
+    category: "features",
+  },
+  {
+    key: "youtubePrivacyModeEnabled",
+    label: "YouTube Privacy Mode",
+    description: "Use youtube-nocookie.com for enhanced privacy (may disable some player features)",
+    type: "boolean",
+    category: "features",
+  },
+  {
+    key: "quickNavigationEnabled",
+    label: "Quick Navigation",
+    description: "Adds a navigation sidebar on series and artist pages with links to all content categories and groups",
+    type: "boolean",
+    category: "features",
+    requiresReload: true,
+  },
 
   // API Configuration
   {

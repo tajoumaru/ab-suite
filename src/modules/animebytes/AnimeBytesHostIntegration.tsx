@@ -1,7 +1,10 @@
 import { render } from "preact";
 import { useEffect, useRef } from "preact/hooks";
-import { log } from "@/utils/logging";
+import { err, log } from "@/utils/logging";
+import { AniListMetadataIntegration } from "./AniListMetadataIntegration";
 import { EnhancedTagStyling } from "./EnhancedTagStyling";
+import { LogoReplacement } from "./LogoReplacement";
+import { QuickNavigation } from "./QuickNavigation";
 import { SettingsButton } from "./SettingsModal";
 import { UnifiedDescriptionIntegration } from "./UnifiedDescriptionIntegration";
 
@@ -44,9 +47,9 @@ export function AnimeBytesHostIntegration() {
 
         isInitialized.current = true;
 
-        log("AB Suite: AnimeBytes host integration initialized");
+        log("AnimeBytes host integration initialized");
       } catch (error) {
-        console.error("AB Suite: Failed to initialize AnimeBytes host integration", error);
+        err("Failed to initialize AnimeBytes host integration", error);
       }
     };
 
@@ -73,11 +76,14 @@ export function AnimeBytesHostIntegration() {
   }, [isInitialized.current]);
 
   // This component doesn't render anything directly - it manages DOM takeover
-  // Also render the integrations for descriptions and enhanced tag styling
+  // Also render the integrations for descriptions, enhanced tag styling, and AniList metadata
   return (
     <>
       <UnifiedDescriptionIntegration />
       <EnhancedTagStyling />
+      <AniListMetadataIntegration />
+      <QuickNavigation />
+      <LogoReplacement />
     </>
   );
 }

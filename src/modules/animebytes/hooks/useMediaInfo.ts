@@ -2,7 +2,7 @@ import { useEffect, useState } from "preact/hooks";
 import { useSettingsStore } from "@/stores/settings";
 import { cachedApiCall } from "@/utils/cache";
 import { PRINTED_MEDIA_TYPES } from "@/utils/format-mapping";
-import { log } from "@/utils/logging";
+import { err, log } from "@/utils/logging";
 
 type StringNull = string | null;
 type NumberNull = number | null;
@@ -110,16 +110,16 @@ async function fetchKitsuData(kitsuId: string): Promise<{ rating: number | null;
                 const data = JSON.parse(response.responseText);
                 resolve(data);
               } catch (error) {
-                log("AB Suite: Failed to parse Kitsu response", error);
+                log("Failed to parse Kitsu response", error);
                 resolve(null);
               }
             } else {
-              log("AB Suite: Kitsu API returned status", response.status);
+              log("Kitsu API returned status", response.status);
               resolve(null);
             }
           },
           onerror: () => {
-            log("AB Suite: Failed to fetch Kitsu data");
+            log("Failed to fetch Kitsu data");
             resolve(null);
           },
         });
@@ -186,7 +186,7 @@ async function fetchSimklData(
   if (existingSimklId) {
     // Use the existing SIMKL ID, skip search
     simklId = existingSimklId;
-    log(`AB Suite: Using existing SIMKL ID: ${simklId}`);
+    log(`Using existing SIMKL ID: ${simklId}`);
   } else {
     // First, search for the anime by MAL ID
     const searchCacheKey = `simkl-search-mal-${malId}`;
@@ -203,16 +203,16 @@ async function fetchSimklData(
                   const data = JSON.parse(response.responseText);
                   resolve(Array.isArray(data) ? data : []);
                 } catch (error) {
-                  log("AB Suite: Failed to parse SIMKL search response", error);
+                  log("Failed to parse SIMKL search response", error);
                   resolve([]);
                 }
               } else {
-                log("AB Suite: SIMKL search API returned status", response.status);
+                log("SIMKL search API returned status", response.status);
                 resolve([]);
               }
             },
             onerror: () => {
-              log("AB Suite: Failed to fetch SIMKL search data");
+              log("Failed to fetch SIMKL search data");
               resolve([]);
             },
           });
@@ -247,16 +247,16 @@ async function fetchSimklData(
                 const data = JSON.parse(response.responseText);
                 resolve(data);
               } catch (error) {
-                log("AB Suite: Failed to parse SIMKL detail response", error);
+                log("Failed to parse SIMKL detail response", error);
                 resolve(null);
               }
             } else {
-              log("AB Suite: SIMKL detail API returned status", response.status);
+              log("SIMKL detail API returned status", response.status);
               resolve(null);
             }
           },
           onerror: () => {
-            log("AB Suite: Failed to fetch SIMKL detail data");
+            log("Failed to fetch SIMKL detail data");
             resolve(null);
           },
         });
@@ -383,16 +383,16 @@ export function useMediaInfo(): MediaInfo | null {
                           const data = JSON.parse(response.responseText);
                           resolve(data);
                         } catch (parseError) {
-                          console.error("AB Suite: Failed to parse anime API response", parseError);
+                          err("Failed to parse anime API response", parseError);
                           resolve(null);
                         }
                       } else {
-                        console.error("AB Suite: Anime API returned status", response.status);
+                        err("Anime API returned status", response.status);
                         resolve(null);
                       }
                     },
                     onerror: () => {
-                      console.error("AB Suite: Failed to fetch anime API data");
+                      err("Failed to fetch anime API data");
                       resolve(null);
                     },
                   });
@@ -404,11 +404,11 @@ export function useMediaInfo(): MediaInfo | null {
               },
             );
           } catch (error) {
-            console.error("AB Suite: Failed to fetch anime API data", error);
+            err("Failed to fetch anime API data", error);
           }
         }
 
-        log("AB Suite: Fetched API Data", apiData);
+        log("Fetched API Data", apiData);
 
         // Fetch additional IDs from SIMKL if client ID is provided and MAL ID exists
         if (simklClientId && malId && apiData) {
@@ -418,10 +418,10 @@ export function useMediaInfo(): MediaInfo | null {
             if (simklData) {
               // Merge SIMKL IDs with existing apiData
               apiData = mergeSimklData(apiData, simklData);
-              log("AB Suite: Merged SIMKL data", apiData);
+              log("Merged SIMKL data", apiData);
             }
           } catch (error) {
-            log("AB Suite: Failed to fetch SIMKL data", error);
+            log("Failed to fetch SIMKL data", error);
           }
         }
 
@@ -433,9 +433,9 @@ export function useMediaInfo(): MediaInfo | null {
             const kitsuData = await fetchKitsuData(apiData.kitsu.toString());
             kitsuRating = kitsuData.rating;
             kitsuVotes = kitsuData.votes;
-            log("AB Suite: Fetched Kitsu rating", kitsuRating);
+            log("Fetched Kitsu rating", kitsuRating);
           } catch (error) {
-            log("AB Suite: Failed to fetch Kitsu rating", error);
+            log("Failed to fetch Kitsu rating", error);
           }
         }
 
@@ -465,7 +465,7 @@ export function useMediaInfo(): MediaInfo | null {
             }
           }
         } catch (error) {
-          log("AB Suite: Failed to extract site rating", error);
+          log("Failed to extract site rating", error);
         }
 
         // Create external links
@@ -518,7 +518,7 @@ export function useMediaInfo(): MediaInfo | null {
           externalLinks,
         };
       } catch (error) {
-        console.error("AB Suite: Failed to extract media info", error);
+        err("Failed to extract media info", error);
         return null;
       }
     };

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
 import { useSettingsStore } from "@/stores/settings";
 import type { TorrentDetailsData, TorrentDetailsProps } from "@/types/modern-table";
-import { log } from "@/utils/logging";
+import { err, log } from "@/utils/logging";
 import {
   DescriptionTab,
   FilelistTab,
@@ -30,13 +30,13 @@ export function TorrentDetails({ torrentId, groupId, detailsHtml, onDataExtracte
   // Extract data on mount
   useEffect(() => {
     try {
-      log("AB Suite: Starting torrent details extraction", { torrentId, groupId });
+      log("Starting torrent details extraction", { torrentId, groupId });
       const extractedData = extractTorrentDetailsData(torrentId, groupId, detailsHtml);
       setDetailsData(extractedData);
       onDataExtracted?.(extractedData);
-      log("AB Suite: Successfully extracted torrent details data");
+      log("Successfully extracted torrent details data");
     } catch (error) {
-      console.error("AB Suite: Error extracting torrent details data", error);
+      err("Error extracting torrent details data", error);
       // Set empty data to prevent infinite loading
       setDetailsData({
         uploadDescription: {
@@ -64,7 +64,7 @@ export function TorrentDetails({ torrentId, groupId, detailsHtml, onDataExtracte
       setDetailsData((prev) => (prev ? { ...prev, screenshots } : null));
       setScreenshotsLoaded(true);
     } catch (error) {
-      console.error("AB Suite: Error loading screenshots", error);
+      err("Error loading screenshots", error);
     } finally {
       setScreenshotsLoading(false);
     }
@@ -80,7 +80,7 @@ export function TorrentDetails({ torrentId, groupId, detailsHtml, onDataExtracte
       setDetailsData((prev) => (prev ? { ...prev, peerlist } : null));
       setPeerlistLoaded(true);
     } catch (error) {
-      console.error("AB Suite: Error loading peerlist", error);
+      err("Error loading peerlist", error);
     } finally {
       setPeerlistLoading(false);
     }

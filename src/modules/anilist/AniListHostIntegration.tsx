@@ -1,6 +1,6 @@
 import { render } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
-import { log } from "@/utils/logging";
+import { err, log } from "@/utils/logging";
 import { AnimeBytesButton } from "./AnimeBytesButton";
 
 /**
@@ -46,9 +46,9 @@ export function AniListHostIntegration() {
         // Use state to trigger render effect
         setIsInitialized(true);
 
-        log("AB Suite: AniList host integration initialized");
+        log("AniList host integration initialized");
       } catch (error) {
-        console.error("AB Suite: Failed to initialize AniList host integration", error);
+        err("Failed to initialize AniList host integration", error);
       }
     };
 
@@ -69,13 +69,13 @@ export function AniListHostIntegration() {
 
   // Render the AnimeBytesButton when container is ready
   useEffect(() => {
-    log("AB Suite: AniListHostIntegration render effect triggered", {
+    log("AniListHostIntegration render effect triggered", {
       containerRef: !!containerRef.current,
       isInitialized,
     });
 
     if (containerRef.current && isInitialized) {
-      log("AB Suite: Rendering AnimeBytesButton", containerRef.current);
+      log("Rendering AnimeBytesButton", containerRef.current);
       render(<AnimeBytesButton />, containerRef.current);
     }
   }, [isInitialized]);

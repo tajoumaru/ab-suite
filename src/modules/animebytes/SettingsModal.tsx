@@ -82,7 +82,7 @@ function SettingItem({ config, value, onChange, disabled }: SettingItemProps) {
     if (config.type === "boolean" && !disabled) {
       onChange(config.key, !value);
       if (config.requiresReload) {
-        log("AB Suite: Setting updated. Some changes may require a page reload.");
+        log("Setting updated. Some changes may require a page reload.");
       }
     }
   };

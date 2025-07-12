@@ -2,7 +2,7 @@ import { render } from "preact";
 import { useEffect, useRef } from "preact/hooks";
 import { useDescriptionStore } from "@/stores/descriptions";
 import { useSettingsStore } from "@/stores/settings";
-import { log } from "@/utils/logging";
+import { err, log } from "@/utils/logging";
 import { DescriptionRenderer } from "./DescriptionRenderer";
 
 export function DescriptionIntegration() {
@@ -24,7 +24,7 @@ export function DescriptionIntegration() {
           return;
         }
 
-        log(`AB Suite: Found ${descriptions.length} torrent descriptions`);
+        log(`Found ${descriptions.length} torrent descriptions`);
 
         descriptions.forEach((description) => {
           const descElement = description as HTMLElement;
@@ -67,10 +67,10 @@ export function DescriptionIntegration() {
 
         if (!isInitialized.current) {
           isInitialized.current = true;
-          log("AB Suite: Description integration initialized");
+          log("Description integration initialized");
         }
       } catch (error) {
-        console.error("AB Suite: Failed to initialize descriptions", error);
+        err("Failed to initialize descriptions", error);
       }
     };
 

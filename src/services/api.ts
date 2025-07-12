@@ -1,4 +1,5 @@
 import type { RequestOptions, SeaDexEntry, SeaDexResponse, TorrentInfo } from "@/types";
+import { err } from "@/utils/logging";
 
 interface AutocompleteResult {
   id: string;
@@ -100,7 +101,7 @@ class ApiService {
 
       return response.results || [];
     } catch (error) {
-      console.error("AB Suite: Autocomplete API error:", error);
+      err("Autocomplete API error:", error);
       throw error;
     }
   }
@@ -138,7 +139,7 @@ class ApiService {
 
       return linkMap;
     } catch (error) {
-      console.error("AB Suite (SeaDex): Failed to fetch data", error);
+      err("AB Suite (SeaDex): Failed to fetch data", error);
       throw error;
     }
   }

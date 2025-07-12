@@ -2,7 +2,7 @@ import { render } from "preact";
 import { useEffect, useRef } from "preact/hooks";
 import { useDescriptionStore } from "@/stores/descriptions";
 import { useSettingsStore } from "@/stores/settings";
-import { log } from "@/utils/logging";
+import { err, log } from "@/utils/logging";
 import { DescriptionRenderer } from "./DescriptionRenderer";
 import { ReadMore } from "./ReadMore";
 
@@ -25,7 +25,7 @@ export function UnifiedDescriptionIntegration() {
           return;
         }
 
-        log(`AB Suite: Found ${descriptions.length} torrent descriptions`);
+        log(`Found ${descriptions.length} torrent descriptions`);
 
         let processedCount = 0;
         let readMoreCount = 0;
@@ -113,11 +113,11 @@ export function UnifiedDescriptionIntegration() {
         if (!isInitialized.current && processedCount > 0) {
           isInitialized.current = true;
           log(
-            `AB Suite: Unified description integration initialized - processed ${processedCount} descriptions, ${readMoreCount} with ReadMore`,
+            `Unified description integration initialized - processed ${processedCount} descriptions, ${readMoreCount} with ReadMore`,
           );
         }
       } catch (error) {
-        console.error("AB Suite: Failed to initialize descriptions", error);
+        err("Failed to initialize descriptions", error);
       }
     };
 
