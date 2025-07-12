@@ -76,7 +76,7 @@ export function AnimeBytesButton() {
     {
       deps: [anilistIntegrationEnabled, isAnimePage, isMangaPage, isPageReady],
       onError: (error) => {
-        err("Failed to initialize AnimeBytes button", error);
+        err("Failed to initialize animebytes button", error);
       },
     },
   );
@@ -107,14 +107,14 @@ export function AnimeBytesButton() {
         onClick={handleClick}
         target="_blank"
         rel="noopener noreferrer"
-        title={`Search "${buttonData.title}" on AnimeBytes`}
+        title={`Search "${buttonData.title}" on animebytes`}
       >
         <div className={`ab-button ${buttonAsync.loading ? "ab-loading" : ""}`}>
-          <img className="ab-logo" src="https://animebytes.tv/static/favicon-5fc4df4e68.ico" alt="AnimeBytes" />
+          <img className="ab-logo" src="https://animebytes.tv/static/favicon-5fc4df4e68.ico" alt="animebytes" />
           <img
             className="ab-banner"
             src="https://animebytes.tv/static/css/coalbytes/images/logo-b6ffe89f0a.svg"
-            alt="AnimeBytes"
+            alt="animebytes"
           />
         </div>
       </a>

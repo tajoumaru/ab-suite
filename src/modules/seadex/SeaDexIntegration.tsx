@@ -11,7 +11,7 @@ import { SeaDexTab } from "./SeaDexTab";
 
 const TORRENT_ID_REGEX = /&torrentid=(\d+)/i;
 
-// Extend Window interface for AnimeBytes site functions
+// Extend Window interface for animebytes site functions
 declare global {
   interface Window {
     switchTabs?: (element: HTMLAnchorElement) => void;

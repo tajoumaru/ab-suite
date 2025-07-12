@@ -1,7 +1,7 @@
 {
   "name": "ab-suite",
-  "version": "0.8.0",
-  "description": "A suite of userscripts for AnimeBytes.",
+  "version": "0.9.0",
+  "description": "A suite of userscripts for animebytes.",
   "homepage": "https://github.com/tajoumaru/ab-suite",
   "repository": {
     "type": "git",

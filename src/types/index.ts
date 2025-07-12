@@ -1,4 +1,4 @@
-// Shared types for the AnimeBytes Suite
+// Shared types for the animebytes Suite
 
 export interface SeaDexEntry {
   alID: string;

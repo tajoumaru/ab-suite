@@ -16,7 +16,7 @@ const PLATFORM_ICONS = {
   Kitsu: "https://mei.kuudere.pw/fjJ7w593D8o.png",
   TMDb: "https://mei.kuudere.pw/Cg5yNKBvz3E.png",
   IMDb: "https://mei.kuudere.pw/gtY9cKsJV77.png",
-  AnimeBytes: "https://mei.kuudere.pw/ubPI4dVDXWO.png",
+  animebytes: "https://mei.kuudere.pw/ubPI4dVDXWO.png",
 };
 
 export function Ratings({ apiData, mediaInfo }: RatingsProps) {
@@ -34,7 +34,7 @@ export function Ratings({ apiData, mediaInfo }: RatingsProps) {
   const weightedAverageTooltip = `Weighted Average Algorithm:
 
 Source Authority Weights:
-• AnimeBytes: 3.0× (Highest Voting Quality)
+• animebytes: 3.0× (Highest Voting Quality)
 • Anime sites (AniList, MAL, Kitsu, AniDB): 2.0×
 • General sites (TMDb, IMDb): 1.0×
 
@@ -68,7 +68,7 @@ Each vote is weighted by the platform's authority, creating a natural balance be
 
     // Source authority weights
     const sourceWeights: Record<string, number> = {
-      AnimeBytes: 3.0, // Highest authority for anime torrents
+      animebytes: 3.0, // Highest authority for anime torrents
       AniList: 2.0, // Anime-specific sites
       MyAnimeList: 2.0,
       Kitsu: 2.0,

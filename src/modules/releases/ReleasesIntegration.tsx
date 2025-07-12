@@ -35,7 +35,7 @@ export function ReleasesIntegration() {
               ) as Text;
 
               if (textNode?.textContent?.includes("Private")) {
-                textNode.textContent = " AnimeBytes";
+                textNode.textContent = " animebytes";
               }
             }
           });

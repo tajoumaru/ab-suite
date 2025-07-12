@@ -9,7 +9,7 @@ import { SettingsButton } from "./SettingsModal";
 import { UnifiedDescriptionIntegration } from "./UnifiedDescriptionIntegration";
 
 /**
- * AnimeBytesHostIntegration component that implements declarative takeover for AnimeBytes site integration.
+ * AnimeBytesHostIntegration component that implements declarative takeover for animebytes site integration.
  * This component:
  * 1. Finds the userinfo_minor element (anchor)
  * 2. Creates a container for the SettingsButton
@@ -47,9 +47,9 @@ export function AnimeBytesHostIntegration() {
 
         isInitialized.current = true;
 
-        log("AnimeBytes host integration initialized");
+        log("animebytes host integration initialized");
       } catch (error) {
-        err("Failed to initialize AnimeBytes host integration", error);
+        err("Failed to initialize animebytes host integration", error);
       }
     };
 

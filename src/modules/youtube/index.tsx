@@ -17,10 +17,12 @@ export function YouTubeIntegration() {
       try {
         const parentUrl = document.referrer;
         if (parentUrl.startsWith(targetParentDomain)) {
-          log("YT Vid embedded on AnimeBytes, hiding YouTube overlays.");
+          log("YT Vid embedded on animebytes, hiding YouTube overlays.");
 
           // Hide the container for related videos and pause overlays
-          GM_addStyle(`.ytp-pause-overlay-container,.ytp-endscreen-paginate {display: none !important;visibility: hidden !important;opacity: 0 !important;pointer-events: none !important}`);
+          GM_addStyle(
+            `.ytp-pause-overlay-container,.ytp-endscreen-paginate {display: none !important;visibility: hidden !important;opacity: 0 !important;pointer-events: none !important}`,
+          );
         } else {
           log("Embedded on a different site, not hiding YouTube overlays.");
         }

@@ -1,4 +1,4 @@
-import { Check, Download, Flag, X } from "lucide-preact";
+import { Check, Download, Flag, Link, X } from "lucide-preact";
 import { memo } from "preact/compat";
 import type { ParsedTorrentRow, TableType } from "@/types/modern-table";
 import { TorrentDetails } from "./TorrentDetails";
@@ -131,6 +131,18 @@ function TorrentRowComponent({
         <div className="ab-download-container">
           <a href={torrent.downloadLink} title="Download torrent" className="ab-download-btn">
             <Download size={16} />
+          </a>
+          <a
+            href={torrent.torrentLink}
+            title="Permalink to torrent"
+            className="ab-permalink-btn"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              navigator.clipboard.writeText(`https://animebytes.tv${torrent.torrentLink}`);
+            }}
+          >
+            <Link size={16} />
           </a>
         </div>
       </td>

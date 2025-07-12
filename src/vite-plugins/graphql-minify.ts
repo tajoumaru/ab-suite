@@ -4,15 +4,17 @@ import type { Plugin } from "rolldown-vite";
  * Minifies GraphQL queries by removing unnecessary whitespace and comments
  */
 function minifyGraphQLQuery(query: string): string {
-  return query
-    // Remove comments
-    .replace(/#.*$/gm, "")
-    // Remove multiple whitespace characters
-    .replace(/\s+/g, " ")
-    // Remove whitespace around special characters
-    .replace(/\s*([{}(),:]+)\s*/g, "$1")
-    // Remove leading/trailing whitespace
-    .trim();
+  return (
+    query
+      // Remove comments
+      .replace(/#.*$/gm, "")
+      // Remove multiple whitespace characters
+      .replace(/\s+/g, " ")
+      // Remove whitespace around special characters
+      .replace(/\s*([{}(),:]+)\s*/g, "$1")
+      // Remove leading/trailing whitespace
+      .trim()
+  );
 }
 
 /**
@@ -41,7 +43,7 @@ export function graphqlMinifyPlugin(): Plugin {
 
       // Look for /*gql*/ template literals - handle both with and without space after comment
       const graphqlRegex = /\/\*gql\*\/\s*`([^`]*)`/gs;
-      
+
       let hasChanges = false;
       const transformedCode = code.replace(graphqlRegex, (_, query) => {
         hasChanges = true;

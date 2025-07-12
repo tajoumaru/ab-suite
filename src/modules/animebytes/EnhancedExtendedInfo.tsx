@@ -121,7 +121,7 @@ export function EnhancedExtendedInfo({ aniListData, originalContent }: EnhancedE
   return (
     <div className="box ab-enhanced-extended-info" data-ab-section="extended-info">
       <div className="head ab-extended-info-header">
-        <strong>Extended Info</strong>
+        <strong>Info</strong>
         {originalContent && (
           <span className="ab-extended-info-toggle">
             <button type="button" onClick={toggleContent} className="ab-toggle-button">

@@ -14,7 +14,7 @@ function createBuildConfig(isMinified: boolean) {
   const fileName = isMinified ? "ab-suite.min.user.js" : "ab-suite.user.js";
 
   const userscriptMeta: UserscriptMeta = {
-    name: "AnimeBytes Suite",
+    name: "animebytes Suite",
     description: pkg.description,
     author: pkg.author,
     version: pkg.version,

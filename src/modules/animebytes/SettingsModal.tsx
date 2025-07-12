@@ -33,24 +33,6 @@ const CloseIcon = () => (
   </svg>
 );
 
-const ChevronIcon = ({ expanded }: { expanded: boolean }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    aria-hidden="true"
-    className={`ab-settings-chevron ${expanded ? "expanded" : ""}`}
-  >
-    <path d="m9 18 6-6-6-6" />
-  </svg>
-);
-
 const ExternalLinkIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -134,50 +116,11 @@ function SettingItem({ config, value, onChange, disabled }: SettingItemProps) {
   );
 }
 
-interface CategorySectionProps {
-  category: (typeof SETTING_CATEGORIES)[0];
-  settings: SettingConfig[];
-  settingsValues: Settings;
-  onChange: (key: string, value: SettingValue) => void;
-}
-
-function CategorySection({ category, settings, settingsValues, onChange }: CategorySectionProps) {
-  const [expanded, setExpanded] = useState(true);
-
-  return (
-    <div className="ab-settings-category">
-      <button
-        className="ab-settings-category-header"
-        onClick={() => setExpanded(!expanded)}
-        type="button"
-        aria-expanded={expanded}
-        aria-controls={`category-${category.id}`}
-      >
-        <div className="ab-settings-category-info">
-          <h4>{category.label}</h4>
-          {category.description && <p>{category.description}</p>}
-        </div>
-        <ChevronIcon expanded={expanded} />
-      </button>
-      <div id={`category-${category.id}`} className={`ab-settings-category-content ${expanded ? "expanded" : ""}`}>
-        {settings.map((setting) => (
-          <SettingItem
-            key={setting.key}
-            config={setting}
-            value={settingsValues[setting.key]}
-            onChange={onChange}
-            disabled={!isSettingEnabled(settingsValues, setting)}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const settingsStore = useSettingsStore();
   const [isClosing, setIsClosing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeCategory, setActiveCategory] = useState(SETTING_CATEGORIES[0]?.id || "navigation");
 
   // Handle escape key
   useEffect(() => {
@@ -246,6 +189,9 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     return { category, settings: filteredSettings };
   }).filter((item) => item.settings.length > 0);
 
+  // Get current category settings for the main panel
+  const activeCategoryData = filteredCategories.find((item) => item.category.id === activeCategory);
+
   if (!isOpen && !isClosing) {
     return null;
   }
@@ -262,7 +208,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     >
       <div className="ab-settings-content">
         <div className="ab-settings-header">
-          <h3 id="ab-settings-title">AnimeBytes Suite Settings</h3>
+          <h3 id="ab-settings-title">animebytes Suite Settings</h3>
           <button className="ab-settings-close" onClick={handleClose} aria-label="Close settings" type="button">
             <CloseIcon />
           </button>
@@ -279,16 +225,50 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           />
         </div>
 
-        <div className="ab-settings-body">
-          {filteredCategories.map(({ category, settings }) => (
-            <CategorySection
-              key={category.id}
-              category={category}
-              settings={settings}
-              settingsValues={settingsValues}
-              onChange={handleSettingChange}
-            />
-          ))}
+        <div className="ab-settings-main">
+          <nav className="ab-settings-sidebar" aria-label="Settings categories">
+            {filteredCategories.map(({ category, settings }) => (
+              <button
+                key={category.id}
+                className={`ab-settings-sidebar-item ${activeCategory === category.id ? "active" : ""}`}
+                onClick={() => setActiveCategory(category.id)}
+                type="button"
+                aria-label={`View ${category.label} settings`}
+              >
+                <span className="ab-settings-sidebar-icon">{category.icon}</span>
+                <div className="ab-settings-sidebar-content">
+                  <div className="ab-settings-sidebar-title">{category.label}</div>
+                  <div className="ab-settings-sidebar-count">
+                    {settings.length} setting{settings.length !== 1 ? "s" : ""}
+                  </div>
+                </div>
+              </button>
+            ))}
+          </nav>
+
+          <div className="ab-settings-panel">
+            {activeCategoryData && (
+              <>
+                <div className="ab-settings-panel-header">
+                  <h4>
+                    {activeCategoryData.category.icon} {activeCategoryData.category.label}
+                  </h4>
+                  {activeCategoryData.category.description && <p>{activeCategoryData.category.description}</p>}
+                </div>
+                <div className="ab-settings-panel-content">
+                  {activeCategoryData.settings.map((setting) => (
+                    <SettingItem
+                      key={setting.key}
+                      config={setting}
+                      value={settingsValues[setting.key]}
+                      onChange={handleSettingChange}
+                      disabled={!isSettingEnabled(settingsValues, setting)}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         </div>
 
         <div className="ab-settings-footer">
@@ -307,16 +287,14 @@ export function SettingsButton() {
 
   return (
     <>
-      <li>
-        <button
-          className="ab-settings-btn"
-          onClick={() => setIsModalOpen(true)}
-          type="button"
-          aria-label="Open AnimeBytes Suite settings"
-        >
-          AB Suite
-        </button>
-      </li>
+      <button
+        className="ab-settings-btn"
+        onClick={() => setIsModalOpen(true)}
+        type="button"
+        aria-label="Open animebytes Suite settings"
+      >
+        AB Suite
+      </button>
       <SettingsModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </>
   );

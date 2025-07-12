@@ -22,7 +22,7 @@ export const FORMAT_MAP: FormatMap = {
 export const PRINTED_MEDIA_TYPES = ["Manga", "Oneshot", "Manhwa", "Manhua", "Light Novel", "Anthology"];
 
 /**
- * Get AnimeBytes format codes from AniList format string
+ * Get animebytes format codes from AniList format string
  */
 export function getAnimeBytesFormats(anilistFormat: string, mediaType: MediaType): string[] {
   // Music uses different URL structure, so no format codes needed
@@ -50,7 +50,7 @@ export function getMediaTypeFromFormat(format: string, urlType: string): MediaTy
 }
 
 /**
- * Build AnimeBytes search URL
+ * Build animebytes search URL
  */
 export function buildAnimeBytesUrl(params: {
   title: string;

@@ -197,7 +197,7 @@ export function TorrentDetails({ torrentId, groupId, detailsHtml, onDataExtracte
   );
 }
 
-// Extend Window interface for AnimeBytes site functions
+// Extend Window interface for animebytes site functions
 declare global {
   interface Window {
     hookScreenshots?: () => void;

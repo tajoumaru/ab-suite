@@ -31,7 +31,7 @@ export function useRatings(apiData: AnimeApiResponse, mediaInfo?: MediaInfo, tmd
     async (): Promise<PlatformRating[]> => {
       const initialRatings: PlatformRating[] = [
         {
-          platform: "AnimeBytes",
+          platform: "animebytes",
           score: null,
           maxScore: 10,
           votes: null,
@@ -106,7 +106,7 @@ export function useRatings(apiData: AnimeApiResponse, mediaInfo?: MediaInfo, tmd
       // Fetch all ratings concurrently
       const promises: Promise<void>[] = [];
 
-      // AnimeBytes - use rating from mediaInfo if available
+      // animebytes - use rating from mediaInfo if available
       if (mediaInfo?.siteRating && mediaInfo?.siteVotes) {
         updatePlatformRating(0, {
           score: mediaInfo.siteRating,

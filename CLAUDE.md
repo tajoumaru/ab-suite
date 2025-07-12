@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-AB Suite is a TypeScript userscript that enhances the user experience on anime-related websites (AnimeBytes, AniList, releases.moe). It's built with Preact and uses Vite for building, targeting userscript managers like Tampermonkey/Greasemonkey.
+AB Suite is a TypeScript userscript that enhances the user experience on anime-related websites (animebytes, AniList, releases.moe). It's built with Preact and uses Vite for building, targeting userscript managers like Tampermonkey/Greasemonkey.
 
 ## Commands
 
@@ -62,7 +62,7 @@ AB Suite is a TypeScript userscript that enhances the user experience on anime-r
 - All external requests use `src/services/api.ts` with GM_xmlhttpRequest
 - Rate limiting and caching utilities available in `src/utils/`
 - SeaDex API integration for anime release data
-- Autocomplete search functionality for AnimeBytes
+- Autocomplete search functionality for animebytes
 
 ### Component Patterns
 - Preact components with TypeScript
