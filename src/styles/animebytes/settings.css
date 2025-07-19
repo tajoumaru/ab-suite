@@ -1,0 +1,372 @@
+.ab-settings-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+}
+
+.ab-settings-content {
+  background: hsl(0, 0%, 16%);
+  padding: 0;
+  border-radius: 8px;
+  width: 100%;
+  min-width: 800px;
+  max-width: 1200px;
+  height: 800px;
+  display: grid;
+  grid-template-areas:
+    "header header"
+    "search search"
+    "sidebar main"
+    "footer footer";
+  grid-template-columns: 280px 1fr;
+  grid-template-rows: auto auto 1fr auto;
+}
+
+.ab-settings-header {
+  grid-area: header;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid hsl(0, 0%, 20%);
+}
+
+.ab-settings-header h3 {
+  margin: 0;
+  color: white;
+}
+
+.ab-settings-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: hsl(0, 0%, 67%);
+}
+
+.ab-settings-close:hover {
+  color: white;
+}
+
+.ab-settings-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid hsl(0, 0%, 20%);
+  border-radius: 4px;
+}
+
+.ab-settings-option-content {
+  flex: 1;
+}
+
+.ab-settings-option-content strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.ab-settings-option-content div {
+  font-size: 0.9em;
+  color: hsl(0, 0%, 80%);
+}
+
+.ab-settings-toggle {
+  position: relative;
+  width: 50px;
+  height: 24px;
+  background: hsl(0, 0%, 80%);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.3s;
+  border: none;
+}
+
+.ab-settings-toggle.active {
+  background: hsl(336, 87%, 50%);
+}
+
+.ab-settings-toggle::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.3s;
+}
+
+.ab-settings-toggle.active::after {
+  transform: translateX(26px);
+}
+
+.ab-settings-input {
+  width: 100%;
+  padding: 8px 12px;
+  margin-top: 8px;
+  background: hsl(0, 0%, 10%);
+  border: 1px solid hsl(0, 0%, 30%);
+  border-radius: 4px;
+  color: white;
+  font-size: 0.9em;
+  box-sizing: border-box;
+}
+
+.ab-settings-input:focus {
+  outline: none;
+  border-color: hsl(336, 87%, 50%);
+  box-shadow: 0 0 0 2px hsla(336, 87%, 50%, 0.2);
+}
+
+.ab-settings-input::placeholder {
+  color: hsl(0, 0%, 50%);
+}
+
+.ab-settings-footer {
+  margin-top: 20px;
+  border-radius: 0 0 8px 8px;
+  font-size: 0.9em;
+  color: hsl(0, 0%, 60%);
+}
+
+/* ============================================================
+   New Settings Modal Styles
+   ============================================================ */
+
+.ab-settings-search {
+  grid-area: search;
+  padding: 15px 20px;
+  border-bottom: 1px solid hsl(0, 0%, 20%);
+}
+
+.ab-settings-search-input {
+  width: 100%;
+  padding: 8px 12px;
+  background: hsl(0, 0%, 10%);
+  border: 1px solid hsl(0, 0%, 25%);
+  border-radius: 4px;
+  color: white;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.ab-settings-search-input:focus {
+  outline: none;
+  border-color: hsl(213, 85%, 60%);
+}
+
+.ab-settings-main {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  display: grid;
+  grid-template-areas: "sidebar main";
+  grid-template-columns: 280px 1fr;
+  min-height: 0;
+}
+
+.ab-settings-footer {
+  grid-area: footer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-top: 1px solid hsl(0, 0%, 20%);
+  background: hsl(0, 0%, 14%);
+}
+
+.ab-settings-footer p {
+  margin: 0;
+  color: hsl(0, 0%, 60%);
+  font-size: 12px;
+}
+
+.ab-settings-reset {
+  padding: 6px 12px;
+  background: hsl(0, 91%, 40%);
+  border: none;
+  border-radius: 4px;
+  color: white;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background 0.2s ease;
+}
+
+.ab-settings-reset:hover {
+  background: hsl(0, 91%, 50%);
+}
+
+/* Sidebar Navigation */
+.ab-settings-sidebar {
+  grid-area: sidebar;
+  background: hsl(0, 0%, 14%);
+  border-right: 1px solid hsl(0, 0%, 20%);
+  padding: 16px 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ab-settings-sidebar-item {
+  background: none;
+  border: none;
+  padding: 12px 20px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: hsl(0, 0%, 70%);
+  width: 100%;
+}
+
+.ab-settings-sidebar-item:hover {
+  background: hsl(0, 0%, 18%);
+  color: white;
+}
+
+.ab-settings-sidebar-item.active {
+  background: hsl(213, 85%, 15%);
+  color: white;
+  border-right: 3px solid hsl(213, 85%, 60%);
+}
+
+.ab-settings-sidebar-item.active:hover {
+  background: hsl(213, 85%, 18%);
+}
+
+.ab-settings-sidebar-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+  width: 24px;
+  text-align: center;
+}
+
+.ab-settings-sidebar-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.ab-settings-sidebar-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 2px;
+  line-height: 1.2;
+}
+
+.ab-settings-sidebar-count {
+  font-size: 11px;
+  color: hsl(0, 0%, 50%);
+  line-height: 1;
+}
+
+.ab-settings-sidebar-item.active .ab-settings-sidebar-count {
+  color: hsl(213, 85%, 70%);
+}
+
+/* Main Panel */
+.ab-settings-panel {
+  grid-area: main;
+  padding: 20px;
+  overflow-y: auto;
+  background: hsl(0, 0%, 16%);
+}
+
+.ab-settings-panel-header {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid hsl(0, 0%, 25%);
+}
+
+.ab-settings-panel-header h4 {
+  margin: 0 0 8px 0;
+  color: white;
+  font-size: 20px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ab-settings-panel-header p {
+  margin: 0;
+  color: hsl(0, 0%, 67%);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.ab-settings-panel-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Individual setting styles */
+.ab-settings-option {
+  padding: 16px;
+  border: 1px solid hsl(0, 0%, 25%);
+  border-radius: 6px;
+  background: hsl(0, 0%, 18%);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  transition: border-color 0.2s ease;
+}
+
+.ab-settings-option:hover {
+  border-color: hsl(0, 0%, 35%);
+}
+
+.ab-settings-option.disabled {
+  opacity: 0.5;
+}
+
+.ab-settings-option.disabled:hover {
+  border-color: hsl(0, 0%, 25%);
+}
+
+.ab-settings-option-content {
+  flex: 1;
+}
+
+.ab-settings-option-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.ab-settings-option-header strong {
+  color: white;
+  font-size: 14px;
+}
+
+.ab-settings-help-link {
+  color: hsl(213, 85%, 60%);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  transition: color 0.2s ease;
+}
+
+.ab-settings-help-link:hover {
+  color: hsl(213, 85%, 70%);
+}
+
+.ab-settings-option-description {
+  color: hsl(0, 0%, 67%);
+  font-size: 12px;
+  line-height: 1.4;
+}

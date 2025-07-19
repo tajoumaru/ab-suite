@@ -5,7 +5,7 @@ import { useSettingsStore } from "@/stores/settings";
 import { err, log } from "@/utils/logging";
 import { ExternalLinksBar } from "../ExternalLinksBar";
 import { GalleryView } from "../gallery-view";
-import { type AnimeApiResponse, useMediaInfo } from "../hooks/useMediaInfo";
+import { type AnimeApiResponse, clearMediaInfoCache, useMediaInfo } from "../hooks/useMediaInfo";
 import { detectTableType, extractTorrentData, type ParsedTorrentRow, TorrentTable } from "../modern-table";
 import { Ratings } from "../Ratings";
 import { Trailers } from "../Trailers";
@@ -68,6 +68,14 @@ export function TorrentGroupPage() {
   const originalTableRef = useRef<HTMLTableElement | null>(null);
   const [plotSynopsisHtml, setPlotSynopsisHtml] = useState<string | null>(null);
   const mediaInfo = useMediaInfo();
+
+  // Clear media info cache when URL changes to prevent stale data
+  useEffect(() => {
+    return () => {
+      // Clear cache when component unmounts or URL changes
+      clearMediaInfoCache();
+    };
+  }, [window.location.href]);
 
   const initializeTorrentGroupPage = () => {
     // Find the original torrent table (our anchor)

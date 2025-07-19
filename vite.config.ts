@@ -14,7 +14,7 @@ function createBuildConfig(isMinified: boolean) {
   const fileName = isMinified ? "ab-suite.min.user.js" : "ab-suite.user.js";
 
   const userscriptMeta: UserscriptMeta = {
-    name: "animebytes Suite",
+    name: "abs",
     description: pkg.description,
     author: pkg.author,
     version: pkg.version,
@@ -33,7 +33,7 @@ function createBuildConfig(isMinified: boolean) {
     ],
     connect: [
       "releases.moe",
-      "anime-api-tajoumarus-projects.vercel.app",
+      "ids.moe",
       "api.simkl.com",
       "api.themoviedb.org",
       "www.imdb.com",
@@ -42,7 +42,7 @@ function createBuildConfig(isMinified: boolean) {
       "graphql.anilist.co",
       "kitsu.app",
     ],
-    runAt: "document-idle",
+    runAt: "document-start",
     grant: [
       "GM_addStyle",
       "GM_setValue",

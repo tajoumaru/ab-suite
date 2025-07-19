@@ -1,4 +1,4 @@
-import { useEffect, useState } from "preact/hooks";
+import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
 import type { AniListMediaData } from "@/services/anilist";
 import { aniListService } from "@/services/anilist";
 import { useSettingsStore } from "@/stores/settings";
@@ -19,79 +19,88 @@ export function AniListMetadataIntegration() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  log("AniListMetadataIntegration render:", {
-    aniListMetadataEnabled,
-    hasMediaInfo: !!mediaInfo,
-    anilistId: mediaInfo?.apiData?.anilist,
-    hasAniListData: !!aniListData,
-    loading,
-    error,
-  });
+  // Memoize the AniList ID to prevent unnecessary re-renders
+  const anilistId = useMemo(() => mediaInfo?.apiData?.anilist, [mediaInfo?.apiData?.anilist]);
 
-  // Fetch AniList data when mediaInfo is available and feature is enabled
+  // Only log when state actually changes
   useEffect(() => {
-    if (!aniListMetadataEnabled || !mediaInfo?.apiData?.anilist) {
+    log("AniListMetadataIntegration render:", {
+      aniListMetadataEnabled,
+      hasMediaInfo: !!mediaInfo,
+      anilistId,
+      hasAniListData: !!aniListData,
+      loading,
+      error,
+    });
+  }, [aniListMetadataEnabled, mediaInfo, anilistId, aniListData, loading, error]);
+
+  // Memoize the fetch function to prevent recreating it on every render
+  const fetchAniListData = useCallback(async () => {
+    if (!anilistId) {
       return;
     }
 
-    const fetchAniListData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+    try {
+      setLoading(true);
+      setError(null);
 
-        const anilistId = mediaInfo.apiData?.anilist;
-        if (!anilistId) {
-          setError("No AniList ID found in media info");
-          return;
-        }
-        log(`Fetching AniList metadata for ID: ${anilistId}`);
+      log(`Fetching AniList metadata for ID: ${anilistId}`);
+      const data = await aniListService.fetchMediaData(anilistId);
 
-        const data = await aniListService.fetchMediaData(anilistId);
-
-        if (data) {
-          setAniListData(data);
-          log("Successfully fetched AniList metadata", {
-            title: data.title?.romaji,
-            hasDescription: !!data.description,
-            descriptionLength: data.description?.length || 0,
-            hasCharacters: data.characters?.edges?.length > 0,
-            charactersCount: data.characters?.edges?.length || 0,
-            hasStudios: data.studios?.nodes?.length > 0,
-          });
-        } else {
-          setError("Failed to fetch AniList metadata");
-          log("Failed to fetch AniList metadata");
-        }
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "Unknown error";
-        setError(errorMessage);
-        log(`Error fetching AniList metadata: ${errorMessage}`);
-      } finally {
-        setLoading(false);
+      if (data) {
+        setAniListData(data);
+        log("Successfully fetched AniList metadata", {
+          title: data.title?.romaji,
+          hasDescription: !!data.description,
+          descriptionLength: data.description?.length || 0,
+          hasCharacters: data.characters?.edges?.length > 0,
+          charactersCount: data.characters?.edges?.length || 0,
+          hasStudios: data.studios?.nodes?.length > 0,
+        });
+      } else {
+        setError("Failed to fetch AniList metadata");
+        log("Failed to fetch AniList metadata");
       }
-    };
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+      setError(errorMessage);
+      log(`Error fetching AniList metadata: ${errorMessage}`);
+    } finally {
+      setLoading(false);
+    }
+  }, [anilistId]);
+
+  // Fetch AniList data when conditions are met
+  useEffect(() => {
+    if (!aniListMetadataEnabled || !anilistId || aniListData) {
+      return;
+    }
 
     fetchAniListData();
-  }, [aniListMetadataEnabled, mediaInfo]);
+  }, [aniListMetadataEnabled, anilistId, aniListData, fetchAniListData]);
+
+  // Only log hook calls when data changes
+  useEffect(() => {
+    if (aniListData) {
+      log("Calling enhanced component hooks with aniListData:", {
+        hasAniListData: true,
+        dataTitle: aniListData.title?.romaji,
+      });
+    }
+  }, [aniListData]);
 
   // Initialize enhanced components when AniList data is available
-  log("Calling enhanced component hooks with aniListData:", {
-    hasAniListData: !!aniListData,
-    dataTitle: aniListData?.title?.romaji,
-  });
   useEnhancedSynopsis(aniListData);
   useEnhancedExtendedInfo(aniListData);
   useEnhancedCharacterCards(aniListData);
 
-  // Debug logging
+  // Consolidated debug logging
   useEffect(() => {
     if (loading) {
       log("Loading AniList metadata...");
-    }
-    if (error) {
+    } else if (error) {
       log(`AniList metadata error: ${error}`);
-    }
-    if (aniListData) {
+    } else if (aniListData) {
       log("AniList metadata loaded successfully");
     }
   }, [loading, error, aniListData]);

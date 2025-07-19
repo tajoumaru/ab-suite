@@ -288,17 +288,34 @@ function mergeSimklData(apiData: AnimeApiResponse, simklData: SimklDetailRespons
   };
 }
 
+// Global cache for mediaInfo to prevent duplicate processing
+let globalMediaInfoCache: MediaInfo | null = null;
+let globalMediaInfoPromise: Promise<MediaInfo | null> | null = null;
+
 /**
  * Custom hook to extract media information from the torrent group page.
  * This replaces the imperative data extraction from ExternalLinks component.
+ * Uses global caching to prevent duplicate API calls when multiple components use this hook.
  */
 export function useMediaInfo(): MediaInfo | null {
-  const [mediaInfo, setMediaInfo] = useState<MediaInfo | null>(null);
+  const [mediaInfo, setMediaInfo] = useState<MediaInfo | null>(globalMediaInfoCache);
   const { simklClientId } = useSettingsStore();
 
   useEffect(() => {
     // Only run on torrent pages
     if (!window.location.pathname.includes("/torrents.php")) {
+      return;
+    }
+
+    // If we already have cached data, use it
+    if (globalMediaInfoCache) {
+      setMediaInfo(globalMediaInfoCache);
+      return;
+    }
+
+    // If there's already a promise in flight, wait for it
+    if (globalMediaInfoPromise) {
+      globalMediaInfoPromise.then(setMediaInfo);
       return;
     }
 
@@ -369,14 +386,14 @@ export function useMediaInfo(): MediaInfo | null {
         // Fetch data from API if MAL ID is found
         if (malId) {
           try {
-            const cacheKey = `anime-api-mal-${malId}`;
+            const cacheKey = `ids-moe-mal-${malId}`;
             apiData = await cachedApiCall(
               cacheKey,
               () =>
                 new Promise<AnimeApiResponse | null>((resolve) => {
                   GM_xmlhttpRequest({
                     method: "GET",
-                    url: `https://anime-api-tajoumarus-projects.vercel.app/mal/${malId}`,
+                    url: `https://ids.moe/mal/${malId}`,
                     onload: (response) => {
                       if (response.status === 200) {
                         try {
@@ -400,15 +417,13 @@ export function useMediaInfo(): MediaInfo | null {
               {
                 ttl: 7 * 24 * 60 * 60 * 1000, // 7 days - anime IDs rarely change
                 failureTtl: 60 * 60 * 1000, // 1 hour for failures
-                apiKey: "anime-api",
+                apiKey: "ids-moe",
               },
             );
           } catch (error) {
             err("Failed to fetch anime API data", error);
           }
         }
-
-        log("Fetched API Data", apiData);
 
         // Fetch additional IDs from SIMKL if client ID is provided and MAL ID exists
         if (simklClientId && malId && apiData) {
@@ -523,8 +538,29 @@ export function useMediaInfo(): MediaInfo | null {
       }
     };
 
-    extractMediaInfo().then(setMediaInfo);
+    // Create and store the promise to prevent duplicate calls
+    globalMediaInfoPromise = extractMediaInfo();
+
+    globalMediaInfoPromise
+      .then((result) => {
+        globalMediaInfoCache = result;
+        globalMediaInfoPromise = null; // Clear the promise after completion
+        setMediaInfo(result);
+      })
+      .catch((error) => {
+        err("Failed to extract media info", error);
+        globalMediaInfoPromise = null; // Clear the promise on error
+        setMediaInfo(null);
+      });
   }, [simklClientId]);
 
   return mediaInfo;
+}
+
+/**
+ * Clear the global media info cache (useful for testing or when navigating to new pages)
+ */
+export function clearMediaInfoCache(): void {
+  globalMediaInfoCache = null;
+  globalMediaInfoPromise = null;
 }

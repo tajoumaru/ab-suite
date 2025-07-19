@@ -52,6 +52,7 @@ export interface MALResponse {
 
 // YouTube API types
 export interface YouTubeCaptionSnippet {
+  videoId: string;
   language: string;
   name: string;
   trackKind: string;

@@ -1,0 +1,546 @@
+/* Loading animation */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Comprehensive Ratings Styles */
+.ab-ratings-grid {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  align-items: start;
+}
+
+.ab-rating-card {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.ab-rating-platform-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 25%;
+}
+
+.ab-rating-score {
+  font-weight: bold;
+  font-size: 13px;
+  color: #fff;
+}
+
+/* Loading skeleton for rating platform icon */
+.ab-rating-platform-skeleton {
+  width: 54px;
+  height: 54px;
+  border-radius: 25%;
+  background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Empty state for ratings */
+.ab-ratings-empty {
+  text-align: center;
+  color: #999;
+  font-style: italic;
+  padding: 20px;
+}
+
+/* Hide the original rating stats since we display it in our ratings section */
+#rating_stats {
+  display: none !important;
+}
+
+/* Trailer loading styles */
+.ab-trailer-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.ab-trailer-placeholder {
+  width: 693px;
+  height: 390px;
+  background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+/* ============================================================
+   Enhanced Character Cards
+   ============================================================ */
+
+.ab-enhanced-character-cards {
+  margin-bottom: 20px;
+}
+
+.ab-character-cards-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.ab-character-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.ab-show-all-toggle {
+  color: #007bff;
+  font-size: 12px;
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.ab-show-all-toggle:hover {
+  text-decoration: underline;
+}
+
+.ab-character-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-column-gap: 16px;
+  grid-row-gap: 8px;
+  padding: 12px;
+}
+
+.ab-character-card {
+  display: inline-grid;
+  grid-template-areas: "character staff";
+  grid-template-columns: 50% 50%;
+  background: #2a2a2a;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #444;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+  min-height: 80px;
+}
+
+.ab-character-section {
+  grid-area: character;
+  display: inline-grid;
+  grid-template-areas: "image content";
+  grid-template-columns: 60px auto;
+  min-width: 0;
+}
+
+.ab-character-image {
+  grid-area: image;
+  width: 60px;
+  height: 80px;
+  flex-shrink: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #333;
+}
+
+.ab-character-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ab-character-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #444;
+  color: #888;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.ab-character-image-link {
+  display: block;
+  transition: opacity 0.2s ease;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.ab-character-image-link:hover {
+  opacity: 0.8;
+}
+
+.ab-character-info {
+  grid-area: content;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+
+.ab-character-name {
+  font-weight: bold;
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ab-character-role {
+  font-size: 12px;
+  color: #bbb;
+  text-transform: capitalize;
+}
+
+.ab-character-card[data-role="main"] .ab-character-role {
+  color: #4caf50;
+}
+
+.ab-character-card[data-role="supporting"] .ab-character-role {
+  color: #ff9800;
+}
+
+.ab-voice-actor-section {
+  grid-area: staff;
+  display: inline-grid;
+  grid-template-areas: "content image";
+  grid-template-columns: auto 60px;
+  border-left: 1px solid #444;
+  background: #252525;
+  min-width: 0;
+}
+
+.ab-voice-actor-image {
+  grid-area: image;
+  width: 60px;
+  height: 80px;
+  flex-shrink: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #333;
+}
+
+.ab-voice-actor-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ab-voice-actor-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #444;
+  color: #888;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.ab-voice-actor-image-link {
+  display: block;
+  transition: opacity 0.2s ease;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.ab-voice-actor-image-link:hover {
+  opacity: 0.8;
+}
+
+.ab-voice-actor-info {
+  grid-area: content;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  text-align: right;
+}
+
+.ab-voice-actor-name {
+  font-weight: bold;
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ab-voice-actor-role {
+  font-size: 12px;
+  color: #bbb;
+}
+
+/* Responsive design for character cards */
+@media (max-width: 768px) {
+  .ab-character-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 15px;
+  }
+
+  .ab-character-card {
+    min-height: 70px;
+  }
+
+  .ab-character-image,
+  .ab-voice-actor-image {
+    width: 50px;
+    height: 70px;
+  }
+
+  .ab-character-name,
+  .ab-voice-actor-name {
+    font-size: 13px;
+  }
+
+  .ab-character-role,
+  .ab-voice-actor-role {
+    font-size: 11px;
+  }
+}
+
+/* ============================================================
+   Torrent Page Section Reordering
+   ============================================================ */
+
+/* Apply flexbox to content area on torrent pages to enable reordering */
+#torrent #content {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Reorder sections: ratings > synopsis > characters > trailers > torrent table > rest */
+#torrent [data-ab-section="ratings"] {
+  order: 1;
+}
+
+#torrent [data-ab-section="synopsis"] {
+  order: 2;
+}
+
+#torrent [data-ab-section="characters"] {
+  order: 3;
+}
+
+#torrent [data-ab-section="trailers"] {
+  order: 4;
+}
+
+/* Target torrent table by looking for the torrents table specifically */
+#torrent .box .torrents {
+  order: 5;
+}
+
+#torrent .box .torrents table {
+  order: 5;
+}
+
+/* Apply order to the parent box containing torrent table */
+#torrent .box:has(table.torrents),
+#torrent .box:has(.torrents) {
+  order: 5;
+}
+
+/* Fallback for browsers without :has() support - target by common torrent table classes */
+#torrent .box[class*="torrent"] {
+  order: 5;
+}
+
+/* Keep other sections in their original relative order after the main ones */
+#torrent .box:not([data-ab-section]) {
+  order: 6;
+}
+
+/* ============================================================
+   Enhanced Synopsis and Extended Info
+   ============================================================ */
+
+.ab-enhanced-synopsis,
+.ab-enhanced-extended-info {
+  margin-bottom: 20px;
+}
+
+.ab-synopsis-header,
+.ab-extended-info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.ab-synopsis-toggle,
+.ab-extended-info-toggle {
+  display: flex;
+  align-items: center;
+}
+
+.ab-toggle-button {
+  background: none;
+  border: 1px solid #ccc;
+  color: #fff;
+  padding: 2px 8px;
+  font-size: 11px;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: all 0.2s ease;
+}
+
+.ab-toggle-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #fff;
+}
+
+.ab-enhanced-stats {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.ab-stat-item {
+  margin-bottom: 8px;
+  padding: 0;
+}
+
+.ab-stat-item strong {
+  color: #fff;
+}
+
+.ab-stat-value {
+  color: #ddd;
+}
+
+/* ============================================================
+   Inline Style Replacements
+   ============================================================ */
+
+/* Autocomplete input styles */
+.ab-autocomplete-input {
+  box-sizing: border-box;
+}
+
+/* ReadMore button styles */
+.ab-read-more-button {
+  color: #007bff;
+  text-decoration: none;
+  cursor: pointer;
+  font-size: 0.9em;
+  margin-left: 4px;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+/* Gallery view styles */
+.ab-gallery-no-tags {
+  font-size: 0.8em;
+  color: #777;
+}
+
+.ab-gallery-display-control {
+  display: flex;
+}
+
+.ab-gallery-display-none {
+  display: none;
+}
+
+.ab-gallery-display-block {
+  display: block;
+}
+
+/* Character cards styles */
+.ab-character-show-all-toggle {
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: #007bff;
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.ab-character-show-all-container {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.ab-character-cards-body-padded {
+  padding: 10px;
+}
+
+.ab-character-cards-body-no-padding {
+  padding: 0;
+}
+
+/* Trailer styles */
+.ab-trailer-select {
+  margin-left: 10px;
+  padding: 2px;
+  max-width: 90%;
+}
+
+.ab-trailer-body {
+  display: flex;
+  justify-content: center;
+  min-height: 430px;
+  align-items: center;
+}
+
+.ab-trailer-loading-text {
+  text-align: center;
+  margin-top: 20px;
+  color: #888;
+}
+
+.ab-trailer-error {
+  text-align: center;
+  padding: 20px;
+  color: #ef4444;
+}
+
+.ab-trailer-no-results {
+  text-align: center;
+  padding: 20px;
+  color: #888;
+}
+
+.ab-trailer-iframe-container {
+  width: 693px;
+  height: 390px;
+}
+
+.ab-trailer-error-message {
+  color: red;
+  display: block;
+  padding: 10px;
+}

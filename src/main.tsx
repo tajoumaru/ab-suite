@@ -13,7 +13,7 @@ import { SeaDexIntegration } from "@/modules/seadex";
 import { YouTubeIntegration } from "@/modules/youtube";
 import { log, warn } from "@/utils/logging";
 // Styles
-import "@/styles/common.css";
+import "@/styles";
 
 function AniListAppBase() {
   return <AniListHostIntegration />;

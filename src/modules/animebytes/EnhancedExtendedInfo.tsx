@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import type { AniListMediaData } from "@/services/anilist";
 import { aniListService } from "@/services/anilist";
 import { log } from "@/utils/logging";
@@ -269,14 +269,33 @@ export function useEnhancedExtendedInfo(aniListData: AniListMediaData | null) {
   const [isIntegrated, setIsIntegrated] = useState(false);
   const observerRef = useRef<MutationObserver | null>(null);
 
-  log("useEnhancedExtendedInfo called:", {
-    hasAniListData: !!aniListData,
-    isIntegrated,
-    title: aniListData?.title?.romaji,
-  });
+  // Memoize the data to prevent unnecessary re-runs
+  const memoizedData = useMemo(() => {
+    if (!aniListData) return null;
+    return {
+      title: aniListData.title?.romaji,
+      hasData: true,
+    };
+  }, [aniListData?.title?.romaji]);
+
+  // Only log when state changes
+  useEffect(() => {
+    if (memoizedData || isIntegrated) {
+      log("useEnhancedExtendedInfo called:", {
+        hasAniListData: !!memoizedData,
+        isIntegrated,
+        title: memoizedData?.title,
+      });
+    }
+  }, [memoizedData, isIntegrated]);
 
   useEffect(() => {
-    if (!aniListData) {
+    if (!memoizedData) {
+      return;
+    }
+
+    if (isIntegrated || globalExtendedInfoIntegrated) {
+      log("useEnhancedExtendedInfo: Already integrated, skipping");
       log("useEnhancedExtendedInfo: No aniListData, returning");
       return;
     }
@@ -359,7 +378,9 @@ export function useEnhancedExtendedInfo(aniListData: AniListMediaData | null) {
           hasOriginalContent: !!originalContent,
           originalContentLength: originalContent.length,
         });
-        render(<EnhancedExtendedInfo aniListData={aniListData} originalContent={originalContent} />, container);
+        if (aniListData) {
+          render(<EnhancedExtendedInfo aniListData={aniListData} originalContent={originalContent} />, container);
+        }
         log("Enhanced extended info rendered successfully");
       });
 
@@ -407,7 +428,7 @@ export function useEnhancedExtendedInfo(aniListData: AniListMediaData | null) {
         observerRef.current = null;
       }
     };
-  }, [aniListData, isIntegrated]);
+  }, [memoizedData, isIntegrated, aniListData]);
 
   return isIntegrated;
 }

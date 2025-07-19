@@ -1,0 +1,257 @@
+.ab-settings-btn {
+  background: none;
+  border: none;
+  color: white;
+  position: relative;
+  top: 0;
+  right: 0;
+  cursor: pointer;
+  z-index: 9999;
+  vertical-align: middle;
+}
+
+.ab-settings-btn:hover {
+  color: hsl(0, 0%, 88%);
+}
+
+/* Quick Navigation Styles */
+.category_title {
+  font-weight: bold;
+  color: inherit;
+}
+
+.quick_nav > ul {
+  padding: 10px;
+}
+
+.quick_nav > ul > li:not(:last-child) {
+  margin-bottom: 10px;
+}
+
+.quick_nav > ul > li > ul {
+  margin-left: 0 !important;
+}
+
+/* Enhanced BBCode Toolbar Styles */
+.ab-enhanced-bbcode-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+
+.ab-bbcode-section {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.ab-bbcode-section:not(:last-child)::after {
+  content: "";
+  width: 1px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.2);
+  margin: 0 4px;
+}
+
+.ab-bbcode-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  padding: 0;
+}
+
+.ab-bbcode-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.ab-bbcode-btn:active {
+  transform: translateY(0);
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.ab-bbcode-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Smileys Section */
+.ab-bbcode-smileys {
+  position: relative;
+}
+
+.ab-smileys-toggle {
+  background: rgba(237, 16, 106, 0.2) !important;
+  border-color: rgba(237, 16, 106, 0.4) !important;
+}
+
+.ab-smileys-toggle:hover {
+  background: rgba(237, 16, 106, 0.3) !important;
+  border-color: rgba(237, 16, 106, 0.5) !important;
+}
+
+.ab-smileys-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  background: #2a2a2a;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  padding: 8px;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  width: 240px;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.ab-smiley-btn {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+  background-size: contain !important;
+}
+
+.ab-smiley-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .ab-enhanced-bbcode-toolbar {
+    padding: 8px;
+    gap: 6px;
+  }
+
+  .ab-bbcode-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .ab-bbcode-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .ab-bbcode-section {
+    gap: 3px;
+  }
+
+  .ab-smileys-dropdown {
+    grid-template-columns: repeat(5, 1fr);
+    width: 180px;
+  }
+}
+
+/* Dark theme adjustments */
+@media (prefers-color-scheme: dark) {
+  .ab-enhanced-bbcode-toolbar {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .ab-bbcode-btn {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+
+  .ab-bbcode-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.25);
+  }
+}
+
+#torrents #content,
+#series #content {
+  width: 95%;
+  max-width: 1400px;
+}
+
+@media (min-width: 768px) {
+  #torrents #content,
+  #series #content {
+    width: 90%;
+    max-width: 1200px;
+    padding: 20px;
+  }
+}
+
+@media (min-width: 1024px) {
+  #torrents #content,
+  #series #content {
+    width: 85%;
+    max-width: 1400px;
+    padding: 25px;
+  }
+}
+
+@media (min-width: 1200px) {
+  #torrents #content,
+  #series #content {
+    width: 80%;
+    max-width: 1600px;
+  }
+}
+
+#content .sidebar {
+  width: 360px;
+}
+
+#content .sidebar .box li {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#content .main_column {
+  margin: 0 370px 10px 0;
+}
+
+#container_star {
+  display: inline-flex;
+  padding: 0;
+}
+
+/* Logo Replacement */
+#logo a {
+  width: 143px !important;
+}
+
+#logo a svg {
+  width: 100%;
+  height: 100%;
+}
+
+.absuite-logo-left {
+  color: #fff;
+}
+
+.absuite-logo-right {
+  color: #ed106a;
+}

@@ -3,7 +3,6 @@ import { useEffect } from "preact/hooks";
 import { apiService } from "@/services/api";
 import { seadexStore } from "@/stores/seadex";
 import { useSettingsStore } from "@/stores/settings";
-import "@/styles/seadex.css";
 import type { TorrentInfo } from "@/types";
 import { err, log } from "@/utils/logging";
 import { SeaDexIcon } from "./SeaDexIcon";

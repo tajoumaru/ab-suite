@@ -1,5 +1,5 @@
 import { log } from "@/utils/logging";
-import { fetchMalVideosData, fetchTmdbData, fetchYouTubeVideoInfo, type YouTubeVideoInfo } from "./externalApis";
+import { fetchMalVideosData, fetchTmdbData, fetchYouTubeVideosInfo, type YouTubeVideoInfo } from "./externalApis";
 
 // Trailer data interfaces
 export interface BaseTrailer {
@@ -91,7 +91,7 @@ export function isDubbed(trailer: Trailer): boolean {
     (trailer.youtubeInfo
       ? // if it has auto generated English subtitles,
         // it means it probably has english audio
-        !!trailer.youtubeInfo.captions.find((c) => c.languageCode === "en" && c.kind === "asr")
+        !!trailer.youtubeInfo.captions?.find((c) => c.languageCode === "en" && c.kind === "asr")
       : false)
   );
 }
@@ -163,7 +163,7 @@ export async function sortTrailers(
       (t) => !!(t.youtubeInfo && PREFERRED_CHANNELS.includes(t.youtubeInfo.channelId)),
       // Try to prefer subs over raw
       (t) =>
-        subbedInTitle(t.name) || !!t.youtubeInfo?.captions.find((c) => c.languageCode === "en" && c.kind !== "asr"),
+        subbedInTitle(t.name) || !!t.youtubeInfo?.captions?.find((c) => c.languageCode === "en" && c.kind !== "asr"),
       // "Regular" trailers
       (t) => !teaser(t.name) && !commercial(t.name) && !promotionalVideo(t.name) && !announcement(t.name),
       // Promotional Videos
@@ -405,17 +405,24 @@ export async function fetchAllTrailers(
     const uniqueTrailers = deduplicateTrailers(allTrailers);
 
     // Fetch YouTube info for playability and captions if API key is available
-    if (youtubeApiKey) {
-      for (const trailer of uniqueTrailers) {
-        try {
-          const youtubeInfo = await fetchYouTubeVideoInfo(trailer.youtubeId, youtubeApiKey);
+    if (youtubeApiKey && uniqueTrailers.length > 0) {
+      try {
+        // Collect all YouTube IDs
+        const youtubeIds = uniqueTrailers.map((t) => t.youtubeId);
+
+        // Batch fetch YouTube info
+        const youtubeInfoMap = await fetchYouTubeVideosInfo(youtubeIds, youtubeApiKey);
+
+        // Assign YouTube info to trailers
+        for (const trailer of uniqueTrailers) {
+          const youtubeInfo = youtubeInfoMap.get(trailer.youtubeId);
           if (youtubeInfo) {
             trailer.youtubeInfo = youtubeInfo;
           }
-        } catch (error) {
-          log(`Failed to fetch YouTube info for ${trailer.youtubeId}`, error);
-          // Don't mark as error since this is optional enhancement
         }
+      } catch (error) {
+        log("Failed to fetch YouTube info batch", error);
+        // Don't mark as error since this is optional enhancement
       }
     }
 

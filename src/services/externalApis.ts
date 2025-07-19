@@ -1,4 +1,4 @@
-import { cachedApiCall } from "@/utils/cache";
+import { cachedApiCall, setCachedValue } from "@/utils/cache";
 import { log } from "@/utils/logging";
 
 // API Response Interfaces
@@ -444,6 +444,201 @@ export async function fetchImdbData(imdbId: string): Promise<ImdbJsonLd | null> 
       apiKey: "imdb",
     },
   );
+}
+
+// Batch fetch YouTube video info for multiple videos (up to 50 at a time)
+export async function fetchYouTubeVideosInfo(
+  videoIds: string[],
+  youtubeApiKey: string,
+): Promise<Map<string, YouTubeVideoInfo | null>> {
+  const results = new Map<string, YouTubeVideoInfo | null>();
+
+  // YouTube API allows up to 50 video IDs per request
+  const batchSize = 50;
+  const batches: string[][] = [];
+
+  for (let i = 0; i < videoIds.length; i += batchSize) {
+    batches.push(videoIds.slice(i, i + batchSize));
+  }
+
+  // Process each batch
+  for (const batch of batches) {
+    const batchCacheKey = `youtube-videos-${batch.join(",")}`;
+    const batchResult = await cachedApiCall(
+      batchCacheKey,
+      () =>
+        new Promise<Record<string, YouTubeVideoInfo | null>>((resolve) => {
+          const batchResults: Record<string, YouTubeVideoInfo | null> = {};
+
+          // First get video details for all videos in batch
+          GM_xmlhttpRequest({
+            method: "GET",
+            url: `https://www.googleapis.com/youtube/v3/videos?id=${batch.join(",")}&part=snippet,status&key=${youtubeApiKey}`,
+            onload: async (response) => {
+              if (response.status === 200) {
+                try {
+                  const data = JSON.parse(response.responseText);
+                  interface YouTubeVideoSnippet {
+                    channelId: string;
+                    title: string;
+                    description: string;
+                    publishedAt: string;
+                    thumbnails: Record<string, { url: string }>;
+                  }
+
+                  interface YouTubeVideoStatus {
+                    embeddable: boolean;
+                    privacyStatus: string;
+                  }
+
+                  const videoMap = new Map<
+                    string,
+                    { id: string; snippet: YouTubeVideoSnippet; status: YouTubeVideoStatus }
+                  >();
+
+                  // Process video data
+                  if (data.items && Array.isArray(data.items)) {
+                    for (const video of data.items) {
+                      videoMap.set(video.id, video);
+                    }
+                  }
+
+                  // Set null for videos not found
+                  for (const videoId of batch) {
+                    if (!videoMap.has(videoId)) {
+                      batchResults[videoId] = null;
+                    }
+                  }
+
+                  // Now get captions for all videos in one request
+                  const videosWithData = Array.from(videoMap.keys());
+                  if (videosWithData.length > 0) {
+                    GM_xmlhttpRequest({
+                      method: "GET",
+                      url: `https://www.googleapis.com/youtube/v3/captions?videoId=${videosWithData.join(",")}&part=snippet&key=${youtubeApiKey}`,
+                      onload: (captionsResponse) => {
+                        const captionsMap = new Map<string, YouTubeVideoInfo["captions"]>();
+
+                        if (captionsResponse.status === 200) {
+                          try {
+                            const captionsData = JSON.parse(
+                              captionsResponse.responseText,
+                            ) as import("@/types/external-apis").YouTubeCaptionsResponse;
+
+                            // Group captions by video ID
+                            if (captionsData.items && Array.isArray(captionsData.items)) {
+                              for (const caption of captionsData.items) {
+                                const videoId = caption.snippet.videoId;
+                                if (!captionsMap.has(videoId)) {
+                                  captionsMap.set(videoId, []);
+                                }
+                                const captions = captionsMap.get(videoId);
+                                if (captions) {
+                                  captions.push({
+                                    languageCode: caption.snippet.language,
+                                    name: caption.snippet.name,
+                                    kind: caption.snippet.trackKind === "ASR" ? "asr" : "standard",
+                                  });
+                                }
+                              }
+                            }
+                          } catch (error) {
+                            log("Failed to parse YouTube captions batch response", error);
+                          }
+                        }
+
+                        // Build final results
+                        for (const [videoId, video] of videoMap) {
+                          const snippet = video.snippet;
+                          const status = video.status;
+
+                          batchResults[videoId] = {
+                            id: videoId,
+                            channelId: snippet.channelId,
+                            title: snippet.title,
+                            description: snippet.description,
+                            publishedAt: snippet.publishedAt,
+                            thumbnails: snippet.thumbnails,
+                            captions: captionsMap.get(videoId) || [],
+                            playable: status.embeddable && status.privacyStatus === "public",
+                          };
+                        }
+
+                        resolve(batchResults);
+                      },
+                      onerror: () => {
+                        // If captions fetch fails, still return video info without captions
+                        for (const [videoId, video] of videoMap) {
+                          const snippet = video.snippet;
+                          const status = video.status;
+
+                          batchResults[videoId] = {
+                            id: videoId,
+                            channelId: snippet.channelId,
+                            title: snippet.title,
+                            description: snippet.description,
+                            publishedAt: snippet.publishedAt,
+                            thumbnails: snippet.thumbnails,
+                            captions: [],
+                            playable: status.embeddable && status.privacyStatus === "public",
+                          };
+                        }
+
+                        resolve(batchResults);
+                      },
+                    });
+                  } else {
+                    resolve(batchResults);
+                  }
+                } catch (error) {
+                  log("Failed to parse YouTube batch API response", error);
+                  // Return null for all videos in batch
+                  for (const videoId of batch) {
+                    batchResults[videoId] = null;
+                  }
+                  resolve(batchResults);
+                }
+              } else {
+                log("YouTube batch API returned status", response.status);
+                // Return null for all videos in batch
+                for (const videoId of batch) {
+                  batchResults[videoId] = null;
+                }
+                resolve(batchResults);
+              }
+            },
+            onerror: () => {
+              log("Failed to fetch YouTube batch API data");
+              // Return null for all videos in batch
+              for (const videoId of batch) {
+                batchResults[videoId] = null;
+              }
+              resolve(batchResults);
+            },
+          });
+        }),
+      {
+        ttl: 7 * 24 * 60 * 60 * 1000, // 7 days - video info changes rarely
+        failureTtl: 2 * 60 * 60 * 1000, // 2 hours for failures
+        apiKey: "youtube",
+      },
+    );
+
+    // Merge batch results into main results
+    if (batchResult) {
+      for (const [videoId, info] of Object.entries(batchResult)) {
+        results.set(videoId, info);
+        // Also cache individual results
+        if (info) {
+          await setCachedValue(`youtube-video-${videoId}`, info, {
+            ttl: 7 * 24 * 60 * 60 * 1000,
+          });
+        }
+      }
+    }
+  }
+
+  return results;
 }
 
 // Fetch YouTube video info (requires YouTube API key)

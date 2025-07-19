@@ -1,7 +1,6 @@
 import { useAsync } from "@/hooks/useAsync";
 import { useMediaPageReady, useNavigation } from "@/hooks/useNavigation";
 import { useSettingsStore } from "@/stores/settings";
-import "@/styles/anilist.css";
 import { buildAnimeBytesUrl, getAnimeBytesFormats, getMediaTypeFromFormat } from "@/utils/format-mapping";
 import { err, log } from "@/utils/logging";
 import { extractMediaInfo } from "./utils";

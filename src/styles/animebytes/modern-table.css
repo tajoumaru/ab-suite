@@ -1,0 +1,1049 @@
+/* Modern Table Restructure Styles */
+.ab-table-title:hover {
+  opacity: 0.8;
+}
+
+.ab-table-title-text {
+  flex: 1;
+  text-align: left;
+}
+
+.ab-table-title-button {
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.ab-series-table-section {
+  margin-bottom: 30px;
+}
+
+.ab-series-table-content {
+  margin-top: 10px;
+}
+
+#ab-modern-torrent-table {
+  margin-bottom: 10px;
+}
+
+.ab-modern-table-container {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.ab-modern-torrent-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid hsl(0, 0%, 20%);
+}
+
+.ab-modern-header {
+  background: hsl(218, 32%, 15%);
+  color: white;
+  font-weight: bold;
+}
+
+.ab-modern-header td {
+  padding: 8px 6px;
+  border: 1px solid hsl(0, 0%, 20%);
+  font-size: 12px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* General sortable styles (must come before specific ones for proper CSS cascade) */
+.ab-sortable {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  transition: background-color 0.15s ease;
+}
+
+.ab-sortable:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Sortable Header Styles */
+.ab-modern-header .ab-sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease;
+}
+
+.ab-modern-header .ab-sortable:hover {
+  background: hsl(213, 32%, 20%);
+}
+
+.ab-header-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 16px;
+}
+
+.ab-sort-indicator {
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+  flex-shrink: 0;
+}
+
+.ab-sort-indicator.ab-sort-active {
+  opacity: 1;
+  color: hsl(336, 87%, 50%);
+}
+
+.ab-modern-header .ab-sortable:hover .ab-sort-indicator {
+  opacity: 0.8;
+}
+
+.ab-modern-row {
+  color: white;
+  border-bottom: 1px solid hsl(0, 0%, 13%);
+}
+
+.ab-modern-row:hover {
+  background: hsl(0, 0%, 16%);
+}
+
+.ab-modern-row.ab-freeleech {
+  background: rgba(207, 181, 59, 0.12);
+}
+
+.ab-modern-row.ab-freeleech:hover {
+  background: rgba(207, 181, 59, 0.2);
+}
+
+.ab-modern-row.ab-seadex-best {
+  background: rgba(121, 237, 163, 0.1);
+}
+
+.ab-modern-row.ab-seadex-best:hover {
+  background: rgba(121, 237, 163, 0.2);
+}
+
+.ab-modern-row.ab-seadex-alt {
+  background: rgba(251, 136, 136, 0.1);
+}
+
+.ab-modern-row.ab-seadex-alt:hover {
+  background: rgba(251, 136, 136, 0.2);
+}
+
+.ab-modern-row td {
+  padding: 6px 4px;
+  border: 1px solid hsl(0, 0%, 20%);
+  font-size: 11px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.ab-modern-row.ab-has-details {
+  cursor: pointer;
+}
+
+.ab-modern-row.ab-has-details td:not(.ab-col-download):not(.ab-col-report) {
+  cursor: pointer;
+}
+
+/* Series page clickable row styles */
+.ab-modern-row.ab-series-clickable {
+  cursor: pointer;
+}
+
+.ab-modern-row.ab-series-clickable:hover {
+  background: hsl(0, 0%, 18%);
+}
+
+.ab-modern-row.ab-series-clickable.ab-group-odd:hover {
+  background: hsl(0, 0%, 20%);
+}
+
+.ab-modern-row.ab-series-clickable td:not(.ab-col-download):not(.ab-col-report) {
+  cursor: pointer;
+}
+
+/* Section Header Styles */
+.ab-section-header td {
+  padding: 4px 8px;
+  border: 1px solid hsl(0, 0%, 20%);
+  color: white;
+  font-weight: bold;
+  font-size: 12px;
+  text-align: left;
+  vertical-align: middle;
+  background: hsl(218, 32%, 15%);
+}
+
+/* Group Header Styles */
+.ab-group-header td {
+  padding: 4px 8px;
+  border: 1px solid hsl(0, 0%, 20%);
+  color: white;
+  font-weight: bold;
+  font-size: 12px;
+  text-align: left;
+  vertical-align: middle;
+  background: hsl(219, 100%, 10%);
+}
+
+.ab-group-header h3,
+.ab-group-header a {
+  color: white;
+}
+
+.ab-group-header .tags,
+.ab-group-header .tags a {
+  color: #a3a3a3;
+}
+
+/* Alternating group backgrounds */
+.ab-section-header.ab-group-odd td {
+  background: hsl(218, 32%, 10%);
+}
+
+.ab-modern-row.ab-group-odd {
+  background: hsl(0, 0%, 8%);
+}
+
+.ab-modern-row.ab-group-odd:hover {
+  background: hsl(0, 0%, 12%);
+}
+
+.ab-modern-row.ab-group-odd.ab-freeleech {
+  background: rgba(207, 181, 59, 0.05);
+}
+
+.ab-modern-row.ab-group-odd.ab-freeleech:hover {
+  background: rgba(207, 181, 59, 0.1);
+}
+
+.ab-modern-row.ab-group-odd.ab-seadex-best {
+  background: rgba(121, 237, 163, 0.08);
+}
+
+.ab-modern-row.ab-group-odd.ab-seadex-best:hover {
+  background: rgba(121, 237, 163, 0.15);
+}
+
+.ab-modern-row.ab-group-odd.ab-seadex-alt {
+  background: rgba(251, 136, 136, 0.08);
+}
+
+.ab-modern-row.ab-group-odd.ab-seadex-alt:hover {
+  background: rgba(251, 136, 136, 0.15);
+}
+
+.ab-col-download,
+.ab-col-report {
+  width: 20px !important;
+  text-align: center !important;
+}
+
+.ab-col-format {
+  width: 60px !important;
+}
+
+.ab-col-container {
+  width: 60px !important;
+}
+
+.ab-col-region {
+  width: 60px !important;
+}
+
+.ab-col-video-codec {
+  width: 70px !important;
+}
+
+.ab-col-aspect-ratio {
+  width: 60px !important;
+}
+
+.ab-col-resolution {
+  width: 70px !important;
+}
+
+.ab-col-audio {
+  width: 50px !important;
+}
+
+.ab-col-audio-channels {
+  width: 40px !important;
+}
+
+.ab-col-dual-audio {
+  width: 40px !important;
+  text-align: center !important;
+}
+
+.ab-dual-audio-check {
+  color: hsl(142, 69%, 58%);
+}
+
+.ab-dual-audio-cross {
+  color: hsl(0, 91%, 71%);
+  opacity: 0.6;
+}
+
+.ab-col-subtitles {
+  width: 80px !important;
+}
+
+.ab-col-group {
+  width: 100px !important;
+}
+
+.ab-col-size {
+  width: 60px !important;
+}
+
+.ab-col-snatches,
+.ab-col-seeders,
+.ab-col-leechers {
+  width: 40px !important;
+}
+
+.ab-col-flags {
+  width: 60px !important;
+}
+
+.ab-download-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+}
+
+.ab-download-btn,
+.ab-permalink-btn,
+.ab-report-btn {
+  color: hsl(213, 85%, 72%);
+  text-decoration: none;
+  font-size: 10px;
+  font-weight: bold;
+}
+
+.ab-download-btn:hover,
+.ab-permalink-btn:hover,
+.ab-report-btn:hover {
+  text-decoration: underline;
+}
+
+.ab-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: center;
+  line-height: 0;
+}
+
+.ab-flag img {
+  max-width: 46px;
+  max-height: 10px;
+}
+
+/* ============================================================
+   Modern Torrent Table Styles
+   ============================================================ */
+
+.ab-modern-table {
+  width: 100%;
+}
+
+.ab-modern-table .torrent_table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* Move to before more specific selectors for proper CSS cascade */
+
+.ab-sort-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.ab-sort-icon {
+  opacity: 0.6;
+  transition: opacity 0.15s ease;
+}
+
+.ab-sort-icon.ab-sort-active {
+  opacity: 1;
+}
+
+.ab-torrent-name {
+  min-width: 300px;
+}
+
+.ab-torrent-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+}
+
+.ab-torrent-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: bold;
+}
+
+.ab-torrent-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.ab-torrent-link:hover {
+  text-decoration: underline;
+}
+
+.ab-torrent-details {
+  font-size: 0.9em;
+  color: hsl(0, 0%, 67%);
+  font-style: italic;
+}
+
+.ab-flags {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ab-expand-button {
+  position: absolute;
+  right: 0;
+  top: 0;
+  background: none;
+  border: none;
+  color: hsl(0, 0%, 53%);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 2px;
+  transition: all 0.15s ease;
+}
+
+.ab-expand-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: hsl(0, 0%, 100%);
+}
+
+.ab-region,
+.ab-dual-audio,
+.ab-size,
+.ab-snatches,
+.ab-seeders,
+.ab-leechers {
+  text-align: center;
+  padding: 8px;
+}
+
+.ab-actions {
+  text-align: center;
+}
+
+.ab-action-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.ab-download-button,
+.ab-report-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  text-decoration: none;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: hsl(0, 0%, 100%);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ab-download-button:hover {
+  background: rgba(0, 255, 0, 0.2);
+  transform: scale(1.1);
+}
+
+.ab-report-button:hover {
+  background: rgba(255, 0, 0, 0.2);
+  transform: scale(1.1);
+}
+
+.ab-details-content {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-top: 1px solid rgba(78, 78, 78, 0.31);
+}
+
+.ab-torrent-details-html {
+  padding: 12px;
+}
+
+/* ============================================================
+   Torrent Details Tab Styles
+   ============================================================ */
+
+/* Tab navigation styles */
+.ab-details-tabs {
+  margin-top: 16px;
+}
+
+.ab-tabs-nav {
+  margin-bottom: 0;
+}
+
+.ab-tabs-list {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border-bottom: 1px solid #555;
+}
+
+.ab-tab {
+  margin-right: 2px;
+}
+
+.ab-tab-btn {
+  padding: 8px 16px;
+  background: #1a1a1a;
+  color: #fff;
+  border: 1px solid #555;
+  border-bottom: 1px solid #555;
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background 0.2s ease;
+}
+
+.ab-tab-active .ab-tab-btn {
+  background: #2a2a2a;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.ab-tab-btn:hover {
+  background: #333;
+}
+
+.ab-tab-content {
+  background: #2a2a2a;
+  min-height: 200px;
+  padding: 16px;
+  border-radius: 0 0 4px 4px;
+}
+
+/* Upload description styles */
+.ab-upload-description {
+  margin-bottom: 16px;
+}
+
+.ab-upload-description blockquote {
+  background: #2a2a2a;
+  border: 1px solid #555;
+  border-radius: 4px;
+  padding: 12px;
+  margin: 0 0 16px 0;
+  font-size: 12px;
+  color: #ccc;
+}
+
+.ab-upload-description .ab-upload-meta {
+  margin-bottom: 8px;
+}
+
+.ab-upload-description .ab-upload-date {
+  color: #fff;
+  cursor: help;
+}
+
+.ab-upload-description .ab-ratio-info {
+  color: #fff;
+}
+
+.ab-upload-description .ab-ratio-freeleech {
+  color: #28a745;
+  font-weight: bold;
+}
+
+.ab-upload-description .ab-ratio-value {
+  color: #ffc107;
+  font-weight: bold;
+}
+
+.ab-upload-description .ab-uploader-link {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.ab-upload-description .ab-uploader-anonymous {
+  color: #888;
+}
+
+/* Tab content styles */
+.ab-details-tab-content {
+  color: #fff;
+}
+
+.ab-details-tab-content .ab-no-content {
+  text-align: center;
+  padding: 20px;
+  color: #888;
+}
+
+.ab-details-tab-content .ab-loading {
+  text-align: center;
+  padding: 20px;
+}
+
+.ab-details-tab-content .ab-loading div {
+  margin-top: 8px;
+}
+
+/* Filelist tab styles */
+.ab-filelist-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.ab-filelist-header {
+  background-color: #2a2a2a;
+  color: #fff;
+}
+
+.ab-filelist-header th {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid #555;
+}
+
+.ab-filelist-row {
+  color: #fff;
+}
+
+.ab-filelist-row:nth-child(even) {
+  background-color: #1a1a1a;
+}
+
+.ab-filelist-row:nth-child(odd) {
+  background-color: #222;
+}
+
+.ab-filelist-cell {
+  padding: 6px 8px;
+  border-bottom: 1px solid #333;
+}
+
+.ab-filelist-cell-filename {
+  word-break: break-word;
+}
+
+.ab-filelist-cell-size {
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* Tree filelist styles */
+.ab-tree-filelist-header {
+  border-bottom: 1px solid #555;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+}
+
+.ab-tree-toggle-all {
+  background: #2a2a2a;
+  border: 1px solid #555;
+  color: #fff;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.ab-tree-toggle-all:hover {
+  background: #333;
+}
+
+.ab-tree-filelist-header span {
+  font-size: 14px;
+  font-weight: bold;
+  color: #fff;
+}
+
+.ab-filelist-row .ab-filelist-cell-filename [style*="cursor: pointer"] {
+  transition: background-color 0.15s ease;
+  border-radius: 2px;
+  padding: 2px 4px;
+  margin: -2px -4px;
+}
+
+.ab-filelist-row .ab-filelist-cell-filename [style*="cursor: pointer"]:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.ab-filelist-row .ab-filelist-cell-filename code {
+  color: #fff;
+}
+
+/* MediaInfo tab styles */
+.ab-spoiler-container {
+  margin: 0;
+}
+
+.ab-spoiler-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #2a2a2a;
+  border: 1px solid #555;
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.ab-spoiler-button:hover {
+  background: #333;
+}
+
+.ab-spoiler-content {
+  margin-top: 8px;
+}
+
+.ab-code-box {
+  background: #1a1a1a;
+  border: 1px solid #555;
+  border-radius: 4px;
+  padding: 12px;
+  overflow: auto;
+}
+
+.ab-code-box pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: monospace;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #fff;
+}
+
+/* Peerlist tab styles */
+.ab-peerlist-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.ab-peerlist-header {
+  background-color: #2a2a2a;
+  color: #fff;
+  font-weight: bold;
+}
+
+.ab-peerlist-header th {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid #555;
+}
+
+.ab-peerlist-row {
+  color: #fff;
+}
+
+.ab-peerlist-row:nth-child(even) {
+  background-color: #1a1a1a;
+}
+
+.ab-peerlist-row:nth-child(odd) {
+  background-color: #222;
+}
+
+.ab-peerlist-cell {
+  padding: 6px 8px;
+  border-bottom: 1px solid #333;
+}
+
+.ab-peerlist-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ab-peerlist-user-link {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.ab-peerlist-user-link:hover {
+  text-decoration: underline;
+}
+
+/* Screenshots tab styles */
+.ab-screenshots-tab-content {
+  text-align: center;
+}
+
+.ab-load-all-fullres {
+  background: #4a5568;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.2s ease;
+  margin-bottom: 16px;
+}
+
+.ab-load-all-fullres:hover {
+  background: #5a6578;
+}
+
+.ab-load-all-fullres:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ab-screenshots-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  text-align: left;
+}
+
+.ab-screenshot-item {
+  position: relative;
+  cursor: pointer;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid #333;
+  padding: 0;
+  background: none;
+  transition: border-color 0.2s ease;
+}
+
+.ab-screenshot-item:hover {
+  border-color: #555;
+}
+
+.ab-screenshot-item img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.ab-fullres-indicator {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  font-size: 10px;
+  padding: 2px 4px;
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+/* Screenshot modal styles */
+.ab-screenshot-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  border: none;
+  padding: 0;
+}
+
+.ab-screenshot-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.7);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #fff;
+  z-index: 10001;
+  transition: background 0.2s ease;
+}
+
+.ab-screenshot-close:hover {
+  background: rgba(0, 0, 0, 0.9);
+}
+
+.ab-screenshot-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.7);
+  border: none;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #fff;
+  z-index: 10001;
+  transition: background 0.2s ease;
+}
+
+.ab-screenshot-nav:hover {
+  background: rgba(0, 0, 0, 0.9);
+}
+
+.ab-screenshot-prev {
+  left: 20px;
+}
+
+.ab-screenshot-next {
+  right: 20px;
+}
+
+.ab-screenshot-modal img {
+  max-width: 90vw;
+  max-height: 90vh;
+  object-fit: contain;
+  cursor: default;
+}
+
+.ab-screenshot-info {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 12px;
+  text-align: center;
+}
+
+.ab-screenshot-info-title {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #ccc;
+}
+
+/* SeaDex tab styles */
+.ab-seadex-content {
+  color: #fff;
+}
+
+/* Tree Filelist styles */
+.ab-tree-header-container {
+  margin-bottom: 10px;
+}
+
+.ab-tree-header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ab-tree-toggle-button {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-family: monospace;
+  font-size: 1.2em;
+  padding: 2px 8px;
+}
+
+.ab-tree-node-button {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+  width: 100%;
+}
+
+.ab-tree-node-container {
+  display: flex;
+  align-items: center;
+}
+
+.ab-tree-chevron-margin {
+  margin-right: 4px;
+}
+
+.ab-tree-node-folder {
+  font-family: monospace;
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+.ab-tree-node-file {
+  font-family: monospace;
+  font-size: 1.2em;
+  font-weight: normal;
+}
+
+.ab-tree-size-folder {
+  opacity: 60%;
+}
+
+.ab-tree-size-file {
+  opacity: 100%;
+}
+
+/* Section Header styles */
+.ab-section-header-clickable {
+  cursor: pointer;
+}
+
+.ab-section-content-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.ab-section-chevron-container {
+  margin-top: 4px;
+}
+
+.ab-section-chevron-container-text {
+  margin-top: 2px;
+}
+
+.ab-section-title-preformatted {
+  white-space: pre-line;
+}

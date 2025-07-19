@@ -179,7 +179,7 @@ export const SETTINGS_CONFIG: SettingConfig[] = [
     description: "Use youtube-nocookie.com for enhanced privacy (may disable some player features)",
     type: "boolean",
     category: "media",
-    dependencies: [{setting: "TrailersEnabled", value: true }]
+    dependencies: [{ setting: "TrailersEnabled", value: true }],
   },
   {
     key: "youtubeOverlayHidingEnabled",
@@ -187,7 +187,7 @@ export const SETTINGS_CONFIG: SettingConfig[] = [
     description: "Hides related videos and pause overlays when YouTube videos are embedded from AB Suite",
     type: "boolean",
     category: "media",
-    dependencies: [{setting: "TrailersEnabled", value: true }]
+    dependencies: [{ setting: "TrailersEnabled", value: true }],
   },
 
   // Visual Settings
@@ -212,6 +212,22 @@ export const SETTINGS_CONFIG: SettingConfig[] = [
     key: "treeFilelistEnabled",
     label: "Tree-Style Filelist",
     description: "Displays filelists in a tree structure with folders and files, similar to U2's filelist",
+    type: "boolean",
+    category: "visual",
+    requiresReload: true,
+  },
+  {
+    key: "enhancedBbcodeToolbarEnabled",
+    label: "Enhanced BBCode Toolbar",
+    description: "Replaces default BBCode toolbar with modern icons and improved styling",
+    type: "boolean",
+    category: "visual",
+    requiresReload: true,
+  },
+  {
+    key: "seriesTitlesEnabled",
+    label: "Series Titles Display",
+    description: "Shows series titles below images on the airing schedule page for better readability",
     type: "boolean",
     category: "visual",
     requiresReload: true,
@@ -285,6 +301,13 @@ export const SETTINGS_CONFIG: SettingConfig[] = [
     key: "debugLoggingEnabled",
     label: "Debug Logging",
     description: "Enables debug logging for troubleshooting purposes",
+    type: "boolean",
+    category: "advanced",
+  },
+  {
+    key: "disableCaching",
+    label: "Disable API Caching",
+    description: "Disables caching for all API requests (may impact performance and increase API usage)",
     type: "boolean",
     category: "advanced",
   },

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import type { AniListMediaData } from "@/services/anilist";
 import { log } from "@/utils/logging";
 
@@ -90,27 +90,41 @@ export function useEnhancedSynopsis(aniListData: AniListMediaData | null) {
   const [isIntegrated, setIsIntegrated] = useState(false);
   const observerRef = useRef<MutationObserver | null>(null);
 
-  log("useEnhancedSynopsis called:", {
-    hasAniListData: !!aniListData,
-    isIntegrated,
-    title: aniListData?.title?.romaji,
-  });
+  // Memoize the title and description to prevent unnecessary re-runs
+  const memoizedData = useMemo(() => {
+    if (!aniListData) return null;
+    return {
+      title: aniListData.title?.romaji,
+      hasDescription: !!aniListData.description,
+      description: aniListData.description,
+    };
+  }, [aniListData?.title?.romaji, aniListData?.description]);
+
+  // Only log when actually relevant data changes
+  useEffect(() => {
+    if (memoizedData) {
+      log("useEnhancedSynopsis called:", {
+        hasAniListData: true,
+        isIntegrated,
+        title: memoizedData.title,
+      });
+    }
+  }, [memoizedData, isIntegrated]);
 
   useEffect(() => {
-    if (!aniListData) {
-      log("useEnhancedSynopsis: No aniListData, returning");
+    if (!memoizedData) {
       return;
     }
 
-    if (isIntegrated) {
+    if (isIntegrated || globalSynopsisIntegrated) {
       log("useEnhancedSynopsis: Already integrated, skipping");
       return;
     }
 
     log("useEnhancedSynopsis: Starting integration with data:", {
-      title: aniListData.title?.romaji,
-      hasDescription: !!aniListData.description,
-      descriptionPreview: `${aniListData.description?.substring(0, 100)}...`,
+      title: memoizedData.title,
+      hasDescription: memoizedData.hasDescription,
+      descriptionPreview: memoizedData.description ? `${memoizedData.description.substring(0, 100)}...` : "",
     });
 
     const integrateSynopsis = () => {
@@ -206,7 +220,9 @@ export function useEnhancedSynopsis(aniListData: AniListMediaData | null) {
           hasOriginalContent: !!originalContent,
           containerElement: container.tagName,
         });
-        render(<EnhancedSynopsis aniListData={aniListData} originalContent={originalContent} />, container);
+        if (aniListData) {
+          render(<EnhancedSynopsis aniListData={aniListData} originalContent={originalContent} />, container);
+        }
         log("Enhanced synopsis rendered successfully");
       });
 
@@ -256,7 +272,7 @@ export function useEnhancedSynopsis(aniListData: AniListMediaData | null) {
         observerRef.current = null;
       }
     };
-  }, [aniListData, isIntegrated]);
+  }, [memoizedData, isIntegrated, aniListData]);
 
   return isIntegrated;
 }

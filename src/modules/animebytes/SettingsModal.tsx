@@ -7,7 +7,6 @@ import {
   type SettingConfig,
   type SettingValue,
 } from "@/stores/settingsConfig";
-import "@/styles/animebytes.css";
 import { log } from "@/utils/logging";
 
 interface SettingsModalProps {

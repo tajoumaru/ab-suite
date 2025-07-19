@@ -207,3 +207,114 @@ export async function rateLimitedDelay(apiKey: string, config?: RateLimitConfig)
     await new Promise((resolve) => setTimeout(resolve, check.retryAfter * 1000));
   }
 }
+
+// Request queue for managing concurrent requests with rate limiting
+interface QueuedRequest {
+  execute: () => Promise<unknown>;
+  resolve: (value: unknown) => void;
+  reject: (error: unknown) => void;
+  retryCount: number;
+  maxRetries: number;
+}
+
+const requestQueues = new Map<string, QueuedRequest[]>();
+const activeRequests = new Map<string, number>();
+
+/**
+ * Execute a function with automatic rate limiting and retry logic
+ */
+export async function executeWithRateLimit<T>(
+  apiKey: string,
+  requestFn: () => Promise<T>,
+  options: {
+    config?: RateLimitConfig;
+    maxRetries?: number;
+    exponentialBackoff?: boolean;
+  } = {},
+): Promise<T> {
+  const { config = DEFAULT_RATE_LIMITS, maxRetries = 3, exponentialBackoff = true } = options;
+
+  return new Promise<T>((resolve, reject) => {
+    const queuedRequest: QueuedRequest = {
+      execute: requestFn as () => Promise<unknown>,
+      resolve: resolve as (value: unknown) => void,
+      reject,
+      retryCount: 0,
+      maxRetries,
+    };
+
+    // Add to queue
+    if (!requestQueues.has(apiKey)) {
+      requestQueues.set(apiKey, []);
+    }
+    const queue = requestQueues.get(apiKey);
+    if (queue) {
+      queue.push(queuedRequest);
+    }
+
+    // Process queue
+    processQueue(apiKey, config, exponentialBackoff);
+  });
+}
+
+/**
+ * Process the request queue for an API with rate limiting
+ */
+async function processQueue(apiKey: string, config: RateLimitConfig, exponentialBackoff: boolean): Promise<void> {
+  const queue = requestQueues.get(apiKey);
+  const activeCount = activeRequests.get(apiKey) || 0;
+
+  if (!queue || queue.length === 0 || activeCount >= config.perSecond) {
+    return;
+  }
+
+  const request = queue.shift();
+  if (!request) return;
+
+  // Check rate limit
+  const rateLimitCheck = checkRateLimit(apiKey, config);
+  if (!rateLimitCheck.allowed) {
+    // Put request back at front of queue
+    queue.unshift(request);
+
+    // Wait and try again
+    const delay = exponentialBackoff
+      ? Math.min(rateLimitCheck.retryAfter * 1000 * 2 ** request.retryCount, 60000)
+      : rateLimitCheck.retryAfter * 1000;
+
+    setTimeout(() => processQueue(apiKey, config, exponentialBackoff), delay);
+    return;
+  }
+
+  // Track active request
+  activeRequests.set(apiKey, activeCount + 1);
+
+  try {
+    const result = await request.execute();
+    recordRequest(apiKey);
+    request.resolve(result);
+  } catch (error) {
+    if (request.retryCount < request.maxRetries) {
+      request.retryCount++;
+      log(`Request failed, retrying (${request.retryCount}/${request.maxRetries}) for ${apiKey}:`, error);
+
+      // Add back to queue for retry
+      queue.unshift(request);
+
+      // Wait before retry with exponential backoff
+      const delay = exponentialBackoff ? Math.min(1000 * 2 ** request.retryCount, 30000) : 1000;
+
+      setTimeout(() => processQueue(apiKey, config, exponentialBackoff), delay);
+    } else {
+      log(`Request failed after ${request.maxRetries} retries for ${apiKey}:`, error);
+      request.reject(error);
+    }
+  } finally {
+    // Decrease active count
+    const newActiveCount = Math.max(0, (activeRequests.get(apiKey) || 1) - 1);
+    activeRequests.set(apiKey, newActiveCount);
+
+    // Process next request after a small delay to respect rate limits
+    setTimeout(() => processQueue(apiKey, config, exponentialBackoff), 100);
+  }
+}

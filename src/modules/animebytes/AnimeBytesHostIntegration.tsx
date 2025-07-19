@@ -2,9 +2,11 @@ import { render } from "preact";
 import { useEffect, useRef } from "preact/hooks";
 import { err, log } from "@/utils/logging";
 import { AniListMetadataIntegration } from "./AniListMetadataIntegration";
+import { BbcodeToolbarIntegration } from "./BbcodeToolbarIntegration";
 import { EnhancedTagStyling } from "./EnhancedTagStyling";
 import { LogoReplacement } from "./LogoReplacement";
 import { QuickNavigation } from "./QuickNavigation";
+import { SeriesTitles } from "./SeriesTitles";
 import { SettingsButton } from "./SettingsModal";
 import { UnifiedDescriptionIntegration } from "./UnifiedDescriptionIntegration";
 
@@ -84,6 +86,8 @@ export function AnimeBytesHostIntegration() {
       <AniListMetadataIntegration />
       <QuickNavigation />
       <LogoReplacement />
+      <BbcodeToolbarIntegration />
+      <SeriesTitles />
     </>
   );
 }

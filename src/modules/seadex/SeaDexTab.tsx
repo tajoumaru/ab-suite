@@ -1,5 +1,4 @@
 import type { SeaDexEntry } from "@/types";
-import "@/styles/seadex.css";
 
 interface SeaDexTabProps {
   entry: SeaDexEntry;

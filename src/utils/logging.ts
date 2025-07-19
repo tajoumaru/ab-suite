@@ -12,8 +12,7 @@ export function log(...args: any[]): void {
 }
 
 /**
- * Debug logging function that only logs when debug logging is enabled in settings
- * Use this to replace console.log calls
+ * Debug warning function
  */
 // biome-ignore lint/suspicious/noExplicitAny: any by design
 export function warn(...args: any[]): void {
@@ -21,8 +20,7 @@ export function warn(...args: any[]): void {
 }
 
 /**
- * Debug logging function that only logs when debug logging is enabled in settings
- * Use this to replace console.log calls
+ * Debug error function
  */
 // biome-ignore lint/suspicious/noExplicitAny: any by design
 export function err(...args: any[]): void {
@@ -55,8 +53,10 @@ export function timeEnd(label: string): void {
   const endTime = performance.now();
   const duration = endTime - startTime;
 
-  // Use console.log to print the final, styled output.
-  console.log("%c[AB Suite]", "color: #ee0e6a", `${label}: ${duration.toFixed(3)}ms`);
+  // Only log if debug logging is enabled
+  if (settingsStore.debugLoggingEnabled) {
+    console.log("%c[AB Suite]", "color: #ee0e6a", `${label}: ${duration.toFixed(3)}ms`);
+  }
 
   // Clean up the timer to prevent memory leaks
   timers.delete(label);

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import type { AniListMediaData } from "@/services/anilist";
 import { aniListService } from "@/services/anilist";
 import { findAllMatches } from "@/utils/fuzzyMatch";
@@ -235,11 +235,6 @@ export function EnhancedCharacterCards({ aniListData, originalContent }: Enhance
   const characterMatches = characters.map((character, index) => {
     const match = findBestCharacterMatch(character, characterCandidates);
 
-    log(`[DEBUG] Character match: ${character.name}`, {
-      bestMatch: match.match ? `${match.match.name} (${match.score.toFixed(3)})` : "none",
-      alternativeNames: character.alternativeNames,
-    });
-
     return {
       characterIndex: index,
       match: match.match,
@@ -255,10 +250,6 @@ export function EnhancedCharacterCards({ aniListData, originalContent }: Enhance
 
     const matches = findAllMatches(character.voiceActor.name, seiyuuCandidates, 0.3);
     const bestMatch = matches.length > 0 ? matches[0] : null;
-
-    log(`[DEBUG] Voice actor match: ${character.voiceActor.name}`, {
-      bestMatch: bestMatch ? `${bestMatch.candidate.name} (${bestMatch.score.toFixed(3)})` : "none",
-    });
 
     return {
       characterIndex: index,
@@ -280,9 +271,6 @@ export function EnhancedCharacterCards({ aniListData, originalContent }: Enhance
     const link = match.match.link;
     if (!characterLinkAssignments.has(link)) {
       characterLinkAssignments.set(link, match.characterIndex);
-      log(
-        `[DEBUG] Character link ${link} assigned to ${characters[match.characterIndex].name} (score: ${match.score.toFixed(3)})`,
-      );
     }
   }
 
@@ -299,9 +287,6 @@ export function EnhancedCharacterCards({ aniListData, originalContent }: Enhance
     const link = match.match.link;
     if (!voiceActorLinkAssignments.has(link)) {
       voiceActorLinkAssignments.set(link, match.characterIndex);
-      log(
-        `[DEBUG] Voice actor link ${link} assigned to ${characters[match.characterIndex].name} (score: ${match.score.toFixed(3)})`,
-      );
     }
   }
 
@@ -398,20 +383,34 @@ export function useEnhancedCharacterCards(aniListData: AniListMediaData | null) 
   const [isIntegrated, setIsIntegrated] = useState(false);
   const observerRef = useRef<MutationObserver | null>(null);
 
-  log("useEnhancedCharacterCards called:", {
-    hasAniListData: !!aniListData,
-    isIntegrated,
-    title: aniListData?.title?.romaji,
-    charactersCount: aniListData?.characters?.edges?.length || 0,
-  });
+  // Memoize the data to prevent unnecessary re-runs
+  const memoizedData = useMemo(() => {
+    if (!aniListData) return null;
+    return {
+      title: aniListData.title?.romaji,
+      charactersCount: aniListData.characters?.edges?.length || 0,
+      hasCharacters: (aniListData.characters?.edges?.length || 0) > 0,
+    };
+  }, [aniListData?.title?.romaji, aniListData?.characters?.edges?.length]);
+
+  // Only log when state changes
+  useEffect(() => {
+    if (memoizedData || isIntegrated) {
+      log("useEnhancedCharacterCards called:", {
+        hasAniListData: !!memoizedData,
+        isIntegrated,
+        title: memoizedData?.title,
+        charactersCount: memoizedData?.charactersCount || 0,
+      });
+    }
+  }, [memoizedData, isIntegrated]);
 
   useEffect(() => {
-    if (!aniListData) {
-      log("useEnhancedCharacterCards: No aniListData, returning");
+    if (!memoizedData) {
       return;
     }
 
-    if (isIntegrated) {
+    if (isIntegrated || globalCharacterCardsIntegrated) {
       log("useEnhancedCharacterCards: Already integrated, skipping");
       return;
     }
@@ -507,7 +506,9 @@ export function useEnhancedCharacterCards(aniListData: AniListMediaData | null) 
       // Render the enhanced character cards
       import("preact").then(({ render }) => {
         log("Rendering enhanced character cards");
-        render(<EnhancedCharacterCards aniListData={aniListData} originalContent={originalContent} />, container);
+        if (aniListData) {
+          render(<EnhancedCharacterCards aniListData={aniListData} originalContent={originalContent} />, container);
+        }
         log("Enhanced character cards rendered successfully");
       });
 
@@ -556,7 +557,7 @@ export function useEnhancedCharacterCards(aniListData: AniListMediaData | null) 
         observerRef.current = null;
       }
     };
-  }, [aniListData, isIntegrated]);
+  }, [memoizedData, isIntegrated, aniListData]);
 
   return isIntegrated;
 }

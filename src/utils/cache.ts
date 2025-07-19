@@ -1,4 +1,5 @@
-import { log } from "@/utils/logging";
+import { settingsStore } from "@/stores/settings";
+import { log, time, timeEnd } from "@/utils/logging";
 import { checkRateLimit, type RateLimitConfig, recordRequest } from "@/utils/rateLimit";
 
 interface CacheEntry<T> {
@@ -25,10 +26,18 @@ const DEFAULT_FAILURE_TTL = 60 * 60 * 1000; // 1 hour
 
 const CACHE_KEY_PREFIX = "ab-suite-cache-";
 
+// In-flight request map for deduplication
+const inFlightRequests = new Map<string, Promise<unknown>>();
+
 /**
  * Get a cached value if it exists and hasn't expired
  */
 export async function getCachedValue<T>(key: string): Promise<T | null> {
+  // Check if caching is disabled
+  if (settingsStore.disableCaching) {
+    return null;
+  }
+
   try {
     const cacheKey = CACHE_KEY_PREFIX + key;
     const cached = GM_getValue(cacheKey, null) as string | null;
@@ -59,6 +68,11 @@ export async function getCachedValue<T>(key: string): Promise<T | null> {
  * Set a value in the cache with expiration
  */
 export async function setCachedValue<T>(key: string, data: T, options: CacheOptions = {}): Promise<void> {
+  // Don't cache if caching is disabled
+  if (settingsStore.disableCaching) {
+    return;
+  }
+
   try {
     const { ttl = DEFAULT_TTL } = options;
     const cacheKey = CACHE_KEY_PREFIX + key;
@@ -81,7 +95,7 @@ export async function setCachedValue<T>(key: string, data: T, options: CacheOpti
  * Cache a failed response with shorter TTL
  */
 export async function setCachedFailure(key: string, error: unknown, options: CacheOptions = {}): Promise<void> {
-  if (options.cacheFailures === false) {
+  if (options.cacheFailures === false || settingsStore.disableCaching) {
     return;
   }
 
@@ -164,6 +178,19 @@ export async function cachedApiCall<T>(
     return cached;
   }
 
+  // Check if there's already an in-flight request for this key
+  const inFlightRequest = inFlightRequests.get(cacheKey);
+  if (inFlightRequest) {
+    log(`Request already in-flight for: ${cacheKey}, waiting for result`);
+    try {
+      const result = (await inFlightRequest) as T;
+      return result;
+    } catch {
+      // If the in-flight request failed, we'll still return null
+      return null;
+    }
+  }
+
   // Check rate limits before making API call (only if apiKey is provided)
   if (options.apiKey) {
     const rateLimitCheck = checkRateLimit(options.apiKey, options.rateLimits);
@@ -180,30 +207,47 @@ export async function cachedApiCall<T>(
     }
   }
 
-  // Make API call
+  // Create a new promise for this request and store it in the map
+  const requestPromise = (async () => {
+    try {
+      log(`Making API call for: ${cacheKey}`);
+      time(`API request: ${cacheKey}`);
+      const result = await apiCall();
+      timeEnd(`API request: ${cacheKey}`);
+
+      // Record the request for rate limiting (only if apiKey is provided and request succeeded)
+      if (options.apiKey && result !== null) {
+        recordRequest(options.apiKey);
+      }
+
+      if (result !== null) {
+        await setCachedValue(cacheKey, result, options);
+      }
+
+      return result;
+    } catch (error) {
+      log(`API call failed for: ${cacheKey}`, error);
+
+      // Still record the request for rate limiting even if it failed
+      if (options.apiKey) {
+        recordRequest(options.apiKey);
+      }
+
+      await setCachedFailure(cacheKey, error, options);
+      throw error; // Re-throw to let other waiting requests know it failed
+    } finally {
+      // Clean up the in-flight request
+      inFlightRequests.delete(cacheKey);
+    }
+  })();
+
+  // Store the promise in the in-flight map
+  inFlightRequests.set(cacheKey, requestPromise);
+
   try {
-    log(`Making API call for: ${cacheKey}`);
-    const result = await apiCall();
-
-    // Record the request for rate limiting (only if apiKey is provided and request succeeded)
-    if (options.apiKey && result !== null) {
-      recordRequest(options.apiKey);
-    }
-
-    if (result !== null) {
-      await setCachedValue(cacheKey, result, options);
-    }
-
+    const result = await requestPromise;
     return result;
-  } catch (error) {
-    log(`API call failed for: ${cacheKey}`, error);
-
-    // Still record the request for rate limiting even if it failed
-    if (options.apiKey) {
-      recordRequest(options.apiKey);
-    }
-
-    await setCachedFailure(cacheKey, error, options);
+  } catch {
     return null;
   }
 }

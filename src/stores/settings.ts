@@ -17,6 +17,7 @@ export interface Settings {
   autocompleteSearchEnabled: boolean;
   sectionsCollapsedByDefault: boolean;
   debugLoggingEnabled: boolean;
+  disableCaching: boolean;
   RatingsEnabled: boolean;
   TrailersEnabled: boolean;
   galleryViewEnabled: boolean;
@@ -26,6 +27,8 @@ export interface Settings {
   youtubeOverlayHidingEnabled: boolean;
   youtubePrivacyModeEnabled: boolean;
   quickNavigationEnabled: boolean;
+  enhancedBbcodeToolbarEnabled: boolean;
+  seriesTitlesEnabled: boolean;
   simklClientId: string;
   tmdbApiToken: string;
   youtubeApiKey: string;
@@ -62,6 +65,7 @@ const DEFAULT_SETTINGS: Settings = {
   autocompleteSearchEnabled: true,
   sectionsCollapsedByDefault: true,
   debugLoggingEnabled: false,
+  disableCaching: false,
   RatingsEnabled: true,
   TrailersEnabled: true,
   galleryViewEnabled: true,
@@ -71,6 +75,8 @@ const DEFAULT_SETTINGS: Settings = {
   youtubeOverlayHidingEnabled: true,
   youtubePrivacyModeEnabled: false,
   quickNavigationEnabled: true,
+  enhancedBbcodeToolbarEnabled: true,
+  seriesTitlesEnabled: true,
   simklClientId: "",
   tmdbApiToken: "",
   youtubeApiKey: "",

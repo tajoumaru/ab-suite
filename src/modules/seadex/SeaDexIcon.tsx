@@ -1,6 +1,5 @@
 import { useSettingsStore } from "@/stores/settings";
 import type { SeaDexEntry } from "@/types";
-import "@/styles/seadex.css";
 
 interface SeaDexIconProps {
   entry: SeaDexEntry;
