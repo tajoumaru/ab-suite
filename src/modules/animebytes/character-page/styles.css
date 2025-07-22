@@ -1,0 +1,56 @@
+/* Character Page Enhancement Styles */
+
+/* Character image styling (follows AnimeBytesstandard box structure) */
+.ab-character-cover-image-content {
+  text-align: center;
+  padding: 20px;
+}
+
+.ab-character-cover-image {
+  max-width: 200px;
+  max-height: 400px;
+}
+
+.ab-character-native-name {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #666;
+  font-weight: bold;
+}
+
+/* Character description styling */
+.ab-character-description-content {
+  padding: 10px;
+}
+
+.ab-character-source-info {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #888;
+  font-style: italic;
+}
+
+/* Loading state */
+.ab-character-loading-content {
+  padding: 10px;
+  text-align: center;
+  color: #666;
+}
+
+/* Spoiler tag styling for character descriptions */
+.ab-spoiler-container {
+  display: inline;
+}
+
+.ab-spoiler-hidden {
+  color: #bababa;
+  padding: 2px 6px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+  font-style: italic;
+}
+
+.ab-spoiler-content {
+  display: none;
+}

@@ -156,6 +156,31 @@ export const SETTINGS_CONFIG: SettingConfig[] = [
     category: "metadata",
     requiresReload: true,
   },
+  {
+    key: "relationsBoxEnabled",
+    label: "Relations Box",
+    description: "Shows related anime/manga entries (prequels, sequels, adaptations) on torrent pages",
+    type: "boolean",
+    category: "metadata",
+    requiresReload: true,
+  },
+  {
+    key: "characterPageEnhancements",
+    label: "Character Page Enhancements",
+    description: "Adds character images and descriptions from AniList/MAL to character pages",
+    type: "boolean",
+    category: "metadata",
+    requiresReload: true,
+  },
+  {
+    key: "collageTableEnhancements",
+    label: "Collage Table Grid Layout",
+    description: "Replaces table-based collage layouts with modern CSS grid on character pages",
+    type: "boolean",
+    category: "visual",
+    requiresReload: true,
+    dependencies: [{ setting: "characterPageEnhancements", value: true }],
+  },
 
   // Media Features
   {

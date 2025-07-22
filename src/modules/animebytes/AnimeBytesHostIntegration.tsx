@@ -2,12 +2,14 @@ import { render } from "preact";
 import { useEffect, useRef } from "preact/hooks";
 import { err, log } from "@/utils/logging";
 import { AniListMetadataIntegration } from "./AniListMetadataIntegration";
+import { AiringPage } from "./airing-page";
 import { BbcodeToolbarIntegration } from "./BbcodeToolbarIntegration";
+import { CharacterPage } from "./character-page";
 import { EnhancedTagStyling } from "./EnhancedTagStyling";
 import { LogoReplacement } from "./LogoReplacement";
 import { QuickNavigation } from "./QuickNavigation";
-import { SeriesTitles } from "./SeriesTitles";
 import { SettingsButton } from "./SettingsModal";
+import { SeiyuuPage } from "./seiyuu-page";
 import { UnifiedDescriptionIntegration } from "./UnifiedDescriptionIntegration";
 
 /**
@@ -84,10 +86,12 @@ export function AnimeBytesHostIntegration() {
       <UnifiedDescriptionIntegration />
       <EnhancedTagStyling />
       <AniListMetadataIntegration />
+      <CharacterPage />
+      <SeiyuuPage />
       <QuickNavigation />
       <LogoReplacement />
       <BbcodeToolbarIntegration />
-      <SeriesTitles />
+      <AiringPage />
     </>
   );
 }

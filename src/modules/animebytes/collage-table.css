@@ -1,0 +1,79 @@
+/* Collage Table Enhancement Styles */
+
+.ab-collage-container {
+  margin-bottom: 40px;
+}
+
+.ab-collage-grid {
+  display: grid;
+  grid-gap: 20px 24px;
+  grid-template-columns: repeat(auto-fill, 185px);
+  justify-content: space-between;
+}
+
+.ab-collage-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ab-collage-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+  transition: opacity 0.2s ease;
+}
+
+.ab-collage-image-container {
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 265px;
+  width: 100%;
+}
+
+.ab-collage-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.ab-collage-title-container {
+  padding: 4px 1px;
+  width: 100%;
+}
+
+.ab-collage-title-main {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+  word-wrap: break-word;
+  margin-bottom: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-clamp: 2;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.ab-collage-title-type {
+  font-size: 11px;
+  line-height: 1.2;
+  font-style: italic;
+  margin-bottom: 1px;
+  color: #666;
+}
+
+.ab-collage-title-year {
+  font-size: 10px;
+  line-height: 1.1;
+  font-weight: 500;
+  color: #888;
+}

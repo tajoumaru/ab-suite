@@ -339,46 +339,50 @@
   flex-direction: column;
 }
 
-/* Reorder sections: ratings > synopsis > characters > trailers > torrent table > rest */
+/* Reorder sections: ratings > relations > synopsis > characters > trailers > torrent table > rest */
 #torrent [data-ab-section="ratings"] {
   order: 1;
 }
 
-#torrent [data-ab-section="synopsis"] {
+#torrent [data-ab-section="relations"] {
   order: 2;
 }
 
-#torrent [data-ab-section="characters"] {
+#torrent [data-ab-section="synopsis"] {
   order: 3;
 }
 
-#torrent [data-ab-section="trailers"] {
+#torrent [data-ab-section="characters"] {
   order: 4;
+}
+
+#torrent [data-ab-section="trailers"] {
+  order: 5;
 }
 
 /* Target torrent table by looking for the torrents table specifically */
 #torrent .box .torrents {
-  order: 5;
+  order: 6;
 }
 
 #torrent .box .torrents table {
-  order: 5;
+  order: 6;
 }
 
 /* Apply order to the parent box containing torrent table */
 #torrent .box:has(table.torrents),
 #torrent .box:has(.torrents) {
-  order: 5;
+  order: 6;
 }
 
 /* Fallback for browsers without :has() support - target by common torrent table classes */
 #torrent .box[class*="torrent"] {
-  order: 5;
+  order: 6;
 }
 
 /* Keep other sections in their original relative order after the main ones */
 #torrent .box:not([data-ab-section]) {
-  order: 6;
+  order: 7;
 }
 
 /* ============================================================

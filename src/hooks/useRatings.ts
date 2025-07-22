@@ -1,7 +1,7 @@
 import type { AnimeApiResponse, MediaInfo } from "@/modules/animebytes/hooks/useMediaInfo";
+import { aniListService } from "@/services/anilist";
 import {
   fetchAnidbData,
-  fetchAnilistData,
   fetchImdbData,
   fetchKitsuData,
   fetchMyAnimeListData,
@@ -120,7 +120,8 @@ export function useRatings(apiData: AnimeApiResponse, mediaInfo?: MediaInfo, tmd
       // AniList
       if (apiData.anilist) {
         promises.push(
-          fetchAnilistData(apiData.anilist)
+          aniListService
+            .fetchRatingData(apiData.anilist)
             .then((anilistData) => {
               if (anilistData?.data?.Media) {
                 const normalizedScore = anilistData.data.Media.averageScore

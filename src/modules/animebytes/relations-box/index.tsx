@@ -1,0 +1,1 @@
+export { RelationsBox } from "./RelationsBox";

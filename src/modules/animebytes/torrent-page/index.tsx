@@ -8,6 +8,7 @@ import { GalleryView } from "../gallery-view";
 import { type AnimeApiResponse, clearMediaInfoCache, useMediaInfo } from "../hooks/useMediaInfo";
 import { detectTableType, extractTorrentData, type ParsedTorrentRow, TorrentTable } from "../modern-table";
 import { Ratings } from "../Ratings";
+import { RelationsBox } from "../relations-box";
 import { Trailers } from "../Trailers";
 
 // Default empty AnimeApiResponse for when no data is available
@@ -58,6 +59,7 @@ export function TorrentGroupPage() {
     RatingsEnabled,
     TrailersEnabled,
     galleryViewEnabled,
+    relationsBoxEnabled,
   } = useSettingsStore();
   const [torrents, setTorrents] = useState<ParsedTorrentRow[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -257,11 +259,12 @@ export function TorrentGroupPage() {
     if (sectionsContainerRef.current && isInitialized) {
       const SectionsContainer = () => (
         <>
+          {plotSynopsisHtml && <div dangerouslySetInnerHTML={{ __html: plotSynopsisHtml }} />}
+          {relationsBoxEnabled && <RelationsBox />}
+          <div id="ab-characters-placeholder" />
           {RatingsEnabled && (
             <Ratings apiData={mediaInfo?.apiData || DEFAULT_API_DATA} mediaInfo={mediaInfo || undefined} />
           )}
-          {plotSynopsisHtml && <div dangerouslySetInnerHTML={{ __html: plotSynopsisHtml }} />}
-          <div id="ab-characters-placeholder" />
           {TrailersEnabled && (
             <Trailers apiData={mediaInfo?.apiData || DEFAULT_API_DATA} mediaInfo={mediaInfo || undefined} />
           )}
@@ -270,7 +273,7 @@ export function TorrentGroupPage() {
 
       render(<SectionsContainer />, sectionsContainerRef.current);
     }
-  }, [TrailersEnabled, RatingsEnabled, mediaInfo, plotSynopsisHtml, isInitialized]);
+  }, [TrailersEnabled, RatingsEnabled, relationsBoxEnabled, mediaInfo, plotSynopsisHtml, isInitialized]);
 
   // Render gallery view when enabled
   useEffect(() => {

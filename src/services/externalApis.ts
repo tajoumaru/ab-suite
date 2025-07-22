@@ -41,22 +41,6 @@ export interface AnidbAnimeResponse {
   votes: number | null;
 }
 
-export interface AnilistAnimeResponse {
-  data: {
-    Media: {
-      id: number;
-      averageScore: number | null;
-      popularity: number | null;
-      stats: {
-        scoreDistribution: Array<{
-          score: number;
-          amount: number;
-        }>;
-      } | null;
-    };
-  };
-}
-
 export interface KitsuAnimeResponse {
   data: {
     attributes: {
@@ -237,68 +221,6 @@ export async function fetchAnidbData(anidbId: number): Promise<AnidbAnimeRespons
       ttl: 24 * 60 * 60 * 1000, // 24 hours - ratings change infrequently
       failureTtl: 6 * 60 * 60 * 1000, // 6 hours for failures (AniDB can be flaky)
       apiKey: "anidb",
-    },
-  );
-}
-
-// Fetch AniList data via GraphQL
-export async function fetchAnilistData(anilistId: number): Promise<AnilistAnimeResponse | null> {
-  const cacheKey = `anilist-anime-${anilistId}`;
-
-  const query = /*gql*/ `
-    query ($id: Int) {
-      Media (id: $id, type: ANIME) {
-        id
-        averageScore
-        popularity
-        stats {
-          scoreDistribution {
-            score
-            amount
-          }
-        }
-      }
-    }
-  `;
-
-  const variables = { id: anilistId };
-
-  return cachedApiCall(
-    cacheKey,
-    () =>
-      new Promise<AnilistAnimeResponse | null>((resolve) => {
-        GM_xmlhttpRequest({
-          method: "POST",
-          url: "https://graphql.anilist.co",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          data: JSON.stringify({ query, variables }),
-          onload: (response) => {
-            if (response.status === 200) {
-              try {
-                const data = JSON.parse(response.responseText);
-                resolve(data);
-              } catch (error) {
-                log("Failed to parse AniList API response", error);
-                resolve(null);
-              }
-            } else {
-              log("AniList API returned status", response.status);
-              resolve(null);
-            }
-          },
-          onerror: () => {
-            log("Failed to fetch AniList API data");
-            resolve(null);
-          },
-        });
-      }),
-    {
-      ttl: 12 * 60 * 60 * 1000, // 12 hours - AniList updates more frequently
-      failureTtl: 2 * 60 * 60 * 1000, // 2 hours for failures
-      apiKey: "anilist",
     },
   );
 }

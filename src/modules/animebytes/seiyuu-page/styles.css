@@ -1,0 +1,71 @@
+/* Seiyuu Page Enhancement Styles - matching character page styles exactly */
+
+/* Seiyuu image styling (follows AnimeBytesstandard box structure) */
+.ab-seiyuu-cover-image-content {
+  text-align: center;
+  padding: 20px;
+}
+
+.ab-seiyuu-cover-image {
+  max-width: 200px;
+  max-height: 400px;
+}
+
+.ab-seiyuu-native-name {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #666;
+  font-weight: bold;
+}
+
+/* Seiyuu description styling */
+.ab-seiyuu-description-content {
+  padding: 10px;
+}
+
+.ab-seiyuu-source-info {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #888;
+  font-style: italic;
+}
+
+/* Loading state */
+.ab-seiyuu-loading-content {
+  padding: 10px;
+  text-align: center;
+  color: #666;
+}
+
+/* Spoiler tag styling for seiyuu descriptions */
+.ab-spoiler-container {
+  display: inline;
+}
+
+.ab-spoiler-hidden {
+  color: #bababa;
+  padding: 2px 6px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+  font-style: italic;
+}
+
+.ab-spoiler-content {
+  display: none;
+}
+
+.ab-seiyuu-info {
+  grid-area: content;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+
+.ab-seiyuu-info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}

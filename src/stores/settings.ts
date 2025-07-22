@@ -29,6 +29,9 @@ export interface Settings {
   quickNavigationEnabled: boolean;
   enhancedBbcodeToolbarEnabled: boolean;
   seriesTitlesEnabled: boolean;
+  relationsBoxEnabled: boolean;
+  characterPageEnhancements: boolean;
+  collageTableEnhancements: boolean;
   simklClientId: string;
   tmdbApiToken: string;
   youtubeApiKey: string;
@@ -77,6 +80,9 @@ const DEFAULT_SETTINGS: Settings = {
   quickNavigationEnabled: true,
   enhancedBbcodeToolbarEnabled: true,
   seriesTitlesEnabled: true,
+  relationsBoxEnabled: true,
+  characterPageEnhancements: true,
+  collageTableEnhancements: true,
   simklClientId: "",
   tmdbApiToken: "",
   youtubeApiKey: "",

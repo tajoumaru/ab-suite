@@ -86,6 +86,26 @@ export interface AniListMediaData {
     id: string;
     site: string;
   } | null;
+  relations: {
+    edges: Array<{
+      relationType: string;
+      node: {
+        title: {
+          english: string | null;
+          romaji: string | null;
+        };
+        type: string;
+        source: string;
+        format: string;
+        startDate: {
+          year: number | null;
+        };
+        coverImage: {
+          extraLarge: string | null;
+        };
+      };
+    }>;
+  };
 }
 
 const ANILIST_MEDIA_QUERY = /*gql*/ `
@@ -141,7 +161,7 @@ query Media($mediaId: Int) {
         }
       }
     }
-    characters {
+    characters(sort: ID) {
       edges {
         node {
           name {
@@ -174,6 +194,26 @@ query Media($mediaId: Int) {
     trailer {
       id
       site
+    }
+    relations {
+      edges {
+        relationType
+        node {
+          title {
+            english
+            romaji
+          }
+          type
+          source
+          format
+          startDate {
+            year
+          }
+          coverImage {
+            extraLarge
+          }
+        }
+      }
     }
   }
 }
@@ -326,6 +366,103 @@ export class AniListService {
         if (a.role !== "MAIN" && b.role === "MAIN") return 1;
         return 0;
       });
+  }
+
+  /**
+   * Fetch basic rating data for compatibility with useRatings hook
+   */
+  async fetchRatingData(anilistId: number): Promise<{
+    data: {
+      Media: {
+        id: number;
+        averageScore: number | null;
+        popularity: number | null;
+        stats: {
+          scoreDistribution: Array<{
+            score: number;
+            amount: number;
+          }>;
+        } | null;
+      };
+    };
+  } | null> {
+    const cacheKey = `anilist-rating-${anilistId}`;
+
+    const query = /*gql*/ `
+      query ($id: Int) {
+        Media (id: $id, type: ANIME) {
+          id
+          averageScore
+          popularity
+          stats {
+            scoreDistribution {
+              score
+              amount
+            }
+          }
+        }
+      }
+    `;
+
+    const variables = { id: anilistId };
+
+    return cachedApiCall(
+      cacheKey,
+      () =>
+        new Promise<{
+          data: {
+            Media: {
+              id: number;
+              averageScore: number | null;
+              popularity: number | null;
+              stats: {
+                scoreDistribution: Array<{
+                  score: number;
+                  amount: number;
+                }>;
+              } | null;
+            };
+          };
+        } | null>((resolve) => {
+          GM_xmlhttpRequest({
+            method: "POST",
+            url: AniListService.ANILIST_GRAPHQL_URL,
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            data: JSON.stringify({ query, variables }),
+            onload: (response) => {
+              if (response.status === 200) {
+                try {
+                  const data = JSON.parse(response.responseText);
+                  if (data.errors) {
+                    log("AniList GraphQL errors:", data.errors);
+                    resolve(null);
+                  } else {
+                    resolve(data);
+                  }
+                } catch (error) {
+                  log("Failed to parse AniList response", error);
+                  resolve(null);
+                }
+              } else {
+                log("AniList API returned status", response.status);
+                resolve(null);
+              }
+            },
+            onerror: () => {
+              log("Failed to fetch AniList data");
+              resolve(null);
+            },
+          });
+        }),
+      {
+        ttl: 12 * 60 * 60 * 1000, // 12 hours - AniList updates more frequently
+        failureTtl: 2 * 60 * 60 * 1000, // 2 hours for failures
+        apiKey: "anilist",
+      },
+    );
   }
 }
 

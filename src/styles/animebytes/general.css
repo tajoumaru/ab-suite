@@ -187,40 +187,49 @@
   }
 }
 
-#torrents #content,
-#series #content {
-  width: 95%;
-  max-width: 1400px;
+.fpleft {
+  width: calc(100% - 240px) !important;
+}
+
+#cover-slider {
+  width: 100% !important;
+  display: flex;
+}
+
+#cover-slider > .slider {
+  width: 100% !important;
+}
+
+#content {
+  width: 95% !important;
+  max-width: 1400px !important;
 }
 
 @media (min-width: 768px) {
-  #torrents #content,
-  #series #content {
-    width: 90%;
-    max-width: 1200px;
-    padding: 20px;
+  #content {
+    width: 90% !important;
+    max-width: 1200px !important;
+    padding: 20px !important;
   }
 }
 
 @media (min-width: 1024px) {
-  #torrents #content,
-  #series #content {
-    width: 85%;
-    max-width: 1400px;
-    padding: 25px;
+  #content {
+    width: 85% !important;
+    max-width: 1400px !important;
+    padding: 25px !important;
   }
 }
 
 @media (min-width: 1200px) {
-  #torrents #content,
-  #series #content {
-    width: 80%;
-    max-width: 1600px;
+  #content {
+    width: 80% !important;
+    max-width: 1600px !important;
   }
 }
 
 #content .sidebar {
-  width: 360px;
+  width: 360px !important;
 }
 
 #content .sidebar .box li {
@@ -230,7 +239,7 @@
 }
 
 #content .main_column {
-  margin: 0 370px 10px 0;
+  margin: 0 370px 10px 0 !important;
 }
 
 #container_star {
