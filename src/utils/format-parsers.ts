@@ -4,7 +4,7 @@
  */
 
 import { MEDIA_FORMATS, RESOLUTIONS } from "@/constants";
-import { createFlagParser, createParser, createRegexParser, createSetParser } from "./parsing";
+import { createFlagParser, createParser, createRegexParser, createSetParser } from "@/utils/parsing";
 
 /**
  * Improved anime format parser using standardized utilities

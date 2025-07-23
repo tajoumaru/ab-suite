@@ -1,17 +1,17 @@
 import type { ComponentType } from "preact";
 import { render } from "preact";
 // Hooks and utilities
-import { withSettings } from "@/hooks/withSettings";
+import { withSettings } from "@/lib/hooks/withSettings";
+import { log, warn } from "@/lib/utils/logging";
 // Components
-import { AniListHostIntegration } from "@/modules/anilist";
-import { AnimeBytesHostIntegration } from "@/modules/animebytes";
-import { SearchPage } from "@/modules/animebytes/search-page";
-import { SeriesPage } from "@/modules/animebytes/series-page";
-import { TorrentGroupPage } from "@/modules/animebytes/torrent-page";
-import { ReleasesIntegration } from "@/modules/releases";
-import { SeaDexIntegration } from "@/modules/seadex";
-import { YouTubeIntegration } from "@/modules/youtube";
-import { log, warn } from "@/utils/logging";
+import { AniListHostIntegration } from "@/satellites/anilist";
+import { AnimeBytesHostIntegration } from "@/core/shared";
+import { SearchPage } from "@/core/pages/search";
+import { SeriesPage } from "@/core/pages/series";
+import { TorrentGroupPage } from "@/core/pages/torrent";
+import { ReleasesIntegration } from "@/satellites/releases";
+import { SeaDexIntegration } from "@/satellites/seadex";
+import { YouTubeIntegration } from "@/satellites/youtube";
 // Styles
 import "@/styles";
 

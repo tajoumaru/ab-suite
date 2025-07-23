@@ -1,5 +1,6 @@
-import { cachedApiCall, setCachedValue } from "@/utils/cache";
-import { log } from "@/utils/logging";
+import { apiRequest } from "@/lib/api";
+import { cachedApiCall, setCachedValue } from "@/lib/utils/cache";
+import { log } from "@/lib/utils/logging";
 
 // API Response Interfaces
 export interface JikanAnimeResponse {
@@ -108,36 +109,20 @@ export async function fetchMyAnimeListData(malId: number): Promise<JikanAnimeRes
   return cachedApiCall(
     cacheKey,
     () =>
-      new Promise<JikanAnimeResponse | null>((resolve) => {
-        GM_xmlhttpRequest({
-          method: "GET",
-          url: `https://api.jikan.moe/v4/anime/${malId}`,
-          onload: (response) => {
-            if (response.status === 200) {
-              try {
-                const data = JSON.parse(response.responseText);
-                resolve(data);
-              } catch (error) {
-                log("Failed to parse Jikan API response", error);
-                resolve(null);
-              }
-            } else {
-              log("Jikan API returned status", response.status);
-              resolve(null);
-            }
-          },
-          onerror: () => {
-            log("Failed to fetch Jikan API data");
-            resolve(null);
-          },
-        });
+      apiRequest<JikanAnimeResponse>({
+        method: "GET",
+        url: `https://api.jikan.moe/v4/anime/${malId}`,
+        responseType: "json",
       }),
     {
       ttl: 24 * 60 * 60 * 1000, // 24 hours - ratings change infrequently
       failureTtl: 2 * 60 * 60 * 1000, // 2 hours for failures
       apiKey: "jikan",
     },
-  );
+  ).catch((error) => {
+    log("Failed to fetch Jikan API data", error);
+    return null;
+  });
 }
 
 // Fetch MAL videos data via Jikan API
@@ -146,36 +131,20 @@ export async function fetchMalVideosData(malId: number): Promise<JikanVideosResp
   return cachedApiCall(
     cacheKey,
     () =>
-      new Promise<JikanVideosResponse | null>((resolve) => {
-        GM_xmlhttpRequest({
-          method: "GET",
-          url: `https://api.jikan.moe/v4/anime/${malId}/videos`,
-          onload: (response) => {
-            if (response.status === 200) {
-              try {
-                const data = JSON.parse(response.responseText);
-                resolve(data);
-              } catch (error) {
-                log("Failed to parse Jikan videos API response", error);
-                resolve(null);
-              }
-            } else {
-              log("Jikan videos API returned status", response.status);
-              resolve(null);
-            }
-          },
-          onerror: () => {
-            log("Failed to fetch Jikan videos API data");
-            resolve(null);
-          },
-        });
+      apiRequest<JikanVideosResponse>({
+        method: "GET",
+        url: `https://api.jikan.moe/v4/anime/${malId}/videos`,
+        responseType: "json",
       }),
     {
       ttl: 7 * 24 * 60 * 60 * 1000, // 7 days - videos change rarely
       failureTtl: 2 * 60 * 60 * 1000, // 2 hours for failures
       apiKey: "jikan-videos",
     },
-  );
+  ).catch((error) => {
+    log("Failed to fetch Jikan videos API data", error);
+    return null;
+  });
 }
 
 // Fetch AniDB data
@@ -184,45 +153,37 @@ export async function fetchAnidbData(anidbId: number): Promise<AnidbAnimeRespons
   return cachedApiCall(
     cacheKey,
     () =>
-      new Promise<AnidbAnimeResponse | null>((resolve) => {
-        GM_xmlhttpRequest({
-          method: "GET",
-          url: `http://api.anidb.net:9001/httpapi?client=absuite&clientver=1&protover=1&request=anime&aid=${anidbId}`,
-          onload: (response) => {
-            if (response.status === 200) {
-              try {
-                const parser = new DOMParser();
-                const xmlDoc = parser.parseFromString(response.responseText, "text/xml");
-                const ratingElement = xmlDoc.querySelector("ratings > permanent");
+      apiRequest<string>({
+        method: "GET",
+        url: `http://api.anidb.net:9001/httpapi?client=absuite&clientver=1&protover=1&request=anime&aid=${anidbId}`,
+        responseType: "text",
+      }).then((responseText) => {
+        try {
+          const parser = new DOMParser();
+          const xmlDoc = parser.parseFromString(responseText, "text/xml");
+          const ratingElement = xmlDoc.querySelector("ratings > permanent");
 
-                if (ratingElement) {
-                  const rating = parseFloat(ratingElement.textContent || "0");
-                  const votes = parseInt(ratingElement.getAttribute("count") || "0", 10);
-                  resolve({ rating: rating || null, votes: votes || null });
-                } else {
-                  resolve({ rating: null, votes: null });
-                }
-              } catch (error) {
-                log("Failed to parse AniDB API response", error);
-                resolve(null);
-              }
-            } else {
-              log("AniDB API returned status", response.status);
-              resolve(null);
-            }
-          },
-          onerror: () => {
-            log("Failed to fetch AniDB API data");
-            resolve(null);
-          },
-        });
+          if (ratingElement) {
+            const rating = parseFloat(ratingElement.textContent || "0");
+            const votes = parseInt(ratingElement.getAttribute("count") || "0", 10);
+            return { rating: rating || null, votes: votes || null };
+          } else {
+            return { rating: null, votes: null };
+          }
+        } catch (error) {
+          log("Failed to parse AniDB API response", error);
+          return null;
+        }
       }),
     {
       ttl: 24 * 60 * 60 * 1000, // 24 hours - ratings change infrequently
       failureTtl: 6 * 60 * 60 * 1000, // 6 hours for failures (AniDB can be flaky)
       apiKey: "anidb",
     },
-  );
+  ).catch((error) => {
+    log("Failed to fetch AniDB API data", error);
+    return null;
+  });
 }
 
 // Fetch Kitsu data
@@ -231,39 +192,23 @@ export async function fetchKitsuData(kitsuId: number): Promise<KitsuAnimeRespons
   return cachedApiCall(
     cacheKey,
     () =>
-      new Promise<KitsuAnimeResponse | null>((resolve) => {
-        GM_xmlhttpRequest({
-          method: "GET",
-          url: `https://kitsu.app/api/edge/anime/${kitsuId}`,
-          headers: {
-            Accept: "application/vnd.api+json",
-          },
-          onload: (response) => {
-            if (response.status === 200) {
-              try {
-                const data = JSON.parse(response.responseText);
-                resolve(data);
-              } catch (error) {
-                log("Failed to parse Kitsu API response", error);
-                resolve(null);
-              }
-            } else {
-              log("Kitsu API returned status", response.status);
-              resolve(null);
-            }
-          },
-          onerror: () => {
-            log("Failed to fetch Kitsu API data");
-            resolve(null);
-          },
-        });
+      apiRequest<KitsuAnimeResponse>({
+        method: "GET",
+        url: `https://kitsu.app/api/edge/anime/${kitsuId}`,
+        headers: {
+          Accept: "application/vnd.api+json",
+        },
+        responseType: "json",
       }),
     {
       ttl: 24 * 60 * 60 * 1000, // 24 hours - ratings change infrequently
       failureTtl: 2 * 60 * 60 * 1000, // 2 hours for failures
       apiKey: "kitsu",
     },
-  );
+  ).catch((error) => {
+    log("Failed to fetch Kitsu API data", error);
+    return null;
+  });
 }
 
 // Fetch TMDB data (updated to include videos)
@@ -276,40 +221,24 @@ export async function fetchTmdbData(
   return cachedApiCall(
     cacheKey,
     () =>
-      new Promise<TmdbResponse | null>((resolve) => {
-        GM_xmlhttpRequest({
-          method: "GET",
-          url: `https://api.themoviedb.org/3/${mediaType}/${tmdbId}?append_to_response=videos`,
-          headers: {
-            Authorization: `Bearer ${tmdbApiToken}`,
-            Accept: "application/json",
-          },
-          onload: (response) => {
-            if (response.status === 200) {
-              try {
-                const data = JSON.parse(response.responseText);
-                resolve(data);
-              } catch (error) {
-                log("Failed to parse TMDB API response", error);
-                resolve(null);
-              }
-            } else {
-              log("TMDB API returned status", response.status);
-              resolve(null);
-            }
-          },
-          onerror: () => {
-            log("Failed to fetch TMDB API data");
-            resolve(null);
-          },
-        });
+      apiRequest<TmdbResponse>({
+        method: "GET",
+        url: `https://api.themoviedb.org/3/${mediaType}/${tmdbId}?append_to_response=videos`,
+        headers: {
+          Authorization: `Bearer ${tmdbApiToken}`,
+          Accept: "application/json",
+        },
+        responseType: "json",
       }),
     {
       ttl: 24 * 60 * 60 * 1000, // 24 hours
       failureTtl: 2 * 60 * 60 * 1000, // 2 hours for failures
       apiKey: "tmdb",
     },
-  );
+  ).catch((error) => {
+    log("Failed to fetch TMDB API data", error);
+    return null;
+  });
 }
 
 // Fetch IMDb data by scraping
@@ -317,55 +246,44 @@ export async function fetchImdbData(imdbId: string): Promise<ImdbJsonLd | null> 
   const cacheKey = `imdb-scrape-${imdbId}`;
   return cachedApiCall(
     cacheKey,
-    () =>
-      new Promise<ImdbJsonLd | null>((resolve) => {
-        const url = `https://www.imdb.com/title/${imdbId}/`;
-        GM_xmlhttpRequest({
-          method: "GET",
-          url,
-          onload: (response) => {
-            if (response.status === 200) {
-              try {
-                // Extract only the JSON-LD script to avoid loading external resources
-                const jsonLdMatch = response.responseText.match(
-                  /<script type="application\/ld\+json"[^>]*>(.*?)<\/script>/s,
-                );
-                if (!jsonLdMatch) {
-                  log("IMDb JSON-LD script not found");
-                  resolve(null);
-                  return;
-                }
+    () => {
+      const url = `https://www.imdb.com/title/${imdbId}/`;
+      return apiRequest<string>({
+        method: "GET",
+        url,
+        responseType: "text",
+      }).then((responseText) => {
+        try {
+          // Extract only the JSON-LD script to avoid loading external resources
+          const jsonLdMatch = responseText.match(/<script type="application\/ld\+json"[^>]*>(.*?)<\/script>/s);
+          if (!jsonLdMatch) {
+            log("IMDb JSON-LD script not found");
+            return null;
+          }
 
-                const jsonData = JSON.parse(jsonLdMatch[1]);
+          const jsonData = JSON.parse(jsonLdMatch[1]);
 
-                if (!jsonData.aggregateRating || !jsonData.url) {
-                  log("Invalid IMDb JSON-LD data", jsonData);
-                  resolve(null);
-                  return;
-                }
+          if (!jsonData.aggregateRating || !jsonData.url) {
+            log("Invalid IMDb JSON-LD data", jsonData);
+            return null;
+          }
 
-                resolve(jsonData);
-              } catch (error) {
-                log("Failed to parse IMDb page", error);
-                resolve(null);
-              }
-            } else {
-              log("IMDb returned status", response.status);
-              resolve(null);
-            }
-          },
-          onerror: () => {
-            log("Failed to fetch IMDb data");
-            resolve(null);
-          },
-        });
-      }),
+          return jsonData;
+        } catch (error) {
+          log("Failed to parse IMDb page", error);
+          return null;
+        }
+      });
+    },
     {
       ttl: 7 * 24 * 60 * 60 * 1000, // 7 days - ratings change slowly
       failureTtl: 6 * 60 * 60 * 1000, // 6 hours for failures
       apiKey: "imdb",
     },
-  );
+  ).catch((error) => {
+    log("Failed to fetch IMDb data", error);
+    return null;
+  });
 }
 
 // Batch fetch YouTube video info for multiple videos (up to 50 at a time)
@@ -388,162 +306,113 @@ export async function fetchYouTubeVideosInfo(
     const batchCacheKey = `youtube-videos-${batch.join(",")}`;
     const batchResult = await cachedApiCall(
       batchCacheKey,
-      () =>
-        new Promise<Record<string, YouTubeVideoInfo | null>>((resolve) => {
-          const batchResults: Record<string, YouTubeVideoInfo | null> = {};
+      async () => {
+        const batchResults: Record<string, YouTubeVideoInfo | null> = {};
 
+        try {
           // First get video details for all videos in batch
-          GM_xmlhttpRequest({
+          const data = await apiRequest<any>({
             method: "GET",
             url: `https://www.googleapis.com/youtube/v3/videos?id=${batch.join(",")}&part=snippet,status&key=${youtubeApiKey}`,
-            onload: async (response) => {
-              if (response.status === 200) {
-                try {
-                  const data = JSON.parse(response.responseText);
-                  interface YouTubeVideoSnippet {
-                    channelId: string;
-                    title: string;
-                    description: string;
-                    publishedAt: string;
-                    thumbnails: Record<string, { url: string }>;
-                  }
-
-                  interface YouTubeVideoStatus {
-                    embeddable: boolean;
-                    privacyStatus: string;
-                  }
-
-                  const videoMap = new Map<
-                    string,
-                    { id: string; snippet: YouTubeVideoSnippet; status: YouTubeVideoStatus }
-                  >();
-
-                  // Process video data
-                  if (data.items && Array.isArray(data.items)) {
-                    for (const video of data.items) {
-                      videoMap.set(video.id, video);
-                    }
-                  }
-
-                  // Set null for videos not found
-                  for (const videoId of batch) {
-                    if (!videoMap.has(videoId)) {
-                      batchResults[videoId] = null;
-                    }
-                  }
-
-                  // Now get captions for all videos in one request
-                  const videosWithData = Array.from(videoMap.keys());
-                  if (videosWithData.length > 0) {
-                    GM_xmlhttpRequest({
-                      method: "GET",
-                      url: `https://www.googleapis.com/youtube/v3/captions?videoId=${videosWithData.join(",")}&part=snippet&key=${youtubeApiKey}`,
-                      onload: (captionsResponse) => {
-                        const captionsMap = new Map<string, YouTubeVideoInfo["captions"]>();
-
-                        if (captionsResponse.status === 200) {
-                          try {
-                            const captionsData = JSON.parse(
-                              captionsResponse.responseText,
-                            ) as import("@/types/external-apis").YouTubeCaptionsResponse;
-
-                            // Group captions by video ID
-                            if (captionsData.items && Array.isArray(captionsData.items)) {
-                              for (const caption of captionsData.items) {
-                                const videoId = caption.snippet.videoId;
-                                if (!captionsMap.has(videoId)) {
-                                  captionsMap.set(videoId, []);
-                                }
-                                const captions = captionsMap.get(videoId);
-                                if (captions) {
-                                  captions.push({
-                                    languageCode: caption.snippet.language,
-                                    name: caption.snippet.name,
-                                    kind: caption.snippet.trackKind === "ASR" ? "asr" : "standard",
-                                  });
-                                }
-                              }
-                            }
-                          } catch (error) {
-                            log("Failed to parse YouTube captions batch response", error);
-                          }
-                        }
-
-                        // Build final results
-                        for (const [videoId, video] of videoMap) {
-                          const snippet = video.snippet;
-                          const status = video.status;
-
-                          batchResults[videoId] = {
-                            id: videoId,
-                            channelId: snippet.channelId,
-                            title: snippet.title,
-                            description: snippet.description,
-                            publishedAt: snippet.publishedAt,
-                            thumbnails: snippet.thumbnails,
-                            captions: captionsMap.get(videoId) || [],
-                            playable: status.embeddable && status.privacyStatus === "public",
-                          };
-                        }
-
-                        resolve(batchResults);
-                      },
-                      onerror: () => {
-                        // If captions fetch fails, still return video info without captions
-                        for (const [videoId, video] of videoMap) {
-                          const snippet = video.snippet;
-                          const status = video.status;
-
-                          batchResults[videoId] = {
-                            id: videoId,
-                            channelId: snippet.channelId,
-                            title: snippet.title,
-                            description: snippet.description,
-                            publishedAt: snippet.publishedAt,
-                            thumbnails: snippet.thumbnails,
-                            captions: [],
-                            playable: status.embeddable && status.privacyStatus === "public",
-                          };
-                        }
-
-                        resolve(batchResults);
-                      },
-                    });
-                  } else {
-                    resolve(batchResults);
-                  }
-                } catch (error) {
-                  log("Failed to parse YouTube batch API response", error);
-                  // Return null for all videos in batch
-                  for (const videoId of batch) {
-                    batchResults[videoId] = null;
-                  }
-                  resolve(batchResults);
-                }
-              } else {
-                log("YouTube batch API returned status", response.status);
-                // Return null for all videos in batch
-                for (const videoId of batch) {
-                  batchResults[videoId] = null;
-                }
-                resolve(batchResults);
-              }
-            },
-            onerror: () => {
-              log("Failed to fetch YouTube batch API data");
-              // Return null for all videos in batch
-              for (const videoId of batch) {
-                batchResults[videoId] = null;
-              }
-              resolve(batchResults);
-            },
+            responseType: "json",
           });
-        }),
+          interface YouTubeVideoSnippet {
+            channelId: string;
+            title: string;
+            description: string;
+            publishedAt: string;
+            thumbnails: Record<string, { url: string }>;
+          }
+
+          interface YouTubeVideoStatus {
+            embeddable: boolean;
+            privacyStatus: string;
+          }
+
+          const videoMap = new Map<
+            string,
+            { id: string; snippet: YouTubeVideoSnippet; status: YouTubeVideoStatus }
+          >();
+
+          // Process video data
+          if (data.items && Array.isArray(data.items)) {
+            for (const video of data.items) {
+              videoMap.set(video.id, video);
+            }
+          }
+
+          // Set null for videos not found
+          for (const videoId of batch) {
+            if (!videoMap.has(videoId)) {
+              batchResults[videoId] = null;
+            }
+          }
+
+          // Now get captions for all videos in one request
+          const videosWithData = Array.from(videoMap.keys());
+          const captionsMap = new Map<string, YouTubeVideoInfo["captions"]>();
+          
+          if (videosWithData.length > 0) {
+            try {
+              const captionsData = await apiRequest<import("@/types/external-apis").YouTubeCaptionsResponse>({
+                method: "GET",
+                url: `https://www.googleapis.com/youtube/v3/captions?videoId=${videosWithData.join(",")}&part=snippet&key=${youtubeApiKey}`,
+                responseType: "json",
+              });
+
+              // Group captions by video ID
+              if (captionsData.items && Array.isArray(captionsData.items)) {
+                for (const caption of captionsData.items) {
+                  const videoId = caption.snippet.videoId;
+                  if (!captionsMap.has(videoId)) {
+                    captionsMap.set(videoId, []);
+                  }
+                  const captions = captionsMap.get(videoId);
+                  if (captions) {
+                    captions.push({
+                      languageCode: caption.snippet.language,
+                      name: caption.snippet.name,
+                      kind: caption.snippet.trackKind === "ASR" ? "asr" : "standard",
+                    });
+                  }
+                }
+              }
+            } catch (error) {
+              log("Failed to fetch YouTube captions batch response", error);
+            }
+          }
+
+          // Build final results
+          for (const [videoId, video] of videoMap) {
+            const snippet = video.snippet;
+            const status = video.status;
+
+            batchResults[videoId] = {
+              id: videoId,
+              channelId: snippet.channelId,
+              title: snippet.title,
+              description: snippet.description,
+              publishedAt: snippet.publishedAt,
+              thumbnails: snippet.thumbnails,
+              captions: captionsMap.get(videoId) || [],
+              playable: status.embeddable && status.privacyStatus === "public",
+            };
+          }
+
+          return batchResults;
+        } catch (error) {
+          log("Failed to fetch YouTube batch API data", error);
+          // Return null for all videos in batch
+          for (const videoId of batch) {
+            batchResults[videoId] = null;
+          }
+          return batchResults;
+        }
+      },
       {
         ttl: 7 * 24 * 60 * 60 * 1000, // 7 days - video info changes rarely
-        failureTtl: 2 * 60 * 60 * 1000, // 2 hours for failures
         apiKey: "youtube",
-      },
+      }
     );
 
     // Merge batch results into main results
@@ -568,92 +437,60 @@ export async function fetchYouTubeVideoInfo(videoId: string, youtubeApiKey: stri
   const cacheKey = `youtube-video-${videoId}`;
   return cachedApiCall(
     cacheKey,
-    () =>
-      new Promise<YouTubeVideoInfo | null>((resolve) => {
-        // First get video details
-        GM_xmlhttpRequest({
+    async () => {
+      // First get video details
+      const videoData = await apiRequest<any>({
+        method: "GET",
+        url: `https://www.googleapis.com/youtube/v3/videos?id=${videoId}&part=snippet,status&key=${youtubeApiKey}`,
+        responseType: "json",
+      });
+
+      if (!videoData.items || videoData.items.length === 0) {
+        return null;
+      }
+
+      const video = videoData.items[0];
+      const snippet = video.snippet;
+      const status = video.status;
+
+      // Now get captions info
+      let captions: YouTubeVideoInfo["captions"] = [];
+      try {
+        const captionsData = await apiRequest<import("@/types/external-apis").YouTubeCaptionsResponse>({
           method: "GET",
-          url: `https://www.googleapis.com/youtube/v3/videos?id=${videoId}&part=snippet,status&key=${youtubeApiKey}`,
-          onload: (response) => {
-            if (response.status === 200) {
-              try {
-                const data = JSON.parse(response.responseText);
-                if (!data.items || data.items.length === 0) {
-                  resolve(null);
-                  return;
-                }
-
-                const video = data.items[0];
-                const snippet = video.snippet;
-                const status = video.status;
-
-                // Now get captions info
-                GM_xmlhttpRequest({
-                  method: "GET",
-                  url: `https://www.googleapis.com/youtube/v3/captions?videoId=${videoId}&part=snippet&key=${youtubeApiKey}`,
-                  onload: (captionsResponse) => {
-                    let captions: YouTubeVideoInfo["captions"] = [];
-
-                    if (captionsResponse.status === 200) {
-                      try {
-                        const captionsData = JSON.parse(
-                          captionsResponse.responseText,
-                        ) as import("@/types/external-apis").YouTubeCaptionsResponse;
-                        captions =
-                          captionsData.items?.map((caption) => ({
-                            languageCode: caption.snippet.language,
-                            name: caption.snippet.name,
-                            kind: caption.snippet.trackKind === "ASR" ? "asr" : "standard",
-                          })) || [];
-                      } catch (error) {
-                        log("Failed to parse YouTube captions response", error);
-                      }
-                    }
-
-                    resolve({
-                      id: videoId,
-                      channelId: snippet.channelId,
-                      title: snippet.title,
-                      description: snippet.description,
-                      publishedAt: snippet.publishedAt,
-                      thumbnails: snippet.thumbnails,
-                      captions,
-                      playable: status.embeddable && status.privacyStatus === "public",
-                    });
-                  },
-                  onerror: () => {
-                    // If captions fetch fails, still return video info without captions
-                    resolve({
-                      id: videoId,
-                      channelId: snippet.channelId,
-                      title: snippet.title,
-                      description: snippet.description,
-                      publishedAt: snippet.publishedAt,
-                      thumbnails: snippet.thumbnails,
-                      captions: [],
-                      playable: status.embeddable && status.privacyStatus === "public",
-                    });
-                  },
-                });
-              } catch (error) {
-                log("Failed to parse YouTube API response", error);
-                resolve(null);
-              }
-            } else {
-              log("YouTube API returned status", response.status);
-              resolve(null);
-            }
-          },
-          onerror: () => {
-            log("Failed to fetch YouTube API data");
-            resolve(null);
-          },
+          url: `https://www.googleapis.com/youtube/v3/captions?videoId=${videoId}&part=snippet&key=${youtubeApiKey}`,
+          responseType: "json",
         });
-      }),
+
+        captions =
+          captionsData.items?.map((caption) => ({
+            languageCode: caption.snippet.language,
+            name: caption.snippet.name,
+            kind: caption.snippet.trackKind === "ASR" ? "asr" : "standard",
+          })) || [];
+      } catch (error) {
+        log("Failed to fetch YouTube captions", error);
+        // Continue without captions
+      }
+
+      return {
+        id: videoId,
+        channelId: snippet.channelId,
+        title: snippet.title,
+        description: snippet.description,
+        publishedAt: snippet.publishedAt,
+        thumbnails: snippet.thumbnails,
+        captions,
+        playable: status.embeddable && status.privacyStatus === "public",
+      };
+    },
     {
       ttl: 7 * 24 * 60 * 60 * 1000, // 7 days - video info changes rarely
       failureTtl: 2 * 60 * 60 * 1000, // 2 hours for failures
       apiKey: "youtube",
     },
-  );
+  ).catch((error) => {
+    log("Failed to fetch YouTube API data", error);
+    return null;
+  });
 }

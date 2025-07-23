@@ -1,5 +1,6 @@
-import type { RequestOptions, SeaDexEntry, SeaDexResponse, TorrentInfo } from "@/types";
-import { err } from "@/utils/logging";
+import { apiRequest } from "@/lib/api";
+import { err } from "@/lib/utils/logging";
+import type { SeaDexEntry, SeaDexResponse, TorrentInfo } from "@/types";
 
 interface AutocompleteResult {
   id: string;
@@ -12,20 +13,13 @@ interface AutocompleteResponse {
   results?: AutocompleteResult[];
 }
 
-class ApiError extends Error {
-  constructor(
-    message: string,
-    public status?: number,
-  ) {
-    super(message);
-    this.name = "ApiError";
-  }
-}
-
 class ApiService {
   private requestCache = new Map<string, Promise<unknown>>();
 
-  private async request<T>(url: string, options: RequestOptions = {}): Promise<T> {
+  private async request<T>(
+    url: string,
+    options: { method?: "GET" | "POST" | "HEAD"; headers?: Record<string, string> } = {},
+  ): Promise<T> {
     const cacheKey = `${url}${JSON.stringify(options)}`;
 
     // Check if we have a pending request for this exact URL+options combination
@@ -33,8 +27,13 @@ class ApiService {
       return this.requestCache.get(cacheKey) as Promise<T>;
     }
 
-    // Create new request promise
-    const requestPromise = this.makeRequest<T>(url, options);
+    // Create new request promise using centralized apiRequest
+    const requestPromise = apiRequest<T>({
+      method: options.method || "GET",
+      url: url.toString(),
+      headers: options.headers,
+      responseType: "json",
+    });
 
     // Store the promise in cache
     this.requestCache.set(cacheKey, requestPromise);
@@ -45,34 +44,6 @@ class ApiService {
     });
 
     return requestPromise;
-  }
-
-  private async makeRequest<T>(url: string, options: RequestOptions = {}): Promise<T> {
-    const { method = "GET", timeout = 10000, headers = {} } = options;
-
-    return new Promise((resolve, reject) => {
-      GM_xmlhttpRequest({
-        method: method as "GET" | "POST" | "HEAD" | undefined,
-        url: url.toString(),
-        headers,
-        timeout,
-        ontimeout: () => reject(new ApiError(`Request timed out after ${timeout}ms`)),
-        onerror: () => reject(new ApiError("Network request failed", 0)),
-        onload: (response) => {
-          if (response.status >= 400) {
-            reject(new ApiError(`HTTP ${response.status}: ${response.statusText}`, response.status));
-            return;
-          }
-
-          try {
-            const data = JSON.parse(response.responseText);
-            resolve(data);
-          } catch (_) {
-            reject(new ApiError("Failed to parse JSON response"));
-          }
-        },
-      });
-    });
   }
 
   /**

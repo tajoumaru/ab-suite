@@ -1,4 +1,4 @@
-import { log } from "@/utils/logging";
+import { log } from "@/lib/utils/logging";
 
 /**
  * Shared parsing utilities for consistent data extraction across components

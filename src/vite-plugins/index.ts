@@ -11,14 +11,14 @@ export function cssInjectionPlugin(options: { minify?: boolean } = {}): Plugin {
   return {
     name: "css-injection",
     load(id: string) {
-      // Intercept CSS imports and collect them
-      if (id.endsWith(".css")) {
+      // Intercept CSS/SCSS imports and collect them
+      if (id.endsWith(".css") || id.endsWith(".scss")) {
         return null; // Let the default loader handle it, but we'll track it
       }
     },
     transform(code: string, id: string) {
-      // Look for CSS imports in the code and track them
-      if (id.endsWith(".css")) {
+      // Look for CSS/SCSS imports in the code and track them
+      if (id.endsWith(".css") || id.endsWith(".scss")) {
         collectedCSS += `${code}\n`;
         return `export default ${JSON.stringify(code)};`; // Export as string to prevent embedding
       }

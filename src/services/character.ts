@@ -1,5 +1,6 @@
-import { cachedApiCall } from "@/utils/cache";
-import { log } from "@/utils/logging";
+import { apiRequest } from "@/lib/api";
+import { cachedApiCall } from "@/lib/utils/cache";
+import { log } from "@/lib/utils/logging";
 
 export interface AniListCharacterData {
   image: {
@@ -76,49 +77,34 @@ export class CharacterService {
       const response = await cachedApiCall(
         cacheKey,
         () =>
-          new Promise<{ data: { Character: AniListCharacterData } } | null>((resolve) => {
-            GM_xmlhttpRequest({
-              method: "POST",
-              url: CharacterService.ANILIST_GRAPHQL_URL,
-              headers: {
-                "Content-Type": "application/json",
-                Accept: "application/json",
-              },
-              data: JSON.stringify({
-                query: ANILIST_CHARACTER_QUERY,
-                variables: { search: searchTerm },
-              }),
-              onload: (response) => {
-                if (response.status === 200) {
-                  try {
-                    const data = JSON.parse(response.responseText);
-                    if (data.errors || !data.data?.Character) {
-                      log("AniList Character search returned no results for:", searchTerm);
-                      resolve(null);
-                    } else {
-                      resolve(data);
-                    }
-                  } catch (error) {
-                    log("Failed to parse AniList character response", error);
-                    resolve(null);
-                  }
-                } else {
-                  log("AniList Character API returned status", response.status);
-                  resolve(null);
-                }
-              },
-              onerror: () => {
-                log("Failed to fetch AniList character data");
-                resolve(null);
-              },
-            });
+          apiRequest<{ data: { Character: AniListCharacterData }; errors?: any[] }>({
+            method: "POST",
+            url: CharacterService.ANILIST_GRAPHQL_URL,
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            data: {
+              query: ANILIST_CHARACTER_QUERY,
+              variables: { search: searchTerm },
+            },
+            responseType: "json",
+          }).then((data) => {
+            if (data.errors || !data.data?.Character) {
+              log("AniList Character search returned no results for:", searchTerm);
+              return null;
+            }
+            return data;
           }),
         {
           ttl: 24 * 60 * 60 * 1000, // 24 hours
           failureTtl: 60 * 60 * 1000, // 1 hour for failures
           apiKey: "anilist-character",
         },
-      );
+      ).catch((error) => {
+        log("Failed to fetch AniList character data", error);
+        return null;
+      });
 
       return response?.data?.Character || null;
     } catch (error) {
@@ -136,48 +122,34 @@ export class CharacterService {
     try {
       const response = await cachedApiCall(
         cacheKey,
-        () =>
-          new Promise<MalResponse | null>((resolve) => {
-            const encodedQuery = encodeURIComponent(searchTerm);
-            const url = `${CharacterService.MAL_API_URL}/characters?q=${encodedQuery}&limit=1`;
+        () => {
+          const encodedQuery = encodeURIComponent(searchTerm);
+          const url = `${CharacterService.MAL_API_URL}/characters?q=${encodedQuery}&limit=1`;
 
-            GM_xmlhttpRequest({
-              method: "GET",
-              url,
-              headers: {
-                Accept: "application/json",
-              },
-              onload: (response) => {
-                if (response.status === 200) {
-                  try {
-                    const data: MalResponse = JSON.parse(response.responseText);
-                    if (!data.data || data.data.length === 0) {
-                      log("MAL Character search returned no results for:", searchTerm);
-                      resolve(null);
-                    } else {
-                      resolve(data);
-                    }
-                  } catch (error) {
-                    log("Failed to parse MAL character response", error);
-                    resolve(null);
-                  }
-                } else {
-                  log("MAL Character API returned status", response.status);
-                  resolve(null);
-                }
-              },
-              onerror: () => {
-                log("Failed to fetch MAL character data");
-                resolve(null);
-              },
-            });
-          }),
+          return apiRequest<MalResponse>({
+            method: "GET",
+            url,
+            headers: {
+              Accept: "application/json",
+            },
+            responseType: "json",
+          }).then((data) => {
+            if (!data.data || data.data.length === 0) {
+              log("MAL Character search returned no results for:", searchTerm);
+              return null;
+            }
+            return data;
+          });
+        },
         {
           ttl: 24 * 60 * 60 * 1000, // 24 hours
           failureTtl: 60 * 60 * 1000, // 1 hour for failures
           apiKey: "mal-character",
         },
-      );
+      ).catch((error) => {
+        log("Failed to fetch MAL character data", error);
+        return null;
+      });
 
       return response?.data?.[0] || null;
     } catch (error) {
@@ -239,43 +211,30 @@ export class CharacterService {
     const originalCacheKey = `anilist-character-${originalRomanizedName}`;
 
     try {
-      const response = await new Promise<{ data: { Character: AniListCharacterData } } | null>((resolve) => {
-        GM_xmlhttpRequest({
-          method: "POST",
-          url: CharacterService.ANILIST_GRAPHQL_URL,
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          data: JSON.stringify({
-            query: ANILIST_CHARACTER_QUERY,
-            variables: { search: kanjiName },
-          }),
-          onload: (response) => {
-            if (response.status === 200) {
-              try {
-                const data = JSON.parse(response.responseText);
-                if (data.errors || !data.data?.Character) {
-                  log("AniList Character search returned no results for kanji:", kanjiName);
-                  resolve(null);
-                } else {
-                  resolve(data);
-                }
-              } catch (error) {
-                log("Failed to parse AniList character response", error);
-                resolve(null);
-              }
-            } else {
-              log("AniList Character API returned status", response.status);
-              resolve(null);
-            }
-          },
-          onerror: () => {
-            log("Failed to fetch AniList character data");
-            resolve(null);
-          },
+      const response = await apiRequest<{ data: { Character: AniListCharacterData }; errors?: any[] }>({
+        method: "POST",
+        url: CharacterService.ANILIST_GRAPHQL_URL,
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        data: {
+          query: ANILIST_CHARACTER_QUERY,
+          variables: { search: kanjiName },
+        },
+        responseType: "json",
+      })
+        .then((data) => {
+          if (data.errors || !data.data?.Character) {
+            log("AniList Character search returned no results for kanji:", kanjiName);
+            return null;
+          }
+          return data;
+        })
+        .catch((error) => {
+          log("Failed to fetch AniList character data", error);
+          return null;
         });
-      });
 
       const characterData = response?.data?.Character || null;
 

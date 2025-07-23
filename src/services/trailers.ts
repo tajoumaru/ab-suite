@@ -1,4 +1,4 @@
-import { log } from "@/utils/logging";
+import { log } from "@/lib/utils/logging";
 import { fetchMalVideosData, fetchTmdbData, fetchYouTubeVideosInfo, type YouTubeVideoInfo } from "./externalApis";
 
 // Trailer data interfaces

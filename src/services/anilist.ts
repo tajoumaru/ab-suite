@@ -1,5 +1,6 @@
-import { cachedApiCall } from "@/utils/cache";
-import { log } from "@/utils/logging";
+import { apiRequest } from "@/lib/api";
+import { cachedApiCall } from "@/lib/utils/cache";
+import { log } from "@/lib/utils/logging";
 
 export interface AniListMediaData {
   id: number;
@@ -232,49 +233,34 @@ export class AniListService {
       const response = await cachedApiCall(
         cacheKey,
         () =>
-          new Promise<{ data: { Media: AniListMediaData } } | null>((resolve) => {
-            GM_xmlhttpRequest({
-              method: "POST",
-              url: AniListService.ANILIST_GRAPHQL_URL,
-              headers: {
-                "Content-Type": "application/json",
-                Accept: "application/json",
-              },
-              data: JSON.stringify({
-                query: ANILIST_MEDIA_QUERY,
-                variables: { mediaId },
-              }),
-              onload: (response) => {
-                if (response.status === 200) {
-                  try {
-                    const data = JSON.parse(response.responseText);
-                    if (data.errors) {
-                      log("AniList GraphQL errors:", data.errors);
-                      resolve(null);
-                    } else {
-                      resolve(data);
-                    }
-                  } catch (error) {
-                    log("Failed to parse AniList response", error);
-                    resolve(null);
-                  }
-                } else {
-                  log("AniList API returned status", response.status);
-                  resolve(null);
-                }
-              },
-              onerror: () => {
-                log("Failed to fetch AniList data");
-                resolve(null);
-              },
-            });
+          apiRequest<{ data: { Media: AniListMediaData }; errors?: any[] }>({
+            method: "POST",
+            url: AniListService.ANILIST_GRAPHQL_URL,
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            data: {
+              query: ANILIST_MEDIA_QUERY,
+              variables: { mediaId },
+            },
+            responseType: "json",
+          }).then((data) => {
+            if (data.errors) {
+              log("AniList GraphQL errors:", data.errors);
+              return null;
+            }
+            return data;
           }),
         {
           ttl: 24 * 60 * 60 * 1000, // 24 hours
           failureTtl: 60 * 60 * 1000, // 1 hour for failures
           apiKey: "anilist",
         },
-      );
+      ).catch((error) => {
+        log("Failed to fetch AniList data", error);
+        return null;
+      });
 
       return response?.data?.Media || null;
     } catch (error) {
@@ -409,7 +395,7 @@ export class AniListService {
     return cachedApiCall(
       cacheKey,
       () =>
-        new Promise<{
+        apiRequest<{
           data: {
             Media: {
               id: number;
@@ -423,46 +409,32 @@ export class AniListService {
               } | null;
             };
           };
-        } | null>((resolve) => {
-          GM_xmlhttpRequest({
-            method: "POST",
-            url: AniListService.ANILIST_GRAPHQL_URL,
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-            },
-            data: JSON.stringify({ query, variables }),
-            onload: (response) => {
-              if (response.status === 200) {
-                try {
-                  const data = JSON.parse(response.responseText);
-                  if (data.errors) {
-                    log("AniList GraphQL errors:", data.errors);
-                    resolve(null);
-                  } else {
-                    resolve(data);
-                  }
-                } catch (error) {
-                  log("Failed to parse AniList response", error);
-                  resolve(null);
-                }
-              } else {
-                log("AniList API returned status", response.status);
-                resolve(null);
-              }
-            },
-            onerror: () => {
-              log("Failed to fetch AniList data");
-              resolve(null);
-            },
-          });
+          errors?: any[];
+        }>({
+          method: "POST",
+          url: AniListService.ANILIST_GRAPHQL_URL,
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          data: { query, variables },
+          responseType: "json",
+        }).then((data) => {
+          if (data.errors) {
+            log("AniList GraphQL errors:", data.errors);
+            return null;
+          }
+          return data;
         }),
       {
         ttl: 12 * 60 * 60 * 1000, // 12 hours - AniList updates more frequently
         failureTtl: 2 * 60 * 60 * 1000, // 2 hours for failures
         apiKey: "anilist",
       },
-    );
+    ).catch((error) => {
+      log("Failed to fetch AniList data", error);
+      return null;
+    });
   }
 }
 

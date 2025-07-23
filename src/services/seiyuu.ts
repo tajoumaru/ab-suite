@@ -1,5 +1,6 @@
-import { cachedApiCall } from "@/utils/cache";
-import { log } from "@/utils/logging";
+import { apiRequest } from "@/lib/api";
+import { cachedApiCall } from "@/lib/utils/cache";
+import { log } from "@/lib/utils/logging";
 
 export interface AniListSeiyuuData {
   image: {
@@ -70,49 +71,34 @@ export class SeiyuuService {
       const response = await cachedApiCall(
         cacheKey,
         () =>
-          new Promise<{ data: { Staff: AniListSeiyuuData } } | null>((resolve) => {
-            GM_xmlhttpRequest({
-              method: "POST",
-              url: SeiyuuService.ANILIST_GRAPHQL_URL,
-              headers: {
-                "Content-Type": "application/json",
-                Accept: "application/json",
-              },
-              data: JSON.stringify({
-                query: ANILIST_SEIYUU_QUERY,
-                variables: { search: searchTerm },
-              }),
-              onload: (response) => {
-                if (response.status === 200) {
-                  try {
-                    const data = JSON.parse(response.responseText);
-                    if (data.errors || !data.data?.Staff) {
-                      log("AniList Seiyuu search returned no results for:", searchTerm);
-                      resolve(null);
-                    } else {
-                      resolve(data);
-                    }
-                  } catch (error) {
-                    log("Failed to parse AniList seiyuu response", error);
-                    resolve(null);
-                  }
-                } else {
-                  log("AniList Seiyuu API returned status", response.status);
-                  resolve(null);
-                }
-              },
-              onerror: () => {
-                log("Failed to fetch AniList seiyuu data");
-                resolve(null);
-              },
-            });
+          apiRequest<{ data: { Staff: AniListSeiyuuData }; errors?: any[] }>({
+            method: "POST",
+            url: SeiyuuService.ANILIST_GRAPHQL_URL,
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            data: {
+              query: ANILIST_SEIYUU_QUERY,
+              variables: { search: searchTerm },
+            },
+            responseType: "json",
+          }).then((data) => {
+            if (data.errors || !data.data?.Staff) {
+              log("AniList Seiyuu search returned no results for:", searchTerm);
+              return null;
+            }
+            return data;
           }),
         {
           ttl: 24 * 60 * 60 * 1000, // 24 hours
           failureTtl: 60 * 60 * 1000, // 1 hour for failures
           apiKey: "anilist-seiyuu",
         },
-      );
+      ).catch((error) => {
+        log("Failed to fetch AniList seiyuu data", error);
+        return null;
+      });
 
       return response?.data?.Staff || null;
     } catch (error) {
