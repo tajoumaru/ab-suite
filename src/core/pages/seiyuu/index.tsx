@@ -4,7 +4,6 @@ import { err, log } from "@/lib/utils/logging";
 import { type AniListSeiyuuData, seiyuuService } from "@/services/seiyuu";
 import { useSettingsStore } from "@/lib/state/settings";
 import { CollageTableIntegration } from "@/core/features/collage-table/CollageTable";
-import "./styles.css";
 
 interface SeiyuuMetadata {
   source: "anilist";

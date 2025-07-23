@@ -4,7 +4,6 @@ import { err, log } from "@/lib/utils/logging";
 import { type AniListCharacterData, characterService, type MalCharacterData } from "@/services/character";
 import { useSettingsStore } from "@/lib/state/settings";
 import { CollageTableIntegration } from "@/core/features/collage-table/CollageTable";
-import "./styles.css";
 
 interface CharacterMetadata {
   source: "anilist" | "mal";

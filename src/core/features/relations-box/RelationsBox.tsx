@@ -5,7 +5,6 @@ import { useMediaInfo } from "@/core/shared/hooks/useMediaInfo";
 import { getAniListData } from "./anilistService";
 import { matchRelations } from "./relationMatcher";
 import { fetchSeriesPageData, type SeriesEntry } from "./seriesPageService";
-import "./styles.css";
 
 interface RelationItem {
   animeBytesEntry?: SeriesEntry;

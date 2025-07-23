@@ -115,46 +115,39 @@ graph TD
 
 ## 4. Key Technical Changes & Conventions
 
-### 4.1. Styling: SCSS + BEM
-We will introduce SCSS and enforce the BEM naming convention to create a robust, maintainable styling system.
+### 4.1. Styling: UnoCSS
+We will adopt **UnoCSS**, the instant on-demand atomic CSS engine, to create a modern, maintainable, and highly efficient styling system. This replaces the manual, co-located CSS approach, eliminating the need for separate `.css` files and context switching.
 
-- **Tooling**: Add `sass-embedded` as a `devDependency`. (Already done.)
-- **File Convention**: All style files will be co-located with their component/feature and use the `.scss` extension (e.g., `core/features/character-cards/styles.scss`).
-- **BEM Convention**: We will use the `__` element and `--` modifier syntax. SCSS nesting will be used to make this highly readable.
-- **During Conversion**: Stylelint with a BEM pattern plugin has been installed. To confirm whether a scss file conforms to the BEM naming pattern `pnpm exec stylelint <file.scss>` can be used.
+- **Tooling**: Add `unocss`, `@unocss/preset-wind4` (preset based on TailWindCSS v4), and `@unocss/preset-attributify` as `devDependencies`. (Already done)
+- **Configuration**: A `uno.config.ts` file will be created at the project root to configure presets and custom rules. UnoCSS will be integrated directly into the Vite build process.
+- **Usage Convention**: We will primarily use **Attributify Mode** for its superior readability within JSX. This keeps markup clean by turning utility classes into props. All styling will be co-located directly within the component's TSX file.
+- **Conversion Strategy**: The migration will be incremental. As features are refactored (e.g., `modern-torrent-table` in Phase 4), their associated `.css` files will be deleted, and all styles will be converted to UnoCSS attributes directly on the JSX elements.
 
 **Example:**
-- core/features/character-cards/styles.scss:
-```scss
-/** @define character-card **/ <- that comment is required to define the block level of the file so that stylelint can understand the BEM patterns
-.character-card {
-  // Block styles
-  display: flex;
-  background-color: #fff;
+- core/features/character-cards/CharacterCard.tsx:
+```tsx
+// After (with UnoCSS Attributify Mode, no .css file needed)
+function CharacterCard() {
+  return (
+    <div display="flex" bg={someFlag ? "blue" : "yellow"} text={`sm ${someFlag ? "red" : "green"}`}>
+      <div flex-shrink="0" p="y-2 x-4">
+        <img w="full" h="full" object="cover" />
+      </div>
+      <div p="2">...</div>
+    </div>
+  );
+}
 
-  &__image-container {
-    // Element styles
-    flex-shrink: 0;
-  }
-
-  &__image {
-    // Element styles
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-
-    &--error {
-      // Modifier styles
-      display: none;
-    }
-  }
-
-  &__info {
-    // Element styles
-    padding: 8px;
-  }
+function badExamples() {
+  return (
+    <p text={`sm ${true ? "red": "green"} ${false ? "right" : "center"}`}></p> 
+    // two ternary sections in the template string break the parser and are therefore not allowed. If you need multiple dynamic values for a single property like "text", then use hierarchy and inheritance, or in this simple case simply add commonly used values like text-center and text-right to the safelist in `uno.config.ts`, in which case the above becomes valid and idiomatic again, since the parser does not need to parse the second ternary at all to generate the styles.
+    <p text={`${true ? "red": "green"} sm`}></p>
+    // this second example also breaks the parser. If you need a ternary template string, then make sure the ternary is at the end of the template string and static values come before it.
+  )
 }
 ```
+For more complex or reused styles, we will use `shortcuts` in `uno.config.ts` to create custom utilities.
 
 ### 4.2. Data Fetching & Caching
 All data fetching will be standardized through a central API client.
@@ -215,7 +208,7 @@ We will move from a monolithic `types` folder to co-located and shared type defi
 ## 5. Phased Implementation Plan
 
 ### Phase 1: Foundation & Tooling
-*   **Task 1.1: Configure Vite**: Verify that `vite.config.ts` and the `cssInjectionPlugin` correctly process `.scss` files. Vite typically handles this out-of-the-box when `sass` is installed. A quick test build is required to confirm.
+*   **Task 1.1: Configure Vite & UnoCSS**: Install `unocss`, `@unocss/preset-wind4`, and `@unocss/preset-attributify`. Create `uno.config.ts` and add the `UnoCSS()` plugin to `vite.config.ts`.
 
 ### Phase 2: Centralize Core Services (`lib`)
 *   **Task 2.1: Create `src/lib`**: Create `src/lib` and its subdirectories (`api`, `cache`, `state`, `utils`, `hooks`).
@@ -282,7 +275,7 @@ export function initializeSearchPage() {
 }
 ```
 *   **Task 4.4: Refactor Component**: The `ModernTorrentTable` component is now much simpler. It just receives `torrents` as a prop and renders. All DOM-scraping logic is gone.
-*   **Task 4.5: Convert to SCSS**: Rename the feature's CSS file to `styles.scss` and refactor the selectors to use BEM with SCSS nesting.
+*   **Task 4.5: Refactor Styling with UnoCSS**: Replace the old CSS classes in the feature's components with UnoCSS attributes. Delete the now-unused `.css` file.
 *   **Task 4.6: Co-locate Types**: Move types specific to the torrent table into `core/features/modern-torrent-table/types.ts`.
 *   **Task 4.7: Repeat**: Repeat this process for other major features.
 
@@ -291,5 +284,5 @@ export function initializeSearchPage() {
 *   **Task 5.2: Final Review**: Conduct a full code review to ensure:
     *   All imports are correct.
     *   There is no dead code.
-    *   The BEM and SCSS conventions have been applied consistently.
+    *   No css files are present anymore.
     *   The application builds successfully and all features function as expected.

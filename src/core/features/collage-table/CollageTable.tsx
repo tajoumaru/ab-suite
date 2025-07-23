@@ -2,7 +2,6 @@ import { render } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { log } from "@/lib/utils/logging";
 import { useSettingsStore } from "@/lib/state/settings";
-import "./collage-table.css";
 
 interface ParsedTitle {
   title: string;
@@ -302,12 +301,14 @@ export function CollageTableIntegration({
         originalTable.style.display = "none";
 
         // Create container for our modern grid
-        const container = document.createElement("div");
-        container.className = "ab-collage-container";
-        originalTable.parentNode?.insertBefore(container, originalTable);
+        const collageContainer = document.createElement("div");
+        
+        collageContainer.className = "ab-collage-container";
+
+        originalTable.parentNode?.insertBefore(collageContainer, originalTable);
 
         // Store container reference
-        containerRef.current = container;
+        containerRef.current = collageContainer;
 
         // Set the extracted data and mark as initialized
         setCollageItems(extractedItems);

@@ -14,6 +14,7 @@ import { SeaDexIntegration } from "@/satellites/seadex";
 import { YouTubeIntegration } from "@/satellites/youtube";
 // Styles
 import "@/styles";
+import "virtual:uno.css";
 
 function AniListAppBase() {
   return <AniListHostIntegration />;
