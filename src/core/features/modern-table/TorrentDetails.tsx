@@ -1,4 +1,5 @@
 import { useEffect, useState } from "preact/hooks";
+import { useSeaDexStore } from "@/core/shared/seadex";
 import { useSettingsStore } from "@/lib/state/settings";
 import { err, log } from "@/lib/utils/logging";
 import {
@@ -7,10 +8,10 @@ import {
   MediaInfoTab,
   PeerlistTab,
   ScreenshotsTab,
-  SeaDexTab,
   TreeFilelistTab,
   UploadDescription,
 } from "./detail-components";
+import { SeaDexTab } from "@/satellites/seadex/SeaDexTab";
 import { extractTorrentDetailsData, fetchPeerlistData, fetchScreenshotsData } from "./details-extraction";
 import type { TorrentDetailsData, TorrentDetailsProps } from "./types";
 
@@ -26,6 +27,8 @@ export function TorrentDetails({ torrentId, groupId, detailsHtml, onDataExtracte
   const [screenshotsLoaded, setScreenshotsLoaded] = useState(false);
   const [peerlistLoaded, setPeerlistLoaded] = useState(false);
   const { treeFilelistEnabled } = useSettingsStore(["treeFilelistEnabled"]);
+  const seaDexStore = useSeaDexStore();
+  const seaDexEntry = seaDexStore.getData(torrentId);
 
   // Extract data on mount
   useEffect(() => {
@@ -127,7 +130,7 @@ export function TorrentDetails({ torrentId, groupId, detailsHtml, onDataExtracte
     { id: "mediainfo", label: "MediaInfo", available: detailsData.mediaInfo.length > 0 },
     { id: "screenshots", label: "Screenshots", available: true },
     { id: "peerlist", label: "Peer list", available: true },
-    { id: "seadex", label: "SeaDex", available: !!detailsData.seadexData },
+    { id: "seadex", label: "SeaDex", available: !!seaDexEntry },
   ].filter((tab) => tab.available);
 
   const renderActiveTab = () => {
@@ -160,7 +163,7 @@ export function TorrentDetails({ torrentId, groupId, detailsHtml, onDataExtracte
           />
         );
       case "seadex":
-        return <SeaDexTab seadexData={detailsData.seadexData} />;
+        return seaDexEntry ? <SeaDexTab entry={seaDexEntry} /> : null;
       default:
         return <div>Unknown tab</div>;
     }

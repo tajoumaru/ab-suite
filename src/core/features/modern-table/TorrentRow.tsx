@@ -1,5 +1,7 @@
 import { Check, Download, Flag, Link, X } from "lucide-preact";
 import { memo } from "preact/compat";
+import { useSeaDexStore } from "@/core/shared/seadex";
+import { SeaDexIcon } from "@/satellites/seadex/SeaDexIcon";
 import { TorrentDetails } from "./TorrentDetails";
 import type { ParsedTorrentRow, TableType } from "./types";
 
@@ -29,6 +31,9 @@ function TorrentRowComponent({
   isOddGroup,
   isSeriesPage = false,
 }: TorrentRowProps) {
+  const seaDexStore = useSeaDexStore();
+  const seaDexEntry = seaDexStore.getData(torrent.torrentId);
+
   const handleToggleExpanded = () => {
     onToggleExpanded(torrent.torrentId);
   };
@@ -167,11 +172,12 @@ function TorrentRowComponent({
       </td>
 
       <td size-w-60px p="[6px_4px]" border="1px solid [hsl(0,0%,20%)]" text-size="11px" text="center" un-align="middle">
-        {torrent.flags.length > 0 && (
-          <div flex="~ wrap" gap="4px" justify="center" line-height="[0]">
+        {(torrent.flags.length > 0 || seaDexEntry) && (
+          <div flex="~ wrap" gap="4px" justify="center" line-height="[0]" items="center">
             {torrent.flags.map((flag: string, index: number) => (
               <span key={`${torrent.torrentId}-${index}`} dangerouslySetInnerHTML={{ __html: flag }} />
             ))}
+            {seaDexEntry && <SeaDexIcon entry={seaDexEntry} separator="" />}
           </div>
         )}
       </td>
