@@ -1,6 +1,6 @@
 import { ChevronLeft, ChevronRight, Loader2, X } from "lucide-preact";
 import { useEffect, useState } from "preact/hooks";
-import type { ScreenshotItem } from "@/types/modern-table";
+import type { ScreenshotItem } from "./types";
 
 interface ScreenshotsTabProps {
   screenshots: ScreenshotItem[];
@@ -96,10 +96,10 @@ export function ScreenshotsTab({ screenshots, isLoading, isLoaded }: Screenshots
   // Show loading state
   if (isLoading) {
     return (
-      <div className="ab-details-tab-content">
-        <div className="ab-loading">
-          <Loader2 size={24} className="animate-spin" />
-          <div>Loading screenshots...</div>
+      <div text="white">
+        <div text="center" p="20px">
+          <Loader2 size={24} animate="spin" />
+          <div mt="8px">Loading screenshots...</div>
         </div>
       </div>
     );
@@ -108,8 +108,10 @@ export function ScreenshotsTab({ screenshots, isLoading, isLoaded }: Screenshots
   // Show "no screenshots found" message if loaded but empty
   if (isLoaded && screenshots.length === 0) {
     return (
-      <div className="ab-details-tab-content">
-        <div className="ab-no-content">No screenshots found for this torrent.</div>
+      <div text="white">
+        <div text="center #888" p="20px">
+          No screenshots found for this torrent.
+        </div>
       </div>
     );
   }
@@ -117,20 +119,41 @@ export function ScreenshotsTab({ screenshots, isLoading, isLoaded }: Screenshots
   // Show placeholder while not yet loaded
   if (!isLoaded && screenshots.length === 0) {
     return (
-      <div className="ab-details-tab-content">
-        <div className="ab-no-content">Loading screenshots...</div>
+      <div text="white">
+        <div text="center #888" p="20px">
+          Loading screenshots...
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="ab-details-tab-content ab-screenshots-tab-content">
+    <div text="white" text-align="center">
       {/* Load All Full-Res Button */}
       {fullResLoadedIndices.size < screenshots.length && (
-        <button type="button" className="ab-load-all-fullres" onClick={loadAllFullRes} disabled={loadingAllFullRes}>
+        <button
+          type="button"
+          bg="#4a5568"
+          text="white"
+          border="none"
+          rounded="4px"
+          p="[8px_16px]"
+          cursor="pointer"
+          text-size="12px"
+          inline-flex
+          items="center"
+          gap="6px"
+          transition="background"
+          mb="16px"
+          hover="bg-#5a6578"
+          disabled={loadingAllFullRes}
+          op={loadingAllFullRes ? "60" : "100"}
+          style={{ cursor: loadingAllFullRes ? "not-allowed" : "pointer" }}
+          onClick={loadAllFullRes}
+        >
           {loadingAllFullRes ? (
             <>
-              <Loader2 size={14} className="animate-spin" />
+              <Loader2 size={14} animate="spin" />
               Loading Full-Res...
             </>
           ) : (
@@ -139,7 +162,7 @@ export function ScreenshotsTab({ screenshots, isLoading, isLoaded }: Screenshots
         </button>
       )}
 
-      <div className="ab-screenshots-grid">
+      <div grid grid-cols="[repeat(4,1fr)]" gap="8px" text-align="left">
         {screenshots.map((screenshot, index) => {
           const isFullResLoaded = fullResLoadedIndices.has(index);
           const imageUrl = isFullResLoaded ? screenshot.fullUrl : screenshot.thumbnailUrl;
@@ -148,11 +171,31 @@ export function ScreenshotsTab({ screenshots, isLoading, isLoaded }: Screenshots
             <button
               key={`screenshot-${screenshot.id}`}
               type="button"
-              className="ab-screenshot-item"
+              position="relative"
+              cursor="pointer"
+              rounded="4px"
+              overflow="hidden"
+              border="1px solid #333"
+              p="0"
+              bg="[none]"
+              transition="border-color"
+              hover="border-#555"
               onClick={() => openModal(index)}
             >
-              <img src={imageUrl} alt={screenshot.title} title={screenshot.title} />
-              {isFullResLoaded && <div className="ab-fullres-indicator">HD</div>}
+              <img src={imageUrl} alt={screenshot.title} title={screenshot.title} size-w="full" size-h="auto" block />
+              {isFullResLoaded && (
+                <div
+                  pos="absolute top-1 right-1"
+                  pointer-events-none
+                  bg="[rgba(0,0,0,0.7)]"
+                  text="white"
+                  text-size="10px"
+                  p="[2px_4px]"
+                  rounded="2px"
+                >
+                  HD
+                </div>
+              )}
             </button>
           );
         })}
@@ -160,11 +203,33 @@ export function ScreenshotsTab({ screenshots, isLoading, isLoaded }: Screenshots
 
       {/* Modal for full-size screenshot */}
       {selectedScreenshot && (
-        <button type="button" className="ab-screenshot-modal" onClick={closeModal}>
+        <button
+          type="button"
+          pos="fixed inset-0 z-10000"
+          bg="[rgba(0,0,0,0.9)]"
+          flex
+          items="center"
+          justify="center"
+          border="none"
+          p="0"
+          onClick={closeModal}
+        >
           {/* Close button */}
           <button
             type="button"
-            className="ab-screenshot-close"
+            pos="absolute top-20px right-20px z-10001"
+            bg="[rgba(0,0,0,0.7)]"
+            border="none"
+            rounded="50%"
+            size-w-40px
+            size-h-40px
+            flex
+            items="center"
+            justify="center"
+            cursor="pointer"
+            text="white"
+            transition="background"
+            hover="bg-[rgba(0,0,0,0.9)]"
             onClick={(e) => {
               e.stopPropagation();
               closeModal();
@@ -177,7 +242,20 @@ export function ScreenshotsTab({ screenshots, isLoading, isLoaded }: Screenshots
           {screenshots.length > 1 && (
             <button
               type="button"
-              className="ab-screenshot-nav ab-screenshot-prev"
+              pos="absolute top-50% left-20px z-10001"
+              transform="-translate-y-50%"
+              bg="[rgba(0,0,0,0.7)]"
+              border="none"
+              rounded="50%"
+              size-w-50px
+              size-h-50px
+              flex
+              items="center"
+              justify="center"
+              cursor="pointer"
+              text="white"
+              transition="background"
+              hover="bg-[rgba(0,0,0,0.9)]"
               onClick={(e) => {
                 e.stopPropagation();
                 goToPrev();
@@ -191,7 +269,20 @@ export function ScreenshotsTab({ screenshots, isLoading, isLoaded }: Screenshots
           {screenshots.length > 1 && (
             <button
               type="button"
-              className="ab-screenshot-nav ab-screenshot-next"
+              pos="absolute top-50% right-20px z-10001"
+              transform="-translate-y-50%"
+              bg="[rgba(0,0,0,0.7)]"
+              border="none"
+              rounded="50%"
+              size-w-50px
+              size-h-50px
+              flex
+              items="center"
+              justify="center"
+              cursor="pointer"
+              text="white"
+              transition="background"
+              hover="bg-[rgba(0,0,0,0.9)]"
               onClick={(e) => {
                 e.stopPropagation();
                 goToNext();
@@ -202,12 +293,32 @@ export function ScreenshotsTab({ screenshots, isLoading, isLoaded }: Screenshots
           )}
 
           {/* Screenshot image */}
-          <img src={selectedScreenshot.fullUrl} alt={selectedScreenshot.title} />
+          <img
+            src={selectedScreenshot.fullUrl}
+            alt={selectedScreenshot.title}
+            object-contain
+            max-w="90vw"
+            max-h="90vh"
+            cursor="default"
+          />
 
           {/* Screenshot info */}
-          <div className="ab-screenshot-info">
+          <div
+            pos="absolute bottom-20px left-50%"
+            transform="-translate-x-50%"
+            bg="[rgba(0,0,0,0.7)]"
+            text="white"
+            p="[8px_16px]"
+            rounded="4px"
+            text-size="12px"
+            text-align="center"
+          >
             {selectedScreenshotIndex ? selectedScreenshotIndex + 1 : 0} of {screenshots.length}
-            {selectedScreenshot.title && <div className="ab-screenshot-info-title">{selectedScreenshot.title}</div>}
+            {selectedScreenshot.title && (
+              <div mt="4px" text-size="11px" text="#ccc">
+                {selectedScreenshot.title}
+              </div>
+            )}
           </div>
         </button>
       )}

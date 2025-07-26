@@ -1,5 +1,5 @@
 import { useEffect, useState } from "preact/hooks";
-import type { GroupedTorrents } from "@/types/modern-table";
+import type { GroupedTorrents } from "../types";
 
 export function useSectionManagement(groupedData: GroupedTorrents, sectionsCollapsedByDefault: boolean) {
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());

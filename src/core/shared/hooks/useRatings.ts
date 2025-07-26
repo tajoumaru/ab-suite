@@ -1,5 +1,5 @@
-import { useAsync } from "@/lib/hooks/useAsync";
 import type { AnimeApiResponse, MediaInfo } from "@/core/shared/hooks/useMediaInfo";
+import { useAsync } from "@/lib/hooks/useAsync";
 import { aniListService } from "@/services/anilist";
 import {
   fetchAnidbData,

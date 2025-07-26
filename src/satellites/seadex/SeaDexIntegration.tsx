@@ -1,10 +1,10 @@
 import { render } from "preact";
 import { useEffect } from "preact/hooks";
-import { err, log } from "@/lib/utils/logging";
-import { apiService } from "@/services/api";
 import { seadexStore } from "@/core/shared/seadex";
 import { useSettingsStore } from "@/lib/state/settings";
-import type { TorrentInfo } from "@/types";
+import type { TorrentInfo } from "@/lib/types";
+import { err, log } from "@/lib/utils/logging";
+import { apiService } from "@/services/api";
 import { SeaDexIcon } from "./SeaDexIcon";
 import { SeaDexTab } from "./SeaDexTab";
 

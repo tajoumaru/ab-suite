@@ -1,7 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
-import { err, log } from "@/lib/utils/logging";
 import { useSettingsStore } from "@/lib/state/settings";
-import type { TorrentDetailsData, TorrentDetailsProps } from "@/types/modern-table";
+import { err, log } from "@/lib/utils/logging";
 import {
   DescriptionTab,
   FilelistTab,
@@ -13,6 +12,7 @@ import {
   UploadDescription,
 } from "./detail-components";
 import { extractTorrentDetailsData, fetchPeerlistData, fetchScreenshotsData } from "./details-extraction";
+import type { TorrentDetailsData, TorrentDetailsProps } from "./types";
 
 /**
  * Modern declarative torrent details component.
@@ -110,10 +110,10 @@ export function TorrentDetails({ torrentId, groupId, detailsHtml, onDataExtracte
 
   if (!detailsData) {
     return (
-      <tr className="ab-details-row">
-        <td colSpan={100} className="ab-details-cell">
-          <div className="ab-details-content">
-            <div className="ab-loading">Loading torrent details...</div>
+      <tr>
+        <td colSpan={100}>
+          <div bg="[rgba(0,0,0,0.2)]" border-t="1px solid [rgba(78,78,78,0.31)]">
+            <div p="12px">Loading torrent details...</div>
           </div>
         </td>
       </tr>
@@ -167,29 +167,45 @@ export function TorrentDetails({ torrentId, groupId, detailsHtml, onDataExtracte
   };
 
   return (
-    <tr className="ab-details-row">
-      <td colSpan={100} className="ab-details-cell">
-        <div className="ab-details-content">
-          {/* Upload description */}
-          <UploadDescription uploadDescription={detailsData.uploadDescription} />
+    <tr>
+      <td colSpan={100}>
+        <div bg="[rgba(0,0,0,0.2)]" border-t="1px solid [rgba(78,78,78,0.31)]">
+          <div p="12px">
+            {/* Upload description */}
+            <UploadDescription uploadDescription={detailsData.uploadDescription} />
 
-          {/* Tabs */}
-          <div className="ab-details-tabs">
-            {/* Tab navigation */}
-            <div className="ab-tabs-nav">
-              <ul className="ab-tabs-list">
-                {availableTabs.map((tab) => (
-                  <li key={tab.id} className={`ab-tab ${activeTab === tab.id ? "ab-tab-active" : ""}`}>
-                    <button type="button" className="ab-tab-btn" onClick={() => setActiveTab(tab.id)}>
-                      {tab.label}
-                    </button>
-                  </li>
-                ))}
-              </ul>
+            {/* Tabs */}
+            <div mt="16px">
+              {/* Tab navigation */}
+              <div mb="0">
+                <ul flex list="none" p="0" m="0" border-b="1px solid #555">
+                  {availableTabs.map((tab) => (
+                    <li key={tab.id} mr="2px">
+                      <button
+                        type="button"
+                        p="[8px_16px]"
+                        bg={activeTab === tab.id ? "#2a2a2a" : "#1a1a1a"}
+                        text="white"
+                        border="1px solid #555 rounded-t-1"
+                        border-b={activeTab === tab.id ? "1px solid #2a2a2a" : "1px solid #555"}
+                        cursor="pointer"
+                        text-size="12px"
+                        transition="background"
+                        hover="bg-#333"
+                        onClick={() => setActiveTab(tab.id)}
+                      >
+                        {tab.label}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Tab content */}
+              <div bg="#2a2a2a" min-h="200px" p="16px" b-rd-b="1">
+                {renderActiveTab()}
+              </div>
             </div>
-
-            {/* Tab content */}
-            <div className="ab-tab-content">{renderActiveTab()}</div>
           </div>
         </div>
       </td>

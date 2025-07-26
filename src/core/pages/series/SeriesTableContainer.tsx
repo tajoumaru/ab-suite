@@ -1,15 +1,14 @@
 import { render } from "preact";
 import { useEffect, useRef } from "preact/hooks";
-import { log, time, timeEnd } from "@/lib/utils/logging";
-import type { ParsedTorrentRow, TableType } from "@/core/features/modern-table";
+import type { GroupedTorrents, TableType } from "@/core/features/modern-table";
 import { TorrentTable } from "@/core/features/modern-table";
+import { log, time, timeEnd } from "@/lib/utils/logging";
 import { SeriesTableTitle } from "./SeriesTableTitle";
 
 interface SeriesTableContainerProps {
   tableType: TableType;
   title: string;
-  torrents: ParsedTorrentRow[];
-  originalTable: HTMLTableElement;
+  groupedData: GroupedTorrents;
   isCollapsed: boolean;
   onToggleCollapse: () => void;
 }
@@ -20,15 +19,17 @@ interface SeriesTableContainerProps {
 export function SeriesTableContainer({
   tableType,
   title,
-  torrents,
-  originalTable,
+  groupedData,
   isCollapsed,
   onToggleCollapse,
 }: SeriesTableContainerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const hasRenderedRef = useRef<boolean>(false);
   const prevCollapsedRef = useRef<boolean>(isCollapsed);
-  const prevTorrentsRef = useRef<ParsedTorrentRow[]>(torrents);
+  const prevGroupedDataRef = useRef<GroupedTorrents>(groupedData);
+
+  // Calculate total torrents count for logging
+  const totalTorrents = groupedData.sections.reduce((sum, s) => sum + s.torrents.length, 0);
 
   // Only render when actually necessary (expanding or data changes)
   useEffect(() => {
@@ -36,7 +37,7 @@ export function SeriesTableContainer({
     log(`SeriesTableContainer effect triggered`, {
       title,
       tableType,
-      torrentsLength: torrents.length,
+      torrentsLength: totalTorrents,
       isCollapsed,
       prevCollapsed: prevCollapsedRef.current,
       hasRendered: hasRenderedRef.current,
@@ -46,7 +47,7 @@ export function SeriesTableContainer({
     const wasCollapsed = prevCollapsedRef.current;
     const isExpanding = wasCollapsed && !isCollapsed;
     const isCollapsing = !wasCollapsed && isCollapsed;
-    const dataChanged = prevTorrentsRef.current !== torrents;
+    const dataChanged = prevGroupedDataRef.current !== groupedData;
 
     // Only render if:
     // 1. Never rendered before and table is not collapsed
@@ -58,10 +59,10 @@ export function SeriesTableContainer({
       isExpanding ||
       (dataChanged && !isCollapsed && hasRenderedRef.current);
 
-    if (containerRef.current && torrents.length > 0 && !isCollapsed && shouldRender) {
+    if (containerRef.current && totalTorrents > 0 && !isCollapsed && shouldRender) {
       time(`TorrentTable render - ${title}`);
       render(
-        <TorrentTable torrents={torrents} originalTable={originalTable} isSeriesPage={true} />,
+        <TorrentTable groupedData={groupedData} tableType={tableType} isSeriesPage={true} />,
         containerRef.current,
       );
       timeEnd(`TorrentTable render - ${title}`);
@@ -70,7 +71,7 @@ export function SeriesTableContainer({
       log(`SeriesTableContainer skipping render`, {
         title,
         hasContainer: !!containerRef.current,
-        torrentsLength: torrents.length,
+        torrentsLength: totalTorrents,
         isCollapsed,
         shouldRender,
         isExpanding,
@@ -81,18 +82,15 @@ export function SeriesTableContainer({
 
     // Update previous state
     prevCollapsedRef.current = isCollapsed;
-    prevTorrentsRef.current = torrents;
+    prevGroupedDataRef.current = groupedData;
 
     timeEnd(`SeriesTableContainer render - ${title}`);
-  }, [torrents, originalTable, isCollapsed]);
+  }, [groupedData, tableType, isCollapsed, totalTorrents, title]);
 
   return (
-    <div className="ab-series-table-section">
+    <div mb="30px">
       <SeriesTableTitle title={title} isCollapsed={isCollapsed} onToggle={onToggleCollapse} />
-      <div
-        ref={containerRef}
-        className={`ab-series-table-content ${isCollapsed ? "ab-gallery-display-none" : "ab-gallery-display-block"}`}
-      />
+      <div ref={containerRef} className={isCollapsed ? "hidden" : "block"} mt="10px" />
     </div>
   );
 }

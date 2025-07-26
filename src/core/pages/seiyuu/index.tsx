@@ -1,9 +1,9 @@
 import { render } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
+import { CollageTableIntegration } from "@/core/features/collage-table/CollageTable";
+import { useSettingsStore } from "@/lib/state/settings";
 import { err, log } from "@/lib/utils/logging";
 import { type AniListSeiyuuData, seiyuuService } from "@/services/seiyuu";
-import { useSettingsStore } from "@/lib/state/settings";
-import { CollageTableIntegration } from "@/core/features/collage-table/CollageTable";
 
 interface SeiyuuMetadata {
   source: "anilist";
@@ -45,7 +45,13 @@ function extractOriginalContent() {
 /**
  * Component that renders seiyuu image in sidebar
  */
-function SeiyuuImageBox({ seiyuuData, originalImage }: { seiyuuData: SeiyuuMetadata; originalImage: any }) {
+function SeiyuuImageBox({
+  seiyuuData,
+  originalImage,
+}: {
+  seiyuuData: SeiyuuMetadata;
+  originalImage: { src: string; alt: string; width: number } | null;
+}) {
   const [showOriginal, setShowOriginal] = useState(false);
   const data = seiyuuData.data;
   const imageUrl = data.image.large;
@@ -87,19 +93,31 @@ function SeiyuuImageBox({ seiyuuData, originalImage }: { seiyuuData: SeiyuuMetad
 
   return (
     <div className="box">
-      <div className="head ab-seiyuu-info-header">
+      <div className="head" flex justify="between" items="center">
         <strong>Seiyuu Image</strong>
         {originalImage && (
-          <span className="ab-extended-info-toggle">
-            <button type="button" onClick={() => setShowOriginal(!showOriginal)} className="ab-toggle-button">
+          <span flex items="center">
+            <button
+              type="button"
+              onClick={() => setShowOriginal(!showOriginal)}
+              bg="transparent"
+              border="1px solid #ccc"
+              text="white"
+              hover-bg="[rgba(255,255,255,0.1)]"
+              hover-border="white"
+            >
               {showOriginal ? "Show AniList" : "Show Original"}
             </button>
           </span>
         )}
       </div>
-      <div className="ab-seiyuu-cover-image-content">
+      <div text="center" p="20px">
         <div ref={imageContainerRef} />
-        {nativeName && <div className="ab-seiyuu-native-name">{nativeName}</div>}
+        {nativeName && (
+          <div mt="8px" text="14px #666" font="bold">
+            {nativeName}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -239,23 +257,31 @@ function SeiyuuDescriptionBox({
 
   return (
     <div className="box">
-      <div className="head ab-seiyuu-info-header">
+      <div className="head" flex justify="between" items="center">
         <strong>Seiyuu Information</strong>
         {originalDescription && (
-          <span className="ab-extended-info-toggle">
-            <button type="button" onClick={() => setShowOriginal(!showOriginal)} className="ab-toggle-button">
+          <span flex items="center">
+            <button
+              type="button"
+              onClick={() => setShowOriginal(!showOriginal)}
+              bg="transparent"
+              border="1px solid #ccc"
+              text="white"
+              hover-bg="[rgba(255,255,255,0.1)]"
+              hover-border="white"
+            >
               {showOriginal ? "Show AniList" : "Show Original"}
             </button>
           </span>
         )}
       </div>
-      <div className="ab-seiyuu-description-content">
+      <div p="10px">
         {showOriginal ? (
-          <div className="ab-original-content" dangerouslySetInnerHTML={{ __html: originalDescription || "" }} />
+          <div dangerouslySetInnerHTML={{ __html: originalDescription || "" }} />
         ) : (
           <>
             {hasSeiyuuInfo && (
-              <div className="ab-seiyuu-info">
+              <div flex flex-direction="column" justify="center" p="[8px_12px]">
                 {birthday && (
                   <div>
                     <strong>Birthday:</strong> {birthday}
@@ -299,15 +325,15 @@ function SeiyuuDescriptionBox({
               </div>
             )}
             {data.description && (
-              <div
-                ref={descriptionRef}
-                className="ab-seiyuu-description-text"
-                dangerouslySetInnerHTML={{ __html: `<p>${cleanDescription}</p>` }}
-              />
+              <div ref={descriptionRef} dangerouslySetInnerHTML={{ __html: `<p>${cleanDescription}</p>` }} />
             )}
           </>
         )}
-        {!showOriginal && <div className="ab-seiyuu-source-info">Source: AniList</div>}
+        {!showOriginal && (
+          <div mt="10px" text="12px #888" italic>
+            Source: AniList
+          </div>
+        )}
       </div>
     </div>
   );
@@ -355,7 +381,10 @@ export function SeiyuuPage() {
   const { characterPageEnhancements } = useSettingsStore();
   const [seiyuuData, setSeiyuuData] = useState<SeiyuuMetadata | null>(null);
   const [loading, setLoading] = useState(false);
-  const [originalContent, setOriginalContent] = useState<{ originalImage: any; originalDescription: string | null }>({
+  const [originalContent, setOriginalContent] = useState<{
+    originalImage: { src: string; alt: string; width: number } | null;
+    originalDescription: string | null;
+  }>({
     originalImage: null,
     originalDescription: null,
   });
@@ -397,10 +426,10 @@ export function SeiyuuPage() {
 
         // Create containers
         const imageContainer = document.createElement("div");
-        imageContainer.className = "ab-seiyuu-cover-image-container";
+        // imageContainer.className = "ab-seiyuu-cover-image-container";
 
         const descriptionContainer = document.createElement("div");
-        descriptionContainer.className = "ab-seiyuu-description-container";
+        // descriptionContainer.className = "ab-seiyuu-description-container";
 
         // Insert as first child in sidebar and main column
         sidebar.insertBefore(imageContainer, sidebar.firstChild);
@@ -470,7 +499,9 @@ export function SeiyuuPage() {
           <div className="head">
             <strong>Loading Seiyuu Data...</strong>
           </div>
-          <div className="ab-seiyuu-loading-content">Fetching seiyuu information...</div>
+          <div p="10px" text="center #666">
+            Fetching seiyuu information...
+          </div>
         </div>,
         imageContainerRef.current,
       );

@@ -1,10 +1,11 @@
 import { render } from "preact";
 import { useEffect, useReducer, useRef } from "preact/hooks";
-import { err, log } from "@/lib/utils/logging";
-import { useSettingsStore } from "@/lib/state/settings";
 import { GalleryView } from "@/core/features/gallery-view";
+import { extractGroupedTorrentData } from "@/core/features/modern-table/data-extraction";
+import { TorrentTable } from "@/core/features/modern-table/TorrentTable";
+import { useSettingsStore } from "@/lib/state/settings";
+import { err, log } from "@/lib/utils/logging";
 import { AutocompleteEnhancedInput } from "./AutocompleteEnhancedInput";
-import { ModernTableIntegration } from "./ModernTableIntegration";
 import { createCategoryUrl, createCrossNavigationUrl, useSearchState } from "./useSearchState";
 
 interface SearchInputInfo {
@@ -17,12 +18,21 @@ interface SearchPageState {
   searchInputs: SearchInputInfo[];
   isInitialized: boolean;
   galleryInitialized: boolean;
+  torrentTables: Array<{
+    table: HTMLTableElement;
+    container: HTMLElement;
+    mountPoint: HTMLDivElement;
+  }>;
 }
 
 type SearchPageAction =
   | { type: "SET_SEARCH_INPUTS"; payload: SearchInputInfo[] }
   | { type: "SET_INITIALIZED"; payload: boolean }
   | { type: "SET_GALLERY_INITIALIZED"; payload: boolean }
+  | {
+      type: "ADD_TORRENT_TABLE";
+      payload: { table: HTMLTableElement; container: HTMLElement; mountPoint: HTMLDivElement };
+    }
   | { type: "RESET" };
 
 function searchPageReducer(state: SearchPageState, action: SearchPageAction): SearchPageState {
@@ -42,11 +52,17 @@ function searchPageReducer(state: SearchPageState, action: SearchPageAction): Se
         ...state,
         galleryInitialized: action.payload,
       };
+    case "ADD_TORRENT_TABLE":
+      return {
+        ...state,
+        torrentTables: [...state.torrentTables, action.payload],
+      };
     case "RESET":
       return {
         searchInputs: [],
         isInitialized: false,
         galleryInitialized: false,
+        torrentTables: [],
       };
     default:
       return state;
@@ -66,11 +82,18 @@ const SUBCATEGORIES_ACTIVE_COLOR = "#fe2a73";
  * 4. Replaces the imperative DOM manipulation from AutocompleteSearch and InteractiveSearch
  */
 export function SearchPage() {
-  const { autocompleteSearchEnabled, interactiveSearchEnabled, galleryViewEnabled } = useSettingsStore();
+  const {
+    autocompleteSearchEnabled,
+    interactiveSearchEnabled,
+    galleryViewEnabled,
+    tableRestructureEnabled,
+    mediainfoParserEnabled,
+  } = useSettingsStore();
   const [state, dispatch] = useReducer(searchPageReducer, {
     searchInputs: [],
     isInitialized: false,
     galleryInitialized: false,
+    torrentTables: [],
   });
   const enhancedInputRefs = useRef<Map<HTMLInputElement, HTMLDivElement>>(new Map());
   const galleryContainerRef = useRef<HTMLDivElement>(null);
@@ -157,7 +180,7 @@ export function SearchPage() {
 
         // Create container for enhanced input
         const enhancedContainer = document.createElement("div");
-        enhancedContainer.className = "ab-enhanced-search-input";
+        // enhancedContainer.className = "ab-enhanced-search-input";
 
         // Set up positioning
         enhancedContainer.style.display = "inline-block";
@@ -404,7 +427,142 @@ export function SearchPage() {
     };
   }, [galleryViewEnabled]);
 
+  // Initialize modern table replacements
+  useEffect(() => {
+    if (!tableRestructureEnabled) {
+      return;
+    }
+
+    // Only run on search pages
+    if (!window.location.pathname.includes("/torrents.php") && !window.location.pathname.includes("/torrents2.php")) {
+      return;
+    }
+
+    // Skip if this is a single torrent page (has torrentid parameter)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has("torrentid")) {
+      return;
+    }
+
+    const initializeModernTables = () => {
+      // Find all torrent tables on search pages
+      const torrentTables = document.querySelectorAll(".torrent_group") as NodeListOf<HTMLTableElement>;
+
+      torrentTables.forEach((table) => {
+        // Check if this table has torrent rows
+        const torrentRows = table.querySelectorAll("tr.torrent");
+        if (torrentRows.length === 0) {
+          return;
+        }
+
+        // Find the container element
+        const container = table.closest(".group_torrents") || table.parentElement;
+        if (!container) {
+          return;
+        }
+
+        // Check if we've already processed this table
+        const existing = state.torrentTables.find((t) => t.table === table);
+        if (existing) {
+          return;
+        }
+
+        // Hide the original table container
+        (container as HTMLElement).style.display = "none";
+
+        // Create mount point for modern table
+        const mountPoint = document.createElement("div");
+        container.parentNode?.insertBefore(mountPoint, container.nextSibling);
+
+        // Add to state
+        dispatch({
+          type: "ADD_TORRENT_TABLE",
+          payload: {
+            table,
+            container: container as HTMLElement,
+            mountPoint,
+          },
+        });
+      });
+    };
+
+    // Try to initialize immediately
+    initializeModernTables();
+
+    // Watch for dynamic content changes
+    const observer = new MutationObserver((mutations) => {
+      let shouldReprocess = false;
+
+      for (const mutation of mutations) {
+        for (const node of Array.from(mutation.addedNodes)) {
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            const element = node as Element;
+            if (
+              element.matches(".torrent_group, .group_torrents") ||
+              element.querySelector(".torrent_group, .group_torrents")
+            ) {
+              shouldReprocess = true;
+              break;
+            }
+          }
+        }
+        if (shouldReprocess) break;
+      }
+
+      if (shouldReprocess) {
+        setTimeout(initializeModernTables, 100);
+      }
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+
+    return () => {
+      observer.disconnect();
+
+      // Cleanup: restore original tables and remove mount points
+      state.torrentTables.forEach(({ container, mountPoint }) => {
+        container.style.display = "";
+        mountPoint.remove();
+      });
+    };
+  }, [tableRestructureEnabled, state.torrentTables]);
+
+  // Render modern tables when they are added to state
+  useEffect(() => {
+    if (state.torrentTables.length === 0) {
+      return;
+    }
+
+    state.torrentTables.forEach(({ table, mountPoint }) => {
+      // Skip if already rendered
+      if (mountPoint.children.length > 0) {
+        return;
+      }
+
+      try {
+        // Extract clean data from the DOM
+        const groupedData = extractGroupedTorrentData(table, mediainfoParserEnabled);
+
+        // Render the modern table with clean data
+        render(<TorrentTable groupedData={groupedData} isSeriesPage={false} />, mountPoint);
+
+        log("Rendered modern table for search page");
+      } catch (error) {
+        err("Error rendering modern table for search page:", error);
+
+        // Restore original table on error
+        const tableInfo = state.torrentTables.find((t) => t.table === table);
+        if (tableInfo) {
+          tableInfo.container.style.display = "";
+          tableInfo.mountPoint.remove();
+        }
+      }
+    });
+  }, [state.torrentTables, mediainfoParserEnabled]);
+
   // This component doesn't render anything directly - it manages DOM takeover
-  // Also render the modern table integration for search pages
-  return <ModernTableIntegration />;
+  return null;
 }

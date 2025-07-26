@@ -1,8 +1,8 @@
 import { render } from "preact";
 import { useEffect, useRef } from "preact/hooks";
-import { err, log } from "@/lib/utils/logging";
 import { useDescriptionStore } from "@/core/shared/descriptions";
 import { useSettingsStore } from "@/lib/state/settings";
+import { err, log } from "@/lib/utils/logging";
 import { DescriptionRenderer } from "./DescriptionRenderer";
 
 export function DescriptionIntegration() {
@@ -53,7 +53,7 @@ export function DescriptionIntegration() {
             descriptionStore.initializeDescription(torrentLink.href, descElement.innerHTML);
 
             // Mark as processed
-            descElement.setAttribute("data-ab-description-processed", "true");
+            // descElement.setAttribute("data-ab-description-processed", "true");
 
             // Create a container for the reactive description
             const container = document.createElement("div");

@@ -1,7 +1,7 @@
 import { useAsync } from "@/lib/hooks/useAsync";
+import { useSettingsStore } from "@/lib/state/settings";
 import { err, log } from "@/lib/utils/logging";
 import { useMediaPageReady, useNavigation } from "@/satellites/anilist/useNavigation";
-import { useSettingsStore } from "@/lib/state/settings";
 import { buildAnimeBytesUrl, getAnimeBytesFormats, getMediaTypeFromFormat } from "@/utils/format-mapping";
 import { extractMediaInfo } from "./utils";
 
@@ -100,7 +100,11 @@ export function AnimeBytesButton() {
   };
 
   return (
-    <div className="ab-fade-in" {...(buttonAsync.loading ? { "data-ab-cloak": "" } : {})}>
+    <div
+      op={buttonAsync.loading ? "0" : "100"}
+      transition="opacity 300 ease"
+      {...(buttonAsync.loading ? { "data-ab-cloak": "" } : {})}
+    >
       <a
         href={buttonData.url}
         onClick={handleClick}
@@ -108,16 +112,37 @@ export function AnimeBytesButton() {
         rel="noopener noreferrer"
         title={`Search "${buttonData.title}" on animebytes`}
       >
-        <div className={`ab-button ${buttonAsync.loading ? "ab-loading" : ""}`}>
-          <img className="ab-logo" src="https://animebytes.tv/static/favicon-5fc4df4e68.ico" alt="animebytes" />
+        <div
+          size-h="34.4px"
+          mb="16px"
+          rounded="3px"
+          block
+          p="[8px_10px]"
+          size-w="full"
+          bg={buttonAsync.loading ? "gray-400" : "hover-#c50d58 #ed106a"}
+          text="white"
+          overflow="hidden"
+          transition="background-color"
+          un-decoration="no-underline"
+          border="none"
+          cursor={buttonAsync.loading ? "not-allowed" : "pointer"}
+          op={buttonAsync.loading ? "60" : "100"}
+        >
           <img
-            className="ab-banner"
-            src="https://animebytes.tv/static/css/coalbytes/images/logo-b6ffe89f0a.svg"
+            size-h="17.2px"
+            filter="brightness-0 invert"
+            mr="10px"
+            src="https://animebytes.tv/static/favicon-5fc4df4e68.ico"
             alt="animebytes"
           />
+          <img pt="2px" src="https://animebytes.tv/static/css/coalbytes/images/logo-b6ffe89f0a.svg" alt="animebytes" />
         </div>
       </a>
-      {buttonAsync.error && <div className="ab-error">{buttonAsync.error}</div>}
+      {buttonAsync.error && (
+        <div text="red-500 sm" mt="8px">
+          {buttonAsync.error}
+        </div>
+      )}
     </div>
   );
 }

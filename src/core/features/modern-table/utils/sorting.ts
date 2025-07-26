@@ -1,4 +1,4 @@
-import type { ParsedTorrentRow, SortColumn, SortDirection } from "@/types/modern-table";
+import type { ParsedTorrentRow, SortColumn, SortDirection } from "../types";
 
 /**
  * Sort torrents based on column and direction - comprehensive sorting logic from original

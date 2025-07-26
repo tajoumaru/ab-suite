@@ -1,7 +1,7 @@
 import { render } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
-import { log } from "@/lib/utils/logging";
 import { useSettingsStore } from "@/lib/state/settings";
+import { log } from "@/lib/utils/logging";
 
 interface ParsedTitle {
   title: string;
@@ -186,36 +186,61 @@ function CollageGrid({ items }: { items: CollageItem[] }) {
       // Clear existing content
       container.innerHTML = "";
 
-      try {
-        // Create image using GM_addElement to bypass CSP
-        GM_addElement(container, "img", {
-          src: item.imageUrl,
-          alt: item.alt,
-          class: "ab-collage-image",
-        });
-      } catch (_error) {
-        // Fallback to regular img tag if GM_addElement fails
-        container.innerHTML = `<img src="${item.imageUrl}" alt="${item.alt}" class="ab-collage-image" />`;
-      }
+      // Create image using GM_addElement to bypass CSP
+      const img = GM_addElement(container, "img", {
+        src: item.imageUrl,
+        alt: item.alt,
+      });
+      // Apply UnoCSS attributes
+      img.setAttribute("size-w", "full");
+      img.setAttribute("size-h", "full");
+      img.setAttribute("object", "cover");
+      img.setAttribute("rounded", "4px");
+      img.setAttribute("shadow", "[0_2px_8px_rgba(0,0,0,0.1)]");
+      img.setAttribute("transition", "transform");
     });
   }, [items]);
 
   return (
-    <div className="ab-collage-grid">
+    <div grid grid-cols="[repeat(auto-fill,185px)]" grid-gap-x-24px grid-gap-y-20px justify="between">
       {items.map((item, index) => (
-        <div key={`${item.href}-${index}`} className="ab-collage-item">
-          <a href={item.href} className="ab-collage-link">
+        <div key={`${item.href}-${index}`} flex="~ col" items="center">
+          <a href={item.href} flex="~ col" items="center" no-underline text-color="inherit" transition="opacity">
             <div
               ref={(el) => {
                 imageContainerRefs.current[index] = el;
               }}
-              className="ab-collage-image-container"
+              mb="8px"
+              flex
+              justify="center"
+              items="center"
+              size-h-265px
+              size-w="full"
             />
-            <div className="ab-collage-title-container">
-              <div className="ab-collage-title-main">{item.parsedTitle.title}</div>
+            <div p="[4px_1px]" size-w="full">
+              <div
+                text="13px ellipsis"
+                font="600"
+                line-height="[1.3]"
+                un-break="words"
+                mb="2px"
+                overflow="hidden"
+                line-clamp="2"
+              >
+                {item.parsedTitle.title}
+              </div>
               <span>
-                {item.parsedTitle.type && <span className="ab-collage-title-type">{item.parsedTitle.type}</span>}
-                {item.parsedTitle.year && <span className="ab-collage-title-year"> - {item.parsedTitle.year}</span>}
+                {item.parsedTitle.type && (
+                  <span text="#666 11px" line-height="[1.2]" italic mb="1px">
+                    {item.parsedTitle.type}
+                  </span>
+                )}
+                {item.parsedTitle.year && (
+                  <span text="#888 10px" line-height="[1.1]" font="500">
+                    {" "}
+                    - {item.parsedTitle.year}
+                  </span>
+                )}
               </span>
             </div>
           </a>
@@ -302,8 +327,8 @@ export function CollageTableIntegration({
 
         // Create container for our modern grid
         const collageContainer = document.createElement("div");
-        
-        collageContainer.className = "ab-collage-container";
+
+        // collageContainer.setAttribute("mb", "40px");
 
         originalTable.parentNode?.insertBefore(collageContainer, originalTable);
 

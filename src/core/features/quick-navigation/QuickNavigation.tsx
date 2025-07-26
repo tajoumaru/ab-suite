@@ -1,6 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
-import { log } from "@/lib/utils/logging";
 import { useSettingsStore } from "@/lib/state/settings";
+import { log } from "@/lib/utils/logging";
 
 interface CategoryData {
   name: string;
@@ -124,7 +124,7 @@ function renderCategories(container: HTMLElement, categories: CategoryData[]) {
 
   categories.forEach((category) => {
     const liCategory = document.createElement("li");
-    liCategory.setAttribute("name", category.name);
+    // liCategory.setAttribute("name", category.name);
 
     const categoryTitle = document.createElement("a");
     categoryTitle.textContent = category.name;

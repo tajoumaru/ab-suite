@@ -1,5 +1,5 @@
 import { Loader2 } from "lucide-preact";
-import type { PeerlistItem } from "@/types/modern-table";
+import type { PeerlistItem } from "./types";
 
 interface PeerlistTabProps {
   peerlist: PeerlistItem[];
@@ -15,10 +15,10 @@ export function PeerlistTab({ peerlist, torrentId, isLoading, isLoaded }: Peerli
   // Show loading state
   if (isLoading) {
     return (
-      <div className="ab-details-tab-content">
-        <div className="ab-loading">
-          <Loader2 size={24} className="animate-spin" />
-          <div>Loading peer list...</div>
+      <div text="white">
+        <div text="center" p="20px">
+          <Loader2 size={24} animate="spin" />
+          <div mt="8px">Loading peer list...</div>
         </div>
       </div>
     );
@@ -27,8 +27,10 @@ export function PeerlistTab({ peerlist, torrentId, isLoading, isLoaded }: Peerli
   // Show "no peers found" message if loaded but empty
   if (isLoaded && peerlist.length === 0) {
     return (
-      <div className="ab-details-tab-content">
-        <div className="ab-no-content">No peers found for this torrent.</div>
+      <div text="white">
+        <div text="center #888" p="20px">
+          No peers found for this torrent.
+        </div>
       </div>
     );
   }
@@ -36,32 +38,46 @@ export function PeerlistTab({ peerlist, torrentId, isLoading, isLoaded }: Peerli
   // Show placeholder while not yet loaded
   if (!isLoaded && peerlist.length === 0) {
     return (
-      <div className="ab-details-tab-content">
-        <div className="ab-no-content">Loading peer list...</div>
+      <div text="white">
+        <div text="center #888" p="20px">
+          Loading peer list...
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="ab-details-tab-content">
-      <table className="ab-peerlist-table">
+    <div text="white">
+      <table size-w="full" border-collapse="collapse" text-size="12px">
         <thead>
-          <tr className="ab-peerlist-header">
-            <th>User</th>
-            <th>Down</th>
-            <th>Up</th>
-            <th>%</th>
+          <tr bg="#2a2a2a" text="white" font="bold">
+            <th p="8px" text="left" border-b="1px solid #555">
+              User
+            </th>
+            <th p="8px" text="left" border-b="1px solid #555">
+              Down
+            </th>
+            <th p="8px" text="left" border-b="1px solid #555">
+              Up
+            </th>
+            <th p="8px" text="left" border-b="1px solid #555">
+              %
+            </th>
           </tr>
         </thead>
         <tbody>
           {peerlist.map((peer, index) => (
-            <tr key={`${torrentId}-peer-${peer.username}-${index}`} className="ab-peerlist-row">
-              <td className="ab-peerlist-cell">
-                <div className="ab-peerlist-user">
+            <tr
+              key={`${torrentId}-peer-${peer.username}-${index}`}
+              text="white"
+              bg={index % 2 === 0 ? "#222" : "#1a1a1a"}
+            >
+              <td p="[6px_8px]" border-b="1px solid #333">
+                <div flex items="center" gap="8px">
                   {peer.isAnonymous ? (
                     <span>Anonymous</span>
                   ) : (
-                    <a href={peer.profileUrl} className="ab-peerlist-user-link">
+                    <a href={peer.profileUrl} text="#007bff" un-decoration="none" hover="decoration-underline">
                       {peer.username}
                     </a>
                   )}
@@ -70,9 +86,15 @@ export function PeerlistTab({ peerlist, torrentId, isLoading, isLoaded }: Peerli
                   ))}
                 </div>
               </td>
-              <td className="ab-peerlist-cell">{peer.downloaded}</td>
-              <td className="ab-peerlist-cell">{peer.uploaded}</td>
-              <td className="ab-peerlist-cell">{peer.percentage}</td>
+              <td p="[6px_8px]" border-b="1px solid #333">
+                {peer.downloaded}
+              </td>
+              <td p="[6px_8px]" border-b="1px solid #333">
+                {peer.uploaded}
+              </td>
+              <td p="[6px_8px]" border-b="1px solid #333">
+                {peer.percentage}
+              </td>
             </tr>
           ))}
         </tbody>

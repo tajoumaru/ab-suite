@@ -1,16 +1,17 @@
 import { render } from "preact";
 import { useEffect, useRef } from "preact/hooks";
-import { err, log } from "@/lib/utils/logging";
 import { AniListMetadataIntegration } from "@/core/features/anilist-metadata/AniListMetadataIntegration";
-import { AiringPage } from "@/core/pages/airing";
 import { BbcodeToolbarIntegration } from "@/core/features/bbcode-toolbar/BbcodeToolbarIntegration";
-import { CharacterPage } from "@/core/pages/character";
-import { EnhancedTagStyling } from "@/core/features/tag-enhancements/EnhancedTagStyling";
+import { UnifiedDescriptionIntegration } from "@/core/features/descriptions/UnifiedDescriptionIntegration";
 import { LogoReplacement } from "@/core/features/logo-replacement/LogoReplacement";
 import { QuickNavigation } from "@/core/features/quick-navigation/QuickNavigation";
 import { SettingsButton } from "@/core/features/settings-modal/SettingsModal";
+import { EnhancedTagStyling } from "@/core/features/tag-enhancements/EnhancedTagStyling";
+import { AiringPage } from "@/core/pages/airing";
+import { CharacterPage } from "@/core/pages/character";
 import { SeiyuuPage } from "@/core/pages/seiyuu";
-import { UnifiedDescriptionIntegration } from "@/core/features/descriptions/UnifiedDescriptionIntegration";
+import { err, log } from "@/lib/utils/logging";
+import "@/core/shared/reset.css";
 
 /**
  * AnimeBytesHostIntegration component that implements declarative takeover for animebytes site integration.
@@ -41,7 +42,7 @@ export function AnimeBytesHostIntegration() {
       try {
         // Create container for our settings button (as a list item)
         const container = document.createElement("li");
-        container.className = "ab-settings-button-container";
+        // container.className = "ab-settings-button-container";
 
         // Prepend to userinfo_minor
         userInfoMinor.insertBefore(container, userInfoMinor.firstChild);

@@ -1,4 +1,4 @@
-import type { FilelistItem } from "@/types/modern-table";
+import type { FilelistItem } from "./types";
 
 interface FilelistTabProps {
   filelist: FilelistItem[];
@@ -10,27 +10,39 @@ interface FilelistTabProps {
  */
 export function FilelistTab({ filelist, torrentId }: FilelistTabProps) {
   if (filelist.length === 0) {
-    return <div className="ab-details-tab-content ab-no-content">No files available.</div>;
+    return (
+      <div text="#888" text-align="center" p="20px">
+        No files available.
+      </div>
+    );
   }
 
   return (
-    <div className="ab-details-tab-content">
-      <table className="ab-filelist-table">
+    <div text="white">
+      <table size-w="full" border="collapse" text-size="12px">
         <thead>
-          <tr className="ab-filelist-header">
-            <th>
+          <tr bg="#2a2a2a" text="white">
+            <th p="8px" text="left" border-b="1px solid #555">
               <strong>File Name</strong>
             </th>
-            <th>
+            <th p="8px" text="left" border-b="1px solid #555">
               <strong>Size</strong>
             </th>
           </tr>
         </thead>
         <tbody>
-          {filelist.map((file) => (
-            <tr key={`${torrentId}-${file.filename}-${file.size}`} className="ab-filelist-row">
-              <td className="ab-filelist-cell ab-filelist-cell-filename">{file.filename}</td>
-              <td className="ab-filelist-cell ab-filelist-cell-size">{file.size}</td>
+          {filelist.map((file, index) => (
+            <tr
+              key={`${torrentId}-${file.filename}-${file.size}`}
+              text="white"
+              bg={index % 2 === 0 ? "#222" : "#1a1a1a"}
+            >
+              <td p="[6px_8px]" border-b="1px solid #333" un-wrap="break-word">
+                {file.filename}
+              </td>
+              <td p="[6px_8px]" border-b="1px solid #333" text="right" un-ws="nowrap">
+                {file.size}
+              </td>
             </tr>
           ))}
         </tbody>

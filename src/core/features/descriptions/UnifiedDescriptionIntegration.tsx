@@ -1,8 +1,8 @@
 import { render } from "preact";
 import { useEffect, useRef } from "preact/hooks";
-import { err, log } from "@/lib/utils/logging";
 import { useDescriptionStore } from "@/core/shared/descriptions";
 import { useSettingsStore } from "@/lib/state/settings";
+import { err, log } from "@/lib/utils/logging";
 import { DescriptionRenderer } from "./DescriptionRenderer";
 import { ReadMore } from "./ReadMore";
 
@@ -66,7 +66,7 @@ export function UnifiedDescriptionIntegration() {
               if (descriptionStore.needsReadMore(torrentLink.href)) {
                 // Create a container for the ReadMore component
                 const readMoreContainer = document.createElement("span");
-                readMoreContainer.className = "ab-read-more-container";
+                // readMoreContainer.className = "ab-read-more-container";
 
                 // Create space text node
                 const spaceNode = document.createTextNode(" ");
@@ -93,7 +93,7 @@ export function UnifiedDescriptionIntegration() {
               if (descriptionStore.needsReadMore(torrentLink.href)) {
                 // Create a container for the ReadMore component
                 const readMoreContainer = document.createElement("span");
-                readMoreContainer.className = "ab-read-more-container";
+                // readMoreContainer.className = "ab-read-more-container";
 
                 // Create space text node
                 const spaceNode = document.createTextNode(" ");

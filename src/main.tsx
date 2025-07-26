@@ -1,19 +1,19 @@
 import type { ComponentType } from "preact";
 import { render } from "preact";
+import { SearchPage } from "@/core/pages/search";
+import { SeriesPage } from "@/core/pages/series";
+import { TorrentGroupPage } from "@/core/pages/torrent";
+import { AnimeBytesHostIntegration } from "@/core/shared";
 // Hooks and utilities
 import { withSettings } from "@/lib/hooks/withSettings";
 import { log, warn } from "@/lib/utils/logging";
 // Components
 import { AniListHostIntegration } from "@/satellites/anilist";
-import { AnimeBytesHostIntegration } from "@/core/shared";
-import { SearchPage } from "@/core/pages/search";
-import { SeriesPage } from "@/core/pages/series";
-import { TorrentGroupPage } from "@/core/pages/torrent";
 import { ReleasesIntegration } from "@/satellites/releases";
 import { SeaDexIntegration } from "@/satellites/seadex";
 import { YouTubeIntegration } from "@/satellites/youtube";
 // Styles
-import "@/styles";
+//import "@/styles";
 import "virtual:uno.css";
 
 function AniListAppBase() {

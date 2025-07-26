@@ -71,7 +71,10 @@ export class SeiyuuService {
       const response = await cachedApiCall(
         cacheKey,
         () =>
-          apiRequest<{ data: { Staff: AniListSeiyuuData }; errors?: any[] }>({
+          apiRequest<{
+            data: { Staff: AniListSeiyuuData };
+            errors?: { message: string; status: number; locations?: { line: number; column: number }[] }[];
+          }>({
             method: "POST",
             url: SeiyuuService.ANILIST_GRAPHQL_URL,
             headers: {

@@ -12,7 +12,13 @@ export function MediaInfoTab({ mediaInfo }: MediaInfoTabProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   if (!mediaInfo) {
-    return <div className="ab-details-tab-content ab-no-content">No MediaInfo available.</div>;
+    return (
+      <div text="white">
+        <div text="center #888" p="20px">
+          No MediaInfo available.
+        </div>
+      </div>
+    );
   }
 
   const toggleExpanded = () => {
@@ -20,16 +26,40 @@ export function MediaInfoTab({ mediaInfo }: MediaInfoTabProps) {
   };
 
   return (
-    <div className="ab-details-tab-content">
-      <div className="ab-spoiler-container">
-        <button type="button" className="ab-spoiler-button" onClick={toggleExpanded}>
+    <div text="white">
+      <div m="0">
+        <button
+          type="button"
+          flex
+          items="center"
+          gap="8px"
+          p="[8px_12px]"
+          bg="#2a2a2a"
+          border="1px solid #555"
+          rounded="4px"
+          text="white"
+          cursor="pointer"
+          transition="background"
+          hover="bg-#333"
+          onClick={toggleExpanded}
+        >
           {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
           Show MediaInfo
         </button>
         {isExpanded && (
-          <div className="ab-spoiler-content">
-            <div className="ab-code-box">
-              <pre>{mediaInfo}</pre>
+          <div mt="8px">
+            <div bg="#1a1a1a" border="1px solid #555" rounded="4px" p="12px" overflow="auto">
+              <pre
+                m="0"
+                un-ws="pre-wrap"
+                un-wrap="break-word"
+                font="mono"
+                text-size="12px"
+                line-height="[1.4]"
+                text="white"
+              >
+                {mediaInfo}
+              </pre>
             </div>
           </div>
         )}

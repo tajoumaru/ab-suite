@@ -1,4 +1,4 @@
-import type { SeaDexData } from "@/types/modern-table";
+import type { SeaDexData } from "./types";
 
 interface SeaDexTabProps {
   seadexData: SeaDexData | null;
@@ -9,12 +9,18 @@ interface SeaDexTabProps {
  */
 export function SeaDexTab({ seadexData }: SeaDexTabProps) {
   if (!seadexData) {
-    return <div className="ab-details-tab-content ab-no-content">No SeaDex data available.</div>;
+    return (
+      <div text="white">
+        <div text="center #888" p="20px">
+          No SeaDex data available.
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="ab-details-tab-content">
-      <div className="ab-seadex-content" dangerouslySetInnerHTML={{ __html: seadexData.html || "" }} />
+    <div text="white">
+      <div text="white" dangerouslySetInnerHTML={{ __html: seadexData.html || "" }} />
     </div>
   );
 }

@@ -1,3 +1,6 @@
+import { render } from "preact";
+import type { ReactNode } from "preact/compat";
+
 export const tagColors: Record<string, string | { background: string; color?: string; border?: string }> = {
   action: "#FF6347",
   adventure: { background: "#FFD700", color: "#333333" },
@@ -59,6 +62,36 @@ export function formatTagName(tag: string): string {
     .join(" ");
 }
 
+export interface EnhancedTagProps {
+  tag: string;
+  href?: string;
+  children?: ReactNode;
+}
+
+export function EnhancedTag({ tag, href, children }: EnhancedTagProps) {
+  const tagText = tag.trim().toLowerCase();
+  const formattedText = children || formatTagName(tagText);
+  const style = getTagStyle(tagText);
+
+  if (href) {
+    return (
+      <a
+        href={href}
+        style={style}
+        className="px-10px py-3px mx-3px my-1px rounded text-[10px] font-medium no-underline"
+      >
+        {formattedText}
+      </a>
+    );
+  }
+
+  return (
+    <span style={style} className="px-2 py-1 rounded text-xs font-medium text-xl">
+      {formattedText}
+    </span>
+  );
+}
+
 export function getTagStyle(tag: string): React.CSSProperties {
   const colorStyle = tagColors[tag];
   if (typeof colorStyle === "object") {
@@ -81,58 +114,59 @@ export function getTagStyle(tag: string): React.CSSProperties {
 
 export function transformTagElement(tagElement: HTMLAnchorElement, enabled: boolean): void {
   if (!enabled) {
-    // Only reset if it was previously enhanced
-    if (tagElement.classList.contains("ab-enhanced-tag")) {
-      tagElement.classList.remove("ab-enhanced-tag");
-      tagElement.style.backgroundColor = "";
-      tagElement.style.color = "";
-      tagElement.style.border = "";
-
-      // Restore original text if we saved it
-      const originalText = tagElement.getAttribute("data-original-text");
-      if (originalText) {
-        tagElement.textContent = originalText;
-        tagElement.removeAttribute("data-original-text");
-      }
+    // Restore original element if we have it
+    const originalElement = document.querySelector(
+      `[data-original-id="${tagElement.id || tagElement.getAttribute("data-tag-id")}"]`,
+    );
+    if (originalElement?.parentNode) {
+      originalElement.parentNode.replaceChild(tagElement, originalElement);
     }
     return;
   }
 
-  // Skip if already enhanced
-  if (tagElement.classList.contains("ab-enhanced-tag")) {
+  // Skip if already processed
+  if (tagElement.hasAttribute("data-ab-processed")) {
     return;
   }
 
   const tagText = tagElement.textContent?.trim().toLowerCase() || "";
-
-  // Skip if no valid tag text
   if (!tagText) {
     return;
   }
 
-  const formattedText = formatTagName(tagText);
+  // Mark as processed immediately
+  tagElement.setAttribute("data-ab-processed", "true");
 
-  // Skip if the text wouldn't change (avoid unnecessary DOM modifications)
-  if (tagElement.textContent === formattedText) {
-    // Still apply styling even if text is the same
-    tagElement.classList.add("ab-enhanced-tag");
-    const style = getTagStyle(tagText);
-    Object.assign(tagElement.style, style);
-    return;
+  // Create a temporary container to render the component
+  const tempContainer = document.createElement("div");
+
+  // Render the EnhancedTag component
+  render(
+    <EnhancedTag tag={tagText} href={tagElement.href}>
+      {formatTagName(tagText)}
+    </EnhancedTag>,
+    tempContainer,
+  );
+
+  // Get the rendered element
+  const enhancedElement = tempContainer.firstElementChild as HTMLElement;
+  if (!enhancedElement) return;
+
+  // Mark the enhanced element so it won't be processed again
+  enhancedElement.setAttribute("data-ab-processed", "true");
+
+  // Copy over important attributes from original
+  const id = tagElement.id || `tag-${Date.now()}`;
+  tagElement.setAttribute("data-tag-id", id);
+  enhancedElement.setAttribute("data-original-id", id);
+
+  // Preserve the float style if it exists
+  if (tagElement.style.float) {
+    enhancedElement.style.float = tagElement.style.float;
   }
 
-  // Save original text before transformation
-  tagElement.setAttribute("data-original-text", tagElement.textContent || "");
-
-  // Apply formatted text
-  tagElement.textContent = formattedText;
-
-  // Add CSS class for base styling
-  tagElement.classList.add("ab-enhanced-tag");
-
-  // Apply color-specific styles
-  const style = getTagStyle(tagText);
-  Object.assign(tagElement.style, style);
+  // Replace the original element with the enhanced one
+  tagElement.parentNode?.replaceChild(enhancedElement, tagElement);
 }
 
 export function applyTagStyling(selector: string, enabled: boolean): void {

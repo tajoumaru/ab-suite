@@ -1,22 +1,21 @@
 import { render } from "preact";
 import { useEffect, useState } from "preact/hooks";
-import { err, log, time, timeEnd } from "@/lib/utils/logging";
-import { useSeaDexUpdates } from "@/core/shared/seadex";
-import { useSettingsStore } from "@/lib/state/settings";
 import {
   detectTableType,
-  extractTorrentData,
-  type ParsedTorrentRow,
+  extractGroupedTorrentData,
+  type GroupedTorrents,
   type TableType,
 } from "@/core/features/modern-table";
+import { useSeaDexUpdates } from "@/core/shared/seadex";
+import { useSettingsStore } from "@/lib/state/settings";
+import { err, log, time, timeEnd } from "@/lib/utils/logging";
 import { SeriesTableContainer } from "./SeriesTableContainer";
 
 interface SeriesTableData {
   id: string;
   title: string;
   tableType: TableType;
-  torrents: ParsedTorrentRow[];
-  originalTable: HTMLTableElement;
+  groupedData: GroupedTorrents;
 }
 
 /**
@@ -82,14 +81,17 @@ export function SeriesPage() {
       try {
         // Detect table type and extract data
         const tableType = detectTableType(originalTable);
-        const extractedTorrents = extractTorrentData(originalTable, mediainfoParserEnabled, tableType);
+        const groupedData = extractGroupedTorrentData(originalTable, mediainfoParserEnabled, tableType);
 
-        if (extractedTorrents.length === 0) {
+        // Calculate total torrents
+        const totalTorrents = groupedData.sections.reduce((sum: number, s) => sum + s.torrents.length, 0);
+
+        if (totalTorrents === 0) {
           log(`No torrents found in table ${i}, skipping`);
           continue;
         }
 
-        log(`Detected table type '${tableType}' for table ${i}`);
+        log(`Detected table type '${tableType}' for table ${i} with ${totalTorrents} torrents`);
 
         // Hide the original table
         originalTable.style.display = "none";
@@ -101,11 +103,10 @@ export function SeriesPage() {
           id: `table-${i}`,
           title,
           tableType,
-          torrents: extractedTorrents,
-          originalTable,
+          groupedData,
         });
 
-        log(`Initialized table ${i} with ${extractedTorrents.length} torrents`);
+        log(`Initialized table ${i} with ${totalTorrents} torrents`);
       } catch (error) {
         err(`Failed to initialize table ${i}:`, error);
       }
@@ -153,25 +154,10 @@ export function SeriesPage() {
     initializeSeriesPage();
   }, [tableRestructureEnabled, mediainfoParserEnabled, isInitialized]);
 
-  // Listen for Seadex updates and re-extract data for all tables
+  // Listen for Seadex updates
+  // The TorrentTable component will handle SeaDex updates internally now
   useSeaDexUpdates(() => {
-    if (!isInitialized || tablesData.length === 0) return;
-
-    log("Seadex processing complete, re-extracting data for all tables");
-
-    try {
-      const updatedTablesData = tablesData.map((tableData) => {
-        const tableType = detectTableType(tableData.originalTable);
-        return {
-          ...tableData,
-          torrents: extractTorrentData(tableData.originalTable, mediainfoParserEnabled, tableType),
-        };
-      });
-
-      setTablesData(updatedTablesData);
-    } catch (error) {
-      err("Failed to re-extract data after Seadex update", error);
-    }
+    log("Seadex processing complete, tables will update automatically");
   });
 
   // Create a container in the DOM and render our components initially
@@ -213,8 +199,7 @@ export function SeriesPage() {
               key={tableData.id}
               tableType={tableData.tableType}
               title={tableData.title}
-              torrents={tableData.torrents}
-              originalTable={tableData.originalTable}
+              groupedData={tableData.groupedData}
               isCollapsed={collapsedTables.has(tableData.id)}
               onToggleCollapse={() => toggleTableCollapse(tableData.id)}
             />
@@ -254,8 +239,7 @@ export function SeriesPage() {
               key={tableData.id}
               tableType={tableData.tableType}
               title={tableData.title}
-              torrents={tableData.torrents}
-              originalTable={tableData.originalTable}
+              groupedData={tableData.groupedData}
               isCollapsed={collapsedTables.has(tableData.id)}
               onToggleCollapse={() => toggleTableCollapse(tableData.id)}
             />

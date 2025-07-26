@@ -77,7 +77,10 @@ export class CharacterService {
       const response = await cachedApiCall(
         cacheKey,
         () =>
-          apiRequest<{ data: { Character: AniListCharacterData }; errors?: any[] }>({
+          apiRequest<{
+            data: { Character: AniListCharacterData };
+            errors?: { message: string; status: number; locations?: { line: number; column: number }[] }[];
+          }>({
             method: "POST",
             url: CharacterService.ANILIST_GRAPHQL_URL,
             headers: {
@@ -211,7 +214,10 @@ export class CharacterService {
     const originalCacheKey = `anilist-character-${originalRomanizedName}`;
 
     try {
-      const response = await apiRequest<{ data: { Character: AniListCharacterData }; errors?: any[] }>({
+      const response = await apiRequest<{
+        data: { Character: AniListCharacterData };
+        errors?: { message: string; status: number; locations?: { line: number; column: number }[] }[];
+      }>({
         method: "POST",
         url: CharacterService.ANILIST_GRAPHQL_URL,
         headers: {

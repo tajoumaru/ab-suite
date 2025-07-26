@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
-import { log } from "@/lib/utils/logging";
 import type { AniListMediaData } from "@/services/anilist";
 
 // Global integration tracking to prevent double integration
@@ -42,37 +41,35 @@ export function EnhancedSynopsis({ aniListData, originalContent }: EnhancedSynop
       ? cleanAniListDescription(aniListData.description)
       : originalContent || "";
 
-  log("EnhancedSynopsis render:", {
-    hasAniListDescription: !!aniListData.description,
-    aniListDescriptionLength: aniListData.description?.length || 0,
-    hasOriginalContent: !!originalContent,
-    originalContentLength: originalContent?.length || 0,
-    showOriginal,
-    selectedContent: showOriginal ? "original" : "anilist",
-    finalDescriptionLength: description.length,
-  });
-
   const toggleContent = () => {
-    log("Synopsis toggle clicked, current showOriginal:", showOriginal);
     setShowOriginal(!showOriginal);
-    log("Synopsis toggle new state will be:", !showOriginal);
   };
 
   return (
-    <div className="box ab-enhanced-synopsis" data-ab-section="synopsis">
-      <div className="head ab-synopsis-header">
+    <div mb="20px" className="box" data-ab-section="synopsis">
+      <div justify="between" items="center" flex="~ wrap" gap="10px" className="head">
         <strong>Plot Synopsis</strong>
         {originalContent && aniListData.description && (
-          <span className="ab-synopsis-toggle">
-            <button type="button" onClick={toggleContent} className="ab-toggle-button">
+          <span flex items="center">
+            <button
+              type="button"
+              onClick={toggleContent}
+              bg="[none]"
+              border="1 solid #ccc"
+              text="white 11px"
+              p="[2px_8px]"
+              cursor="pointer"
+              rounded="3px"
+              transition="all"
+              hover="bg-[rgba(255,255,255,0.1)] border-white"
+            >
               {showOriginal ? "Show AniList" : "Show Original"}
             </button>
           </span>
         )}
       </div>
-      <div className="body ab-synopsis-body">
+      <div className="body">
         <div
-          className="ab-synopsis-content"
           data-source={showOriginal ? "original" : "anilist"}
           dangerouslySetInnerHTML={{
             __html: description,
@@ -100,67 +97,39 @@ export function useEnhancedSynopsis(aniListData: AniListMediaData | null) {
     };
   }, [aniListData?.title?.romaji, aniListData?.description]);
 
-  // Only log when actually relevant data changes
-  useEffect(() => {
-    if (memoizedData) {
-      log("useEnhancedSynopsis called:", {
-        hasAniListData: true,
-        isIntegrated,
-        title: memoizedData.title,
-      });
-    }
-  }, [memoizedData, isIntegrated]);
-
   useEffect(() => {
     if (!memoizedData) {
       return;
     }
 
     if (isIntegrated || globalSynopsisIntegrated) {
-      log("useEnhancedSynopsis: Already integrated, skipping");
       return;
     }
 
-    log("useEnhancedSynopsis: Starting integration with data:", {
-      title: memoizedData.title,
-      hasDescription: memoizedData.hasDescription,
-      descriptionPreview: memoizedData.description ? `${memoizedData.description.substring(0, 100)}...` : "",
-    });
-
     const integrateSynopsis = () => {
-      log("integrateSynopsis called, isIntegrated:", isIntegrated, "globalIntegrated:", globalSynopsisIntegrated);
-
       // If already integrated globally, skip
       if (globalSynopsisIntegrated) {
-        log("Synopsis already integrated globally, skipping");
         return;
       }
 
       // If already integrated locally, skip
       if (isIntegrated) {
-        log("Synopsis already integrated locally, skipping");
         return;
       }
 
-      // Look for synopsis boxes in both modern and classic layouts
-      const synopsisSelectors = [
-        "#ab-sections-container .box:not([data-ab-enhanced-synopsis])",
-        ".box:not([data-ab-enhanced-synopsis])",
-      ];
+      // Look for synopsis boxes only in the sections container where they should be rendered
+      const synopsisSelectors = ["#ab-sections-container .box:not([data-ab-enhanced-synopsis])"];
 
       let synopsisElement: HTMLElement | null = null;
 
       for (const selector of synopsisSelectors) {
         const elements = document.querySelectorAll(selector);
-        log("Searching with selector:", selector, "found:", elements.length);
 
         for (const element of elements) {
           const header = element.querySelector(".head strong")?.textContent;
-          log("Checking element with header:", header);
 
           if (header?.includes("Plot Synopsis")) {
             synopsisElement = element as HTMLElement;
-            log("Found Plot Synopsis element with selector:", selector);
             break;
           }
         }
@@ -169,27 +138,12 @@ export function useEnhancedSynopsis(aniListData: AniListMediaData | null) {
       }
 
       if (!synopsisElement) {
-        log(
-          "No synopsis element found, available boxes:",
-          Array.from(document.querySelectorAll(".box")).map((box) => {
-            const header = box.querySelector(".head strong")?.textContent;
-            return { header, hasEnhancedAttribute: box.hasAttribute("data-ab-enhanced-synopsis") };
-          }),
-        );
         return;
       }
-
-      log("Found synopsis element, proceeding with integration");
 
       // Extract original content
       const bodyElement = synopsisElement.querySelector(".body") as HTMLElement;
       const originalContent = bodyElement ? bodyElement.innerHTML : "";
-
-      log("Extracting original synopsis content:", {
-        hasBodyElement: !!bodyElement,
-        originalContentLength: originalContent.length,
-        originalContentPreview: `${originalContent.substring(0, 100)}...`,
-      });
 
       // Mark as processed BEFORE making changes
       synopsisElement.setAttribute("data-ab-enhanced-synopsis", "true");
@@ -203,32 +157,19 @@ export function useEnhancedSynopsis(aniListData: AniListMediaData | null) {
       const container = document.createElement("div");
       const parent = synopsisElement.parentNode;
 
-      log("Replacing synopsis element:", {
-        hasParent: !!parent,
-        containerCreated: !!container,
-      });
-
       if (parent) {
         parent.replaceChild(container, synopsisElement);
-        log("Synopsis element replaced with container");
       }
 
       // Render the enhanced synopsis
       import("preact").then(({ render }) => {
-        log("Rendering enhanced synopsis with:", {
-          hasAniListData: !!aniListData,
-          hasOriginalContent: !!originalContent,
-          containerElement: container.tagName,
-        });
         if (aniListData) {
           render(<EnhancedSynopsis aniListData={aniListData} originalContent={originalContent} />, container);
         }
-        log("Enhanced synopsis rendered successfully");
       });
 
       setIsIntegrated(true);
       globalSynopsisIntegrated = true;
-      log("Enhanced synopsis integrated successfully");
     };
 
     // Try to integrate immediately

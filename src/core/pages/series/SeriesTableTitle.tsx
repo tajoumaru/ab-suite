@@ -26,18 +26,26 @@ export function SeriesTableTitle({ title, isCollapsed, onToggle }: SeriesTableTi
   };
 
   return (
-    <h2 className="ab-table-title">
+    <h2 hover="opacity-80">
       <button
         type="button"
-        className="ab-table-title-button"
+        bg="[none]"
+        border="none"
+        text="inherit"
+        font="inherit"
+        cursor="pointer"
+        p="0"
+        flex
+        gap="12px"
+        size-w="full"
         onClick={handleClick}
         onKeyDown={handleKeyDown}
         aria-expanded={!isCollapsed}
       >
-        <span className="ab-table-title-icon">
-          {isCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
+        <span>{isCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}</span>
+        <span flex="1" text="left">
+          {title}
         </span>
-        <span className="ab-table-title-text">{title}</span>
       </button>
     </h2>
   );

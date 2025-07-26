@@ -1,7 +1,7 @@
 import { ChevronDown, ChevronRight } from "lucide-preact";
 import type { JSX } from "preact";
 import { useMemo, useState } from "preact/hooks";
-import type { FilelistItem } from "@/types/modern-table";
+import type { FilelistItem } from "../types";
 
 interface TreeFilelistTabProps {
   filelist: FilelistItem[];
@@ -224,30 +224,40 @@ export function TreeFilelistTab({ filelist }: TreeFilelistTabProps) {
 
     // Current node row
     elements.push(
-      <tr key={node.id} className="ab-filelist-row">
-        <td className="ab-filelist-cell ab-filelist-cell-filename">
+      <tr key={node.id} text="white" bg={node.id % 2 === 0 ? "#222" : "#1a1a1a"}>
+        <td p="[6px_8px]" border-b="1px solid #333" un-wrap="break-word">
           {hasChildren ? (
             <button
               type="button"
-              className="ab-tree-node-button"
+              flex
+              items="center"
+              bg="[none]"
+              border="none"
+              text="inherit"
+              cursor="pointer"
+              p="0"
+              text-align="left"
+              size-w="full"
               onClick={() => toggleNode(node.id)}
               aria-label={`${isExpanded ? "Collapse" : "Expand"} ${node.displayName}`}
             >
               <span dangerouslySetInnerHTML={{ __html: indent }} />
-              <span className="ab-tree-chevron-margin">
-                {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-              </span>
-              <code className="ab-tree-node-folder">{node.displayName}</code>
+              <span mr="4px">{isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}</span>
+              <code font="mono bold" text-size="1.2em">
+                {node.displayName}
+              </code>
             </button>
           ) : (
-            <div className="ab-tree-node-container">
+            <div flex items="center">
               <span dangerouslySetInnerHTML={{ __html: indent }} />
-              <code className="ab-tree-node-file">{node.displayName}</code>
+              <code font="mono normal" text-size="1.2em">
+                {node.displayName}
+              </code>
             </div>
           )}
         </td>
-        <td className="ab-filelist-cell ab-filelist-cell-size">
-          <span className={node.isFile ? "ab-tree-size-file" : "ab-tree-size-folder"}>
+        <td p="[6px_8px]" border-b="1px solid #333" text="right" un-ws="nowrap">
+          <span op={node.isFile ? "100" : "60"}>
             {node.isFile ? bytesToText(node.size) : `[${bytesToText(node.size)}]`}
           </span>
         </td>
@@ -265,39 +275,60 @@ export function TreeFilelistTab({ filelist }: TreeFilelistTabProps) {
   };
 
   if (filelist.length === 0) {
-    return <div className="ab-details-tab-content ab-no-content">No files available.</div>;
+    return (
+      <div text="#888" text-align="center" p="20px">
+        No files available.
+      </div>
+    );
   }
 
   if (!treeData.root) {
-    return <div className="ab-details-tab-content ab-no-content">Error loading file tree.</div>;
+    return (
+      <div text="#888" text-align="center" p="20px">
+        Error loading file tree.
+      </div>
+    );
   }
 
   const fileCount = filelist.length;
   const folderCount = treeData.nodes.size - fileCount - 1; // -1 for root
 
   return (
-    <div className="ab-details-tab-content">
-      <div className="ab-tree-filelist-header ab-tree-header-container">
-        <div className="ab-tree-header-flex">
-          <span>
+    <div text="white">
+      <div border-b="1px solid #555" pb="8px" mb="12px">
+        <div flex justify="between" items="center">
+          <span text-size="14px" font="bold" text="white">
             <strong>Tree View</strong> - {fileCount} file{fileCount !== 1 ? "s" : ""}
             {folderCount > 0 && ` in ${folderCount} folder${folderCount !== 1 ? "s" : ""}`}
           </span>
           {folderCount > 0 && (
-            <button type="button" className="ab-tree-toggle-all ab-tree-toggle-button" onClick={toggleAll}>
+            <button
+              type="button"
+              bg="#2a2a2a"
+              border="1px solid #555"
+              text="white"
+              rounded="4px"
+              transition="background"
+              hover="bg-#333"
+              font="mono"
+              text-size="1.2em"
+              p="[2px_8px]"
+              cursor="pointer"
+              onClick={toggleAll}
+            >
               {allExpanded ? "[-]" : "[+]"}
             </button>
           )}
         </div>
       </div>
 
-      <table className="ab-filelist-table">
+      <table size-w="full" border-collapse="collapse" text-size="12px">
         <thead>
-          <tr className="ab-filelist-header">
-            <th>
+          <tr bg="#2a2a2a" text="white">
+            <th p="8px" text="left" border-b="1px solid #555">
               <strong>File Name</strong>
             </th>
-            <th>
+            <th p="8px" text="left" border-b="1px solid #555">
               <strong>Size</strong>
             </th>
           </tr>

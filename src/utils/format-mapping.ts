@@ -1,4 +1,4 @@
-import type { FormatMap, MediaType } from "@/types";
+import type { FormatMap, MediaType } from "@/lib/types";
 
 export const FORMAT_MAP: FormatMap = {
   anime: {

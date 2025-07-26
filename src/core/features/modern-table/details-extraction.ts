@@ -6,7 +6,7 @@ import type {
   SeaDexData,
   TorrentDetailsData,
   UploadDescriptionData,
-} from "@/types/modern-table";
+} from "./types";
 
 /**
  * Extract structured torrent details data from the original HTML

@@ -1,5 +1,6 @@
 /**
  * Torrent details and tab-specific types
+ * Co-located with detail-components for better maintainability
  */
 
 /**

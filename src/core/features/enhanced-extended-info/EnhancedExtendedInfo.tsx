@@ -47,12 +47,14 @@ function NextEpisodeCountdown({ nextAiringEpisode }: NextEpisodeCountdownProps) 
   if (!nextAiringEpisode?.airingAt) return null;
 
   return (
-    <li className="ab-stat-item" data-stat="next-episode">
+    <li mb="8px" p="0" data-stat="next-episode">
       <div>
-        <strong>Next up:</strong>
+        <strong text="white">Next up:</strong>
       </div>
       <div>
-        Ep{nextAiringEpisode.episode}: {timeLeft}
+        <span text="#ddd">
+          Ep{nextAiringEpisode.episode}: {timeLeft}
+        </span>
       </div>
     </li>
   );
@@ -119,126 +121,137 @@ export function EnhancedExtendedInfo({ aniListData, originalContent }: EnhancedE
   };
 
   return (
-    <div className="box ab-enhanced-extended-info" data-ab-section="extended-info">
-      <div className="head ab-extended-info-header">
+    <div mb="20px" className="box" data-ab-section="extended-info">
+      <div justify="between" items="center" flex="~ wrap" gap="10px" className="head">
         <strong>Info</strong>
         {originalContent && (
-          <span className="ab-extended-info-toggle">
-            <button type="button" onClick={toggleContent} className="ab-toggle-button">
+          <span flex items="center">
+            <button
+              type="button"
+              onClick={toggleContent}
+              bg="[none]"
+              border="1 solid #ccc"
+              text="white 11px"
+              p="[2px_8px]"
+              cursor="pointer"
+              rounded="3px"
+              transition="all"
+              hover="bg-[rgba(255,255,255,0.1)] border-white"
+            >
               {showOriginal ? "Show Enhanced" : "Show Original"}
             </button>
           </span>
         )}
       </div>
 
-      <div className="body ab-extended-info-body">
+      <div className="body">
         {showOriginal ? (
-          <div className="ab-original-content" dangerouslySetInnerHTML={{ __html: originalContent || "" }} />
+          <div dangerouslySetInnerHTML={{ __html: originalContent || "" }} />
         ) : (
-          <ul className="stats nobullet ab-enhanced-stats">
+          <ul list="none" p="0" m="0" className="stats nobullet">
             {/* Next Episode Countdown - only show if airing */}
             {aniListData.status === "RELEASING" && aniListData.nextAiringEpisode && (
               <NextEpisodeCountdown nextAiringEpisode={aniListData.nextAiringEpisode} />
             )}
             {/* Native/Japanese Title */}
             {aniListData.title.native && (
-              <li className="ab-stat-item" data-stat="native-title">
+              <li mb="8px" p="0" data-stat="native-title">
                 <div>
-                  <strong>Japanese Title:</strong>
+                  <strong text="white">Japanese Title:</strong>
                 </div>
-                <div>{aniListData.title.native}</div>
+                <div text="#ddd">{aniListData.title.native}</div>
               </li>
             )}
 
             {/* English Title */}
             {aniListData.title.english && aniListData.title.english !== aniListData.title.romaji && (
-              <li className="ab-stat-item" data-stat="english-title">
+              <li mb="8px" p="0" data-stat="english-title">
                 <div>
-                  <strong>English Title:</strong>
+                  <strong text="white">English Title:</strong>
                 </div>
-                <div>{aniListData.title.english}</div>
+                <div text="#ddd">{aniListData.title.english}</div>
               </li>
             )}
 
             {/* Start Date */}
             {startDate && (
-              <li className="ab-stat-item" data-stat="start-date">
+              <li mb="8px" p="0" data-stat="start-date">
                 <div>
-                  <strong>Start Date:</strong>
+                  <strong text="white">Start Date:</strong>
                 </div>
-                <div>{startDate}</div>
+                <div text="#ddd">{startDate}</div>
               </li>
             )}
 
             {/* End Date */}
             {endDate && (
-              <li className="ab-stat-item" data-stat="end-date">
+              <li mb="8px" p="0" data-stat="end-date">
                 <div>
-                  <strong>End Date:</strong>
+                  <strong text="white">End Date:</strong>
                 </div>
-                <div>{endDate}</div>
+                <div text="#ddd">{endDate}</div>
               </li>
             )}
 
             {/* Season */}
             {seasonYear && (
-              <li className="ab-stat-item" data-stat="season">
+              <li mb="8px" p="0" data-stat="season">
                 <div>
-                  <strong>Season:</strong>
+                  <strong text="white">Season:</strong>
                 </div>
-                <div>{seasonYear}</div>
+                <div text="#ddd">{seasonYear}</div>
               </li>
             )}
 
             {/* Episodes */}
             {aniListData.episodes && (
-              <li className="ab-stat-item" data-stat="episodes">
+              <li mb="8px" p="0" data-stat="episodes">
                 <div>
-                  <strong>Episodes:</strong>
+                  <strong text="white">Episodes:</strong>
                 </div>
-                <div>{aniListData.episodes}</div>
+                <div text="#ddd">{aniListData.episodes}</div>
               </li>
             )}
 
             {/* Episode Length */}
             {aniListData.duration && (
-              <li className="ab-stat-item" data-stat="episode-length">
+              <li mb="8px" p="0" data-stat="episode-length">
                 <div>
-                  <strong>Episode Length:</strong>
+                  <strong text="white">Episode Length:</strong>
                 </div>
-                <div>{aniListData.duration} minutes</div>
+                <div text="#ddd">{aniListData.duration} minutes</div>
               </li>
             )}
 
             {/* Status */}
             {aniListData.status && (
-              <li className="ab-stat-item" data-stat="status">
+              <li mb="8px" p="0" data-stat="status">
                 <div>
-                  <strong>Status:</strong>
+                  <strong text="white">Status:</strong>
                 </div>
-                <div>{aniListData.status.charAt(0) + aniListData.status.slice(1).toLowerCase()}</div>
+                <div text="#ddd">{aniListData.status.charAt(0) + aniListData.status.slice(1).toLowerCase()}</div>
               </li>
             )}
 
             {/* Animation Studio */}
             {studios && (
-              <li className="ab-stat-item" data-stat="animation-studio">
+              <li mb="8px" p="0" data-stat="animation-studio">
                 <div>
-                  <strong>Animation Studio:</strong>
+                  <strong text="white">Animation Studio:</strong>
                 </div>
-                <div>{studios}</div>
+                <div text="#ddd">{studios}</div>
               </li>
             )}
 
             {/* Staff */}
             {primaryStaff.length > 0 && (
-              <li className="ab-stat-item" data-stat="staff">
+              <li mb="8px" p="0" data-stat="staff">
                 <div>
-                  <strong>Staff:</strong>
+                  <strong text="white">Staff:</strong>
                 </div>
                 <div>
-                  {primaryStaff.map((staff) => (
-                    <div key={staff.name}>
+                  {primaryStaff.map((staff, index) => (
+                    <div key={`${staff.name}-${staff.role}-${index}`} text="#ddd">
                       {staff.name} ({staff.role})
                     </div>
                   ))}
@@ -248,11 +261,11 @@ export function EnhancedExtendedInfo({ aniListData, originalContent }: EnhancedE
 
             {/* Country of Origin */}
             {aniListData.countryOfOrigin && (
-              <li className="ab-stat-item" data-stat="country-origin">
+              <li mb="8px" p="0" data-stat="country-origin">
                 <div>
-                  <strong>Country of Origin:</strong>
+                  <strong text="white">Country of Origin:</strong>
                 </div>
-                <div>{aniListData.countryOfOrigin}</div>
+                <div text="#ddd">{aniListData.countryOfOrigin}</div>
               </li>
             )}
           </ul>
@@ -361,7 +374,7 @@ export function useEnhancedExtendedInfo(aniListData: AniListMediaData | null) {
       });
 
       // Mark as processed BEFORE making changes
-      extendedInfoElement.setAttribute("data-ab-enhanced-extended-info", "true");
+      // extendedInfoElement.setAttribute("data-ab-enhanced-extended-info", "true");
 
       // Disconnect observer before DOM manipulation
       if (observerRef.current) {

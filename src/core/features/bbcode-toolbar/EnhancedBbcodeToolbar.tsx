@@ -187,13 +187,39 @@ export function EnhancedBbcodeToolbar() {
   };
 
   return (
-    <div className="ab-enhanced-bbcode-toolbar">
-      <div className="ab-bbcode-section ab-bbcode-formatting">
+    <div
+      flex="~ wrap"
+      gap="8px"
+      p="10px"
+      bg="[rgba(0,0,0,0.1)]"
+      border="1 solid [rgba(255,255,255,0.1)]"
+      rounded="6px"
+      mb="10px"
+    >
+      <div
+        flex
+        gap="4px"
+        items="center"
+        position="relative"
+        after="content-[''] w-[1px] h-[20px] bg-[rgba(255,255,255,0.2)] mx-[4px]"
+      >
         {bbcodeButtons.map((button) => (
           <button
             key={button.title}
             type="button"
-            className="ab-bbcode-btn"
+            inline-flex
+            items="center"
+            justify="center"
+            size-w-28px
+            size-h-28px
+            bg="[rgba(255,255,255,0.1)]"
+            border="1 solid [rgba(255,255,255,0.2)] rd-4px"
+            text="white 14px"
+            cursor="pointer"
+            transition="all"
+            p="0"
+            hover="bg-[rgba(255,255,255,0.2)] border-[rgba(255,255,255,0.3)]"
+            active="bg-[rgba(255,255,255,0.3)]"
             title={button.title}
             aria-label={button.title}
             onClick={() => handleBBCodeClick(button)}
@@ -203,10 +229,21 @@ export function EnhancedBbcodeToolbar() {
         ))}
       </div>
 
-      <div className="ab-bbcode-section ab-bbcode-smileys">
+      <div flex gap="4px" items="center" position="relative">
         <button
           type="button"
-          className="ab-bbcode-btn ab-smileys-toggle"
+          inline-flex
+          items="center"
+          justify="center"
+          size-w-28px
+          size-h-28px
+          bg="[rgba(237,16,106,0.2)]!"
+          border="1 solid [rgba(237,16,106,0.4)]! rd-4px"
+          text="white 14px"
+          cursor="pointer"
+          transition="all"
+          p="0"
+          hover="bg-[rgba(237,16,106,0.3)]! border-[rgba(237,16,106,0.5)]!"
           title="Smileys"
           aria-label="Toggle smileys"
           onClick={() => setShowSmileys(!showSmileys)}
@@ -214,17 +251,33 @@ export function EnhancedBbcodeToolbar() {
           <Smile size={16} />
         </button>
         {showSmileys && (
-          <div className="ab-smileys-dropdown">
+          <div
+            position="absolute top-full left-0 z-1000"
+            bg="#2a2a2a"
+            border="1 solid [rgba(255,255,255,0.2)] rd-6px"
+            p="8px"
+            grid="~ cols-7"
+            gap="4px"
+            size-w-240px
+            max-h="200px"
+            overflow-y="auto"
+            shadow="[0_4px_12px_rgba(0,0,0,0.3)]"
+          >
             {smileyButtons.map((smiley) => (
               <button
                 key={smiley.code}
                 type="button"
-                className="ab-smiley-btn"
-                style={{
-                  backgroundImage: `url('${smiley.image}')`,
-                  backgroundPosition: "center",
-                  backgroundRepeat: "no-repeat",
-                }}
+                inline-block
+                size-w-24px
+                size-h-24px
+                border="1 solid transparent"
+                rounded="3px"
+                cursor="pointer"
+                transition="all"
+                p="0"
+                hover="bg-[rgba(255,255,255,0.1)]! border-[rgba(255,255,255,0.3)]"
+                bg="transparent center no-repeat contain"
+                style={`background-image: url('${smiley.image}');`}
                 title={smiley.title}
                 aria-label={smiley.title}
                 onClick={() => handleSmileyClick(smiley)}
@@ -234,12 +287,24 @@ export function EnhancedBbcodeToolbar() {
         )}
       </div>
 
-      <div className="ab-bbcode-section ab-bbcode-media">
+      <div flex gap="4px" items="center">
         {otherButtons.map((button) => (
           <button
             key={button.title}
             type="button"
-            className="ab-bbcode-btn"
+            inline-flex
+            items="center"
+            justify="center"
+            size-w-28px
+            size-h-28px
+            bg="[rgba(255,255,255,0.1)]"
+            border="1 solid [rgba(255,255,255,0.2)] rd-4px"
+            text="white 14px"
+            cursor="pointer"
+            transition="all"
+            p="0"
+            hover="bg-[rgba(255,255,255,0.2)] border-[rgba(255,255,255,0.3)]"
+            active="bg-[rgba(255,255,255,0.3)]"
             title={button.title}
             aria-label={button.title}
             onClick={() => handleBBCodeClick(button)}

@@ -233,7 +233,10 @@ export class AniListService {
       const response = await cachedApiCall(
         cacheKey,
         () =>
-          apiRequest<{ data: { Media: AniListMediaData }; errors?: any[] }>({
+          apiRequest<{
+            data: { Media: AniListMediaData };
+            errors?: { message: string; status: number; locations?: { line: number; column: number }[] }[];
+          }>({
             method: "POST",
             url: AniListService.ANILIST_GRAPHQL_URL,
             headers: {
@@ -409,7 +412,7 @@ export class AniListService {
               } | null;
             };
           };
-          errors?: any[];
+          errors?: { message: string; status: number; locations?: { line: number; column: number }[] }[];
         }>({
           method: "POST",
           url: AniListService.ANILIST_GRAPHQL_URL,

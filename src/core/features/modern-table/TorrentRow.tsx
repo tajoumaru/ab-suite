@@ -1,7 +1,7 @@
 import { Check, Download, Flag, Link, X } from "lucide-preact";
 import { memo } from "preact/compat";
-import type { ParsedTorrentRow, TableType } from "@/types/modern-table";
 import { TorrentDetails } from "./TorrentDetails";
+import type { ParsedTorrentRow, TableType } from "./types";
 
 interface TorrentRowProps {
   torrent: ParsedTorrentRow;
@@ -87,55 +87,40 @@ function TorrentRowComponent({
     return resolution;
   };
 
-  // Determine row classes for styling
-  const getRowClasses = (): string => {
-    const classes = ["ab-modern-row"];
+  // Determine row state flags
+  const isFreeleech = torrent.isFreeleech || torrent.flags.some((flag) => flag.toLowerCase().includes("freeleech"));
+  const isSeaDexBest =
+    torrent.isSeaDexBest ||
+    torrent.flags.some((flag) => flag.toLowerCase().includes("seadex") && flag.toLowerCase().includes("best"));
+  const isSeaDexAlt = torrent.isSeaDexAlt || torrent.flags.some((flag) => flag.toLowerCase().includes("seadex"));
 
-    // Add alternating group background
-    if (isOddGroup) {
-      classes.push("ab-group-odd");
-    }
-
-    // Check for freeleech using legacy field or flags
-    if (torrent.isFreeleech || torrent.flags.some((flag) => flag.toLowerCase().includes("freeleech"))) {
-      classes.push("ab-freeleech");
-    }
-
-    // Check for SeaDex indicators using legacy fields or flags
-    if (
-      torrent.isSeaDexBest ||
-      torrent.flags.some((flag) => flag.toLowerCase().includes("seadex") && flag.toLowerCase().includes("best"))
-    ) {
-      classes.push("ab-seadex-best");
-    } else if (torrent.isSeaDexAlt || torrent.flags.some((flag) => flag.toLowerCase().includes("seadex"))) {
-      classes.push("ab-seadex-alt");
-    }
-
-    // Add details indicator
-    if (torrent.hasDetails || torrent.detailsHtml) {
-      classes.push("ab-has-details");
-    }
-
-    // Add series page styling for clickable rows
-    if (isSeriesPage && torrent.detailsLink) {
-      classes.push("ab-series-clickable");
-    }
-
-    return classes.join(" ");
-  };
+  // Check if row should be clickable
+  const isClickable = torrent.hasDetails || torrent.detailsHtml || (isSeriesPage && torrent.detailsLink);
 
   // Common row elements for all table types
   const commonRowStart = (
     <>
-      <td className="ab-col-download">
-        <div className="ab-download-container">
-          <a href={torrent.downloadLink} title="Download torrent" className="ab-download-btn">
+      <td size-w-40px text="center" p="[6px_4px]" border="1px solid [hsl(0,0%,20%)]" text-size="11px" un-align="middle">
+        <div flex="~ row" items="center" gap="6px" justify="center">
+          <a
+            href={torrent.downloadLink}
+            title="Download torrent"
+            text-color="[hsl(213,85%,72%)]"
+            text-size="10px"
+            un-decoration="none"
+            font="bold"
+            hover="decoration-underline"
+          >
             <Download size={16} />
           </a>
           <a
             href={torrent.torrentLink}
             title="Permalink to torrent"
-            className="ab-permalink-btn"
+            text-color="[hsl(213,85%,72%)]"
+            un-decoration="none"
+            text-size="10px"
+            font="bold"
+            hover="decoration-underline"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -148,39 +133,58 @@ function TorrentRowComponent({
       </td>
 
       {/* Only show Group column for anime tables */}
-      {tableType === "anime" && <td className="ab-col-group">{torrent.group || ""}</td>}
+      {tableType === "anime" && (
+        <td
+          size-w-100px
+          p="[6px_4px]"
+          border="1px solid [hsl(0,0%,20%)]"
+          text-size="11px"
+          text="center"
+          un-align="middle"
+        >
+          {torrent.group || ""}
+        </td>
+      )}
     </>
   );
 
   const commonRowEnd = (
     <>
-      <td className="ab-col-size">{torrent.size}</td>
+      <td size-w-60px p="[6px_4px]" border="1px solid [hsl(0,0%,20%)]" text-size="11px" text="center" un-align="middle">
+        {torrent.size}
+      </td>
 
-      <td className="ab-col-snatches">{torrent.snatches}</td>
+      <td size-w-40px p="[6px_4px]" border="1px solid [hsl(0,0%,20%)]" text-size="11px" text="center" un-align="middle">
+        {torrent.snatches}
+      </td>
 
-      <td className="ab-col-seeders">{torrent.seeders}</td>
+      <td size-w-40px p="[6px_4px]" border="1px solid [hsl(0,0%,20%)]" text-size="11px" text="center" un-align="middle">
+        {torrent.seeders}
+      </td>
 
-      <td className="ab-col-leechers">{torrent.leechers}</td>
+      <td size-w-40px p="[6px_4px]" border="1px solid [hsl(0,0%,20%)]" text-size="11px" text="center" un-align="middle">
+        {torrent.leechers}
+      </td>
 
-      <td className="ab-col-flags">
+      <td size-w-60px p="[6px_4px]" border="1px solid [hsl(0,0%,20%)]" text-size="11px" text="center" un-align="middle">
         {torrent.flags.length > 0 && (
-          <div className="ab-flags">
+          <div flex="~ wrap" gap="4px" justify="center" line-height="[0]">
             {torrent.flags.map((flag: string, index: number) => (
-              <span
-                key={`${torrent.torrentId}-${index}`}
-                className="ab-flag"
-                dangerouslySetInnerHTML={{ __html: flag }}
-              />
+              <span key={`${torrent.torrentId}-${index}`} dangerouslySetInnerHTML={{ __html: flag }} />
             ))}
           </div>
         )}
       </td>
 
-      <td className="ab-col-report">
+      <td size-w-20px text="center" p="[6px_4px]" border="1px solid [hsl(0,0%,20%)]" text-size="11px" un-align="middle">
         <a
           href={`/reports.php?action=report&type=torrent&id=${torrent.torrentId}`}
           title="Report torrent"
-          className="ab-report-btn"
+          text-color="[hsl(213,85%,72%)]"
+          un-decoration="none"
+          text-size="10px"
+          font="bold"
+          hover="decoration-underline"
         >
           <Flag size={16} />
         </a>
@@ -194,58 +198,156 @@ function TorrentRowComponent({
       case "anime":
         return (
           <>
-            <td className="ab-col-format">{torrent.format || ""}</td>
+            <td
+              size-w-60px
+              p="[6px_4px]"
+              border="1px solid [hsl(0,0%,20%)]"
+              text-size="11px"
+              text="center"
+              un-align="middle"
+            >
+              {torrent.format || ""}
+            </td>
 
-            {showRegionColumn && <td className="ab-col-region">{torrent.region || ""}</td>}
+            {showRegionColumn && (
+              <td
+                size-w-60px
+                p="[6px_4px]"
+                border="1px solid [hsl(0,0%,20%)]"
+                text-size="11px"
+                text="center"
+                un-align="middle"
+              >
+                {torrent.region || ""}
+              </td>
+            )}
 
-            <td className="ab-col-container">{torrent.container || ""}</td>
+            <td
+              size-w-60px
+              p="[6px_4px]"
+              border="1px solid [hsl(0,0%,20%)]"
+              text-size="11px"
+              text="center"
+              un-align="middle"
+            >
+              {torrent.container || ""}
+            </td>
 
-            <td className="ab-col-video-codec">{torrent.videoCodec || ""}</td>
+            <td
+              size-w-70px
+              p="[6px_4px]"
+              border="1px solid [hsl(0,0%,20%)]"
+              text-size="11px"
+              text="center"
+              un-align="middle"
+            >
+              {torrent.videoCodec || ""}
+            </td>
 
-            {!compactResolutionMode && <td className="ab-col-aspect-ratio">{torrent.aspectRatio || ""}</td>}
+            {!compactResolutionMode && (
+              <td
+                size-w-60px
+                p="[6px_4px]"
+                border="1px solid [hsl(0,0%,20%)]"
+                text-size="11px"
+                text="center"
+                un-align="middle"
+              >
+                {torrent.aspectRatio || ""}
+              </td>
+            )}
 
-            <td className="ab-col-resolution">{getCompactResolution()}</td>
+            <td
+              size-w-70px
+              p="[6px_4px]"
+              border="1px solid [hsl(0,0%,20%)]"
+              text-size="11px"
+              text="center"
+              un-align="middle"
+            >
+              {getCompactResolution()}
+            </td>
 
-            <td className="ab-col-audio">{torrent.audio || ""}</td>
+            <td
+              size-w-50px
+              p="[6px_4px]"
+              border="1px solid [hsl(0,0%,20%)]"
+              text-size="11px"
+              text="center"
+              un-align="middle"
+            >
+              {torrent.audio || ""}
+            </td>
 
-            <td className="ab-col-audio-channels">{torrent.audioChannels || ""}</td>
+            <td
+              size-w-40px
+              p="[6px_4px]"
+              border="1px solid [hsl(0,0%,20%)]"
+              text-size="11px"
+              text="center"
+              un-align="middle"
+            >
+              {torrent.audioChannels || ""}
+            </td>
 
             {showDualAudioColumn && (
-              <td className="ab-col-dual-audio">
+              <td
+                size-w-40px
+                text="center"
+                p="[6px_4px]"
+                border="1px solid [hsl(0,0%,20%)]"
+                text-size="11px"
+                un-align="middle"
+              >
                 {torrent.hasDualAudio ? (
-                  <Check size={14} className="ab-dual-audio-check" />
+                  <Check size={14} text-color="[hsl(142,69%,58%)]" />
                 ) : (
-                  <X size={14} className="ab-dual-audio-cross" />
+                  <X size={14} text-color="[hsl(0,91%,71%)]" op="60" />
                 )}
               </td>
             )}
 
-            <td className="ab-col-subtitles">{torrent.subtitles || ""}</td>
+            <td
+              size-w-80px
+              p="[6px_4px]"
+              border="1px solid [hsl(0,0%,20%)]"
+              text-size="11px"
+              text="center"
+              un-align="middle"
+            >
+              {torrent.subtitles || ""}
+            </td>
           </>
         );
 
       case "printed_media":
         return (
           <>
-            <td className="ab-col-printed-type">{torrent.printedMediaType || ""}</td>
+            <td p="[6px_4px]" border="1px solid [hsl(0,0%,20%)]" text-size="11px" text="center" un-align="middle">
+              {torrent.printedMediaType || ""}
+            </td>
 
-            <td className="ab-col-translator">{torrent.translator || ""}</td>
+            <td p="[6px_4px]" border="1px solid [hsl(0,0%,20%)]" text-size="11px" text="center" un-align="middle">
+              {torrent.translator || ""}
+            </td>
 
-            <td className="ab-col-digital">
+            <td p="[6px_4px]" border="1px solid [hsl(0,0%,20%)]" text-size="11px" text="center" un-align="middle">
               {torrent.isDigital ? (
-                <Check size={14} className="ab-digital-check" />
+                <Check size={14} text-color="[hsl(142,69%,58%)]" />
               ) : (
-                <X size={14} className="ab-digital-cross" />
+                <X size={14} text-color="[hsl(0,91%,71%)]" op="60" />
               )}
             </td>
 
-            <td className="ab-col-printed-format">{torrent.printedFormat || ""}</td>
+            <td p="[6px_4px]" border="1px solid [hsl(0,0%,20%)]" text-size="11px" text="center" un-align="middle">
+              {torrent.printedFormat || ""}
+            </td>
 
-            <td className="ab-col-ongoing">
+            <td p="[6px_4px]" border="1px solid [hsl(0,0%,20%)]" text-size="11px" text="center" un-align="middle">
               {torrent.isOngoing ? (
-                <Check size={14} className="ab-ongoing-check" />
+                <Check size={14} text-color="[hsl(142,69%,58%)]" />
               ) : (
-                <X size={14} className="ab-ongoing-cross" />
+                <X size={14} text-color="[hsl(0,91%,71%)]" op="60" />
               )}
             </td>
           </>
@@ -254,17 +356,23 @@ function TorrentRowComponent({
       case "games":
         return (
           <>
-            <td className="ab-col-game-type">{torrent.gameType || ""}</td>
+            <td p="[6px_4px]" border="1px solid [hsl(0,0%,20%)]" text-size="11px" text="center" un-align="middle">
+              {torrent.gameType || ""}
+            </td>
 
-            <td className="ab-col-platform">{torrent.platform || ""}</td>
+            <td p="[6px_4px]" border="1px solid [hsl(0,0%,20%)]" text-size="11px" text="center" un-align="middle">
+              {torrent.platform || ""}
+            </td>
 
-            <td className="ab-col-game-region">{torrent.gameRegion || ""}</td>
+            <td p="[6px_4px]" border="1px solid [hsl(0,0%,20%)]" text-size="11px" text="center" un-align="middle">
+              {torrent.gameRegion || ""}
+            </td>
 
-            <td className="ab-col-archived">
+            <td p="[6px_4px]" border="1px solid [hsl(0,0%,20%)]" text-size="11px" text="center" un-align="middle">
               {torrent.isArchived ? (
-                <Check size={14} className="ab-archived-check" />
+                <Check size={14} text-color="[hsl(142,69%,58%)]" />
               ) : (
-                <X size={14} className="ab-archived-cross" />
+                <X size={14} text-color="[hsl(0,91%,71%)]" op="60" />
               )}
             </td>
           </>
@@ -273,18 +381,32 @@ function TorrentRowComponent({
       case "music":
         return (
           <>
-            <td className="ab-col-music-codec">{torrent.musicCodec || ""}</td>
-
-            <td className="ab-col-bitrate">{torrent.bitrate || ""}</td>
-
-            <td className="ab-col-media">{torrent.media || ""}</td>
-
-            <td className="ab-col-log">
-              {torrent.hasLog ? <Check size={14} className="ab-log-check" /> : <X size={14} className="ab-log-cross" />}
+            <td p="[6px_4px]" border="1px solid [hsl(0,0%,20%)]" text-size="11px" text="center" un-align="middle">
+              {torrent.musicCodec || ""}
             </td>
 
-            <td className="ab-col-cue">
-              {torrent.hasCue ? <Check size={14} className="ab-cue-check" /> : <X size={14} className="ab-cue-cross" />}
+            <td p="[6px_4px]" border="1px solid [hsl(0,0%,20%)]" text-size="11px" text="center" un-align="middle">
+              {torrent.bitrate || ""}
+            </td>
+
+            <td p="[6px_4px]" border="1px solid [hsl(0,0%,20%)]" text-size="11px" text="center" un-align="middle">
+              {torrent.media || ""}
+            </td>
+
+            <td p="[6px_4px]" border="1px solid [hsl(0,0%,20%)]" text-size="11px" text="center" un-align="middle">
+              {torrent.hasLog ? (
+                <Check size={14} text-color="[hsl(142,69%,58%)]" />
+              ) : (
+                <X size={14} text-color="[hsl(0,91%,71%)]" op="60" />
+              )}
+            </td>
+
+            <td p="[6px_4px]" border="1px solid [hsl(0,0%,20%)]" text-size="11px" text="center" un-align="middle">
+              {torrent.hasCue ? (
+                <Check size={14} text-color="[hsl(142,69%,58%)]" />
+              ) : (
+                <X size={14} text-color="[hsl(0,91%,71%)]" op="60" />
+              )}
             </td>
           </>
         );
@@ -297,7 +419,54 @@ function TorrentRowComponent({
   return (
     <>
       {/* Main torrent row */}
-      <tr className={getRowClasses()} data-torrent-id={torrent.torrentId} onClick={handleRowClick}>
+      <tr
+        text="white"
+        border-b="1px solid [hsl(0,0%,13%)]"
+        cursor={isClickable ? "pointer" : "default"}
+        transition="background-color 150ms"
+        bg={
+          isSeaDexBest
+            ? isOddGroup
+              ? "[rgba(121,237,163,0.08)]"
+              : "[rgba(121,237,163,0.1)]"
+            : isSeaDexAlt
+              ? isOddGroup
+                ? "[rgba(251,136,136,0.08)]"
+                : "[rgba(251,136,136,0.1)]"
+              : isFreeleech
+                ? isOddGroup
+                  ? "[rgba(207,181,59,0.05)]"
+                  : "[rgba(207,181,59,0.12)]"
+                : isOddGroup
+                  ? "[hsl(0,0%,8%)]"
+                  : "transparent"
+        }
+        hover-bg={
+          !isClickable
+            ? undefined
+            : isSeriesPage && torrent.detailsLink
+              ? isOddGroup
+                ? "[hsl(0,0%,20%)]"
+                : "[hsl(0,0%,18%)]"
+              : isSeaDexBest
+                ? isOddGroup
+                  ? "[rgba(121,237,163,0.15)]"
+                  : "[rgba(121,237,163,0.2)]"
+                : isSeaDexAlt
+                  ? isOddGroup
+                    ? "[rgba(251,136,136,0.15)]"
+                    : "[rgba(251,136,136,0.2)]"
+                  : isFreeleech
+                    ? isOddGroup
+                      ? "[rgba(207,181,59,0.1)]"
+                      : "[rgba(207,181,59,0.2)]"
+                    : isOddGroup
+                      ? "[hsl(0,0%,12%)]"
+                      : "[hsl(0,0%,16%)]"
+        }
+        data-torrent-id={torrent.torrentId}
+        onClick={handleRowClick}
+      >
         {commonRowStart}
         {renderTableSpecificCells()}
         {commonRowEnd}

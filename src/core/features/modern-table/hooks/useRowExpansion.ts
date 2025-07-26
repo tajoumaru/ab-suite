@@ -1,6 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
 import { log } from "@/lib/utils/logging";
-import type { GroupedTorrents } from "@/types/modern-table";
+import type { GroupedTorrents } from "../types";
 
 export function useRowExpansion(enhancedGroupedData: GroupedTorrents, isSeriesPage: boolean) {
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());

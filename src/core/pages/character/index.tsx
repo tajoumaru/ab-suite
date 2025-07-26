@@ -1,9 +1,9 @@
 import { render } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
+import { CollageTableIntegration } from "@/core/features/collage-table/CollageTable";
+import { useSettingsStore } from "@/lib/state/settings";
 import { err, log } from "@/lib/utils/logging";
 import { type AniListCharacterData, characterService, type MalCharacterData } from "@/services/character";
-import { useSettingsStore } from "@/lib/state/settings";
-import { CollageTableIntegration } from "@/core/features/collage-table/CollageTable";
 
 interface CharacterMetadata {
   source: "anilist" | "mal";
@@ -45,7 +45,13 @@ function extractOriginalContent() {
 /**
  * Component that renders character image in sidebar
  */
-function CharacterImageBox({ characterData, originalImage }: { characterData: CharacterMetadata; originalImage: any }) {
+function CharacterImageBox({
+  characterData,
+  originalImage,
+}: {
+  characterData: CharacterMetadata;
+  originalImage: { src: string; alt: string; width: number } | null;
+}) {
   const data =
     characterData.source === "mal"
       ? characterService.normalizeMalData(characterData.data as MalCharacterData)
@@ -96,19 +102,29 @@ function CharacterImageBox({ characterData, originalImage }: { characterData: Ch
       <div className="head">
         <strong>Character Image</strong>
         {originalImage && (
-          <span className="ab-extended-info-toggle">
-            <button type="button" onClick={() => setShowOriginal(!showOriginal)} className="ab-toggle-button">
+          <span flex items="center">
+            <button
+              type="button"
+              onClick={() => setShowOriginal(!showOriginal)}
+              bg="transparent"
+              border="1px solid #ccc"
+              text="white"
+              hover-bg="[rgba(255,255,255,0.1)]"
+              hover-border="white"
+            >
               {showOriginal ? "Show AniList" : "Show Original"}
             </button>
           </span>
         )}
       </div>
-      <div className="ab-character-cover-image-content">
+      <div text="center" p="20px">
         <div ref={imageContainerRef} />
-        {nativeName && <div className="ab-character-native-name">{nativeName}</div>}
-        {alternativeNames && alternativeNames.length > 0 && (
-          <div className="ab-character-alternative-names">{alternativeNames.join(", ")}</div>
+        {nativeName && (
+          <div mt="8px" text="14px #666" font="bold">
+            {nativeName}
+          </div>
         )}
+        {alternativeNames && alternativeNames.length > 0 && <div>{alternativeNames.join(", ")}</div>}
       </div>
     </div>
   );
@@ -207,20 +223,28 @@ function CharacterDescriptionBox({
       <div className="head">
         <strong>Character Information</strong>
         {originalDescription && (
-          <span className="ab-extended-info-toggle">
-            <button type="button" onClick={() => setShowOriginal(!showOriginal)} className="ab-toggle-button">
+          <span flex items="center">
+            <button
+              type="button"
+              onClick={() => setShowOriginal(!showOriginal)}
+              bg="transparent"
+              border="1px solid #ccc"
+              text="white"
+              hover-bg="[rgba(255,255,255,0.1)]"
+              hover-border="white"
+            >
               {showOriginal ? "Show AniList" : "Show Original"}
             </button>
           </span>
         )}
       </div>
-      <div className="ab-character-description-content">
+      <div p="10px">
         {showOriginal ? (
-          <div className="ab-original-content" dangerouslySetInnerHTML={{ __html: originalDescription || "" }} />
+          <div dangerouslySetInnerHTML={{ __html: originalDescription || "" }} />
         ) : (
           <>
             {hasCharacterInfo && (
-              <div className="ab-character-info">
+              <div flex="col" justify="center" p="[8px_12px]">
                 {birthday && (
                   <div>
                     <strong>Birthday:</strong> {birthday}
@@ -244,16 +268,12 @@ function CharacterDescriptionBox({
               </div>
             )}
             {data.description && (
-              <div
-                ref={descriptionRef}
-                className="ab-character-description-text"
-                dangerouslySetInnerHTML={{ __html: `<p>${cleanDescription}</p>` }}
-              />
+              <div ref={descriptionRef} dangerouslySetInnerHTML={{ __html: `<p>${cleanDescription}</p>` }} />
             )}
           </>
         )}
         {!showOriginal && (
-          <div className="ab-character-source-info">
+          <div mt="10px" text="12px #888" italic>
             Source: {characterData.source === "anilist" ? "AniList" : "MyAnimeList"}
           </div>
         )}
@@ -304,7 +324,10 @@ export function CharacterPage() {
   const { characterPageEnhancements } = useSettingsStore();
   const [characterData, setCharacterData] = useState<CharacterMetadata | null>(null);
   const [loading, setLoading] = useState(false);
-  const [originalContent, setOriginalContent] = useState<{ originalImage: any; originalDescription: string | null }>({
+  const [originalContent, setOriginalContent] = useState<{
+    originalImage: { src: string; alt: string; width: number } | null;
+    originalDescription: string | null;
+  }>({
     originalImage: null,
     originalDescription: null,
   });
@@ -346,10 +369,10 @@ export function CharacterPage() {
 
         // Create containers
         const imageContainer = document.createElement("div");
-        imageContainer.className = "ab-character-cover-image-container";
+        // imageContainer.className = "ab-character-cover-image-container";
 
         const descriptionContainer = document.createElement("div");
-        descriptionContainer.className = "ab-character-description-container";
+        // descriptionContainer.className = "ab-character-description-container";
 
         // Insert as first child in sidebar and main column
         sidebar.insertBefore(imageContainer, sidebar.firstChild);
@@ -422,7 +445,9 @@ export function CharacterPage() {
           <div className="head">
             <strong>Loading Character Data...</strong>
           </div>
-          <div className="ab-character-loading-content">Fetching character information...</div>
+          <div p="10px" text="center #666">
+            Fetching character information...
+          </div>
         </div>,
         imageContainerRef.current,
       );

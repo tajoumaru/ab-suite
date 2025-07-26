@@ -1,8 +1,9 @@
 import path from "node:path";
 import preact from "@preact/preset-vite";
-import UnoCSS from 'unocss/vite';
+import UnoCSS from "unocss/vite";
+import AutoImport from "unplugin-auto-import/vite";
 import { defineConfig, type Plugin } from "vite";
-import monkey, { cdn } from 'vite-plugin-monkey';
+import monkey, { cdn, util } from "vite-plugin-monkey";
 import pkg from "./package.json";
 
 export default defineConfig({
@@ -12,11 +13,15 @@ export default defineConfig({
     },
   },
   plugins: [
+    AutoImport({
+      imports: [util.unimportPreset],
+      dts: "src/vite-plugins/auto-imports.d.ts",
+    }),
     UnoCSS(),
     graphqlMinifyPlugin(),
     preact(),
     monkey({
-      entry: 'src/main.tsx',
+      entry: "src/main.tsx",
       userscript: {
         name: "abs",
         description: pkg.description,
@@ -46,7 +51,7 @@ export default defineConfig({
           "graphql.anilist.co",
           "kitsu.app",
         ],
-        'run-at': "document-start",
+        "run-at": "document-start",
         grant: [
           "GM_addStyle",
           "GM_setValue",
@@ -59,7 +64,7 @@ export default defineConfig({
       },
       build: {
         externalGlobals: {
-          preact: cdn.jsdelivr('preact', 'dist/preact.min.js'),
+          preact: cdn.jsdelivr("preact", "dist/preact.min.js"),
         },
       },
     }),

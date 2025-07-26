@@ -1,6 +1,6 @@
 import { parseMediaInfo } from "mi-parser";
 import { err, log } from "@/lib/utils/logging";
-import type { GroupedTorrents, GroupHeader, ParsedTorrentRow, TableSection, TableType } from "@/types/modern-table";
+import type { GroupedTorrents, GroupHeader, ParsedTorrentRow, TableSection, TableType } from "./types";
 
 /**
  * Detects the table type based on context (series page table ID or torrents page title)

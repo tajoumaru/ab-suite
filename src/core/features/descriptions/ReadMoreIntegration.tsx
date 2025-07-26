@@ -1,8 +1,8 @@
 import { render } from "preact";
 import { useEffect, useRef } from "preact/hooks";
-import { err, log } from "@/lib/utils/logging";
 import { useDescriptionStore } from "@/core/shared/descriptions";
 import { useSettingsStore } from "@/lib/state/settings";
+import { err, log } from "@/lib/utils/logging";
 import { ReadMore } from "./ReadMore";
 
 export function ReadMoreIntegration() {
@@ -70,7 +70,7 @@ export function ReadMoreIntegration() {
           elementsToProcess.forEach(({ descElement, torrentLink }) => {
             // Create a container for the ReadMore component
             const container = document.createElement("span");
-            container.className = "ab-read-more-container";
+            // container.className = "ab-read-more-container";
 
             // Create space text node
             const spaceNode = document.createTextNode(" ");

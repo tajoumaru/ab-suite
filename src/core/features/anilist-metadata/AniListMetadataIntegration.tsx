@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
-import { log } from "@/lib/utils/logging";
-import type { AniListMediaData } from "@/services/anilist";
-import { aniListService } from "@/services/anilist";
-import { useSettingsStore } from "@/lib/state/settings";
-import { useEnhancedCharacterCards } from "@/core/features/character-cards/EnhancedCharacterCards";
 import { useEnhancedExtendedInfo } from "@/core/features/enhanced-extended-info/EnhancedExtendedInfo";
 import { useEnhancedSynopsis } from "@/core/features/enhanced-synopsis/EnhancedSynopsis";
 import { useMediaInfo } from "@/core/shared/hooks/useMediaInfo";
+import { useSettingsStore } from "@/lib/state/settings";
+import { log } from "@/lib/utils/logging";
+import type { AniListMediaData } from "@/services/anilist";
+import { aniListService } from "@/services/anilist";
 
 /**
  * Main AniList metadata integration component that fetches AniList data
@@ -92,7 +91,6 @@ export function AniListMetadataIntegration() {
   // Initialize enhanced components when AniList data is available
   useEnhancedSynopsis(aniListData);
   useEnhancedExtendedInfo(aniListData);
-  useEnhancedCharacterCards(aniListData);
 
   // Consolidated debug logging
   useEffect(() => {

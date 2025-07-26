@@ -1,5 +1,5 @@
 import { ChevronDown, ChevronsUpDown, ChevronUp, Maximize2, Minimize2 } from "lucide-preact";
-import type { SortColumn, SortDirection, TableType } from "@/types/modern-table";
+import type { SortColumn, SortDirection, TableType } from "./types";
 
 interface TorrentHeaderProps {
   sortColumn: SortColumn;
@@ -42,34 +42,44 @@ export function TorrentHeader({
 
   const renderSortIndicator = (column: SortColumn) => {
     if (sortColumn !== column) {
-      return <ChevronsUpDown size={14} className="ab-sort-indicator" />;
+      return <ChevronsUpDown size={14} op="60" transition="opacity" flex-shrink="0" />;
     }
 
     return sortDirection === "asc" ? (
-      <ChevronUp size={14} className="ab-sort-indicator ab-sort-active" />
+      <ChevronUp size={14} op="100" text="#e91e63" transition="opacity" flex-shrink="0" />
     ) : (
-      <ChevronDown size={14} className="ab-sort-indicator ab-sort-active" />
+      <ChevronDown size={14} op="100" text="#e91e63" transition="opacity" flex-shrink="0" />
     );
   };
 
   const SortableHeader = ({
     column,
     children,
-    className = "",
+    width,
     title,
   }: {
     column: SortColumn;
     children: preact.ComponentChildren;
-    className?: string;
+    width?: string;
     title?: string;
   }) => (
     <td
-      className={`${className} ab-sortable`}
+      style={`width: ${width}`}
+      cursor="pointer"
+      select="none"
+      position="relative"
+      transition="background-color"
+      hover="bg-[hsl(213,32%,20%)]"
+      p="[8px_6px]"
+      border="1px solid [hsl(0,0%,20%)]"
+      text-size="12px"
+      text="center"
+      un-align="middle"
       onClick={() => handleSort(column)}
       onKeyDown={(e) => handleSortKeyDown(e, column)}
       title={title}
     >
-      <div className="ab-header-content">
+      <div flex items="center" justify="center" gap="4px" min-h="16px">
         {children}
         {renderSortIndicator(column)}
       </div>
@@ -89,7 +99,17 @@ export function TorrentHeader({
   const commonHeaderStart = (
     <>
       <td
-        className={`ab-col-download ${hasAnySections && onToggleAllSections ? "ab-sortable" : ""}`}
+        size-w-40px
+        cursor={hasAnySections && onToggleAllSections ? "pointer" : undefined}
+        select={hasAnySections && onToggleAllSections ? "none" : undefined}
+        position={hasAnySections && onToggleAllSections ? "relative" : undefined}
+        transition={hasAnySections && onToggleAllSections ? "background-color" : undefined}
+        hover={hasAnySections && onToggleAllSections ? "bg-[hsl(213,32%,20%)]" : undefined}
+        p="[8px_6px]"
+        border="1px solid [hsl(0,0%,20%)]"
+        text-size="12px"
+        text="center"
+        un-align="middle"
         onClick={hasAnySections && onToggleAllSections ? onToggleAllSections : undefined}
         onKeyDown={hasAnySections && onToggleAllSections ? handleToggleAllKeyDown : undefined}
         title={
@@ -101,11 +121,11 @@ export function TorrentHeader({
         }
       >
         {hasAnySections && onToggleAllSections && (
-          <div className="ab-header-content">
+          <div flex items="center" justify="center" gap="4px" min-h="16px">
             {allSectionsExpanded ? (
-              <Minimize2 size={14} className="ab-sort-indicator" />
+              <Minimize2 size={14} op="60" transition="opacity" flex-shrink="0" />
             ) : (
-              <Maximize2 size={14} className="ab-sort-indicator" />
+              <Maximize2 size={14} op="60" transition="opacity" flex-shrink="0" />
             )}
           </div>
         )}
@@ -113,7 +133,7 @@ export function TorrentHeader({
 
       {/* Only show Group column for anime tables */}
       {tableType === "anime" && (
-        <SortableHeader column="group" className="ab-col-group" title="Sort by Group">
+        <SortableHeader column="group" width="100px" title="Sort by Group">
           Group
         </SortableHeader>
       )}
@@ -122,27 +142,34 @@ export function TorrentHeader({
 
   const commonHeaderEnd = (
     <>
-      <SortableHeader column="size" className="ab-col-size" title="Sort by Size">
+      <SortableHeader column="size" width="60px" title="Sort by Size">
         Size
       </SortableHeader>
 
-      <SortableHeader column="snatches" className="ab-col-snatches" title="Sort by Snatches">
+      <SortableHeader column="snatches" width="40px" title="Sort by Snatches">
         <img src="/static/css/coalbytes/images/snatched.svg" alt="Snatches" title="Snatches" />
       </SortableHeader>
 
-      <SortableHeader column="seeders" className="ab-col-seeders" title="Sort by Seeders">
+      <SortableHeader column="seeders" width="40px" title="Sort by Seeders">
         <img src="/static/css/coalbytes/images/seeders.svg" alt="Seeders" title="Seeders" />
       </SortableHeader>
 
-      <SortableHeader column="leechers" className="ab-col-leechers" title="Sort by Leechers">
+      <SortableHeader column="leechers" width="40px" title="Sort by Leechers">
         <img src="/static/css/coalbytes/images/leechers.svg" alt="Leechers" title="Leechers" />
       </SortableHeader>
 
-      <SortableHeader column="flags" className="ab-col-flags" title="Sort by Flags">
+      <SortableHeader column="flags" width="60px" title="Sort by Flags">
         Flags
       </SortableHeader>
 
-      <td className="ab-col-report"></td>
+      <td
+        size-w-20px
+        p="[8px_6px]"
+        border="1px solid [hsl(0,0%,20%)]"
+        text-size="12px"
+        text="center"
+        un-align="middle"
+      ></td>
     </>
   );
 
@@ -152,45 +179,56 @@ export function TorrentHeader({
       case "anime":
         return (
           <>
-            <SortableHeader column="format" className="ab-col-format" title="Sort by Source">
+            <SortableHeader column="format" width="60px" title="Sort by Source">
               Source
             </SortableHeader>
 
             {showRegionColumn && (
-              <SortableHeader column="region" className="ab-col-region" title="Sort by Region">
+              <SortableHeader column="region" width="60px" title="Sort by Region">
                 Region
               </SortableHeader>
             )}
 
-            <SortableHeader column="container" className="ab-col-container" title="Sort by Container">
+            <SortableHeader column="container" width="60px" title="Sort by Container">
               Container
             </SortableHeader>
 
-            <SortableHeader column="videoCodec" className="ab-col-video-codec" title="Sort by Codec">
+            <SortableHeader column="videoCodec" width="70px" title="Sort by Codec">
               Codec
             </SortableHeader>
 
-            {!compactResolutionMode && <td className="ab-col-aspect-ratio">Aspect</td>}
+            {!compactResolutionMode && (
+              <td
+                size-w-60px
+                p="[8px_6px]"
+                border="1px solid [hsl(0,0%,20%)]"
+                text-size="12px"
+                text="center"
+                un-align="middle"
+              >
+                Aspect
+              </td>
+            )}
 
-            <SortableHeader column="resolution" className="ab-col-resolution" title="Sort by Resolution">
+            <SortableHeader column="resolution" width="70px" title="Sort by Resolution">
               Resolution
             </SortableHeader>
 
-            <SortableHeader column="audio" className="ab-col-audio" title="Sort by Audio">
+            <SortableHeader column="audio" width="50px" title="Sort by Audio">
               Audio
             </SortableHeader>
 
-            <SortableHeader column="audioChannels" className="ab-col-audio-channels" title="Sort by Channels">
+            <SortableHeader column="audioChannels" width="40px" title="Sort by Channels">
               Channels
             </SortableHeader>
 
             {showDualAudioColumn && (
-              <SortableHeader column="hasDualAudio" className="ab-col-dual-audio" title="Sort by Dual Audio">
+              <SortableHeader column="hasDualAudio" width="40px" title="Sort by Dual Audio">
                 Dual Audio
               </SortableHeader>
             )}
 
-            <SortableHeader column="subtitles" className="ab-col-subtitles" title="Sort by Subtitles">
+            <SortableHeader column="subtitles" width="80px" title="Sort by Subtitles">
               Subtitles
             </SortableHeader>
           </>
@@ -199,23 +237,23 @@ export function TorrentHeader({
       case "printed_media":
         return (
           <>
-            <SortableHeader column="printedMediaType" className="ab-col-printed-type" title="Sort by Type">
+            <SortableHeader column="printedMediaType" title="Sort by Type">
               Type
             </SortableHeader>
 
-            <SortableHeader column="translator" className="ab-col-translator" title="Sort by Translator">
+            <SortableHeader column="translator" title="Sort by Translator">
               Translator
             </SortableHeader>
 
-            <SortableHeader column="isDigital" className="ab-col-digital" title="Sort by Digital">
+            <SortableHeader column="isDigital" title="Sort by Digital">
               Digital
             </SortableHeader>
 
-            <SortableHeader column="printedFormat" className="ab-col-printed-format" title="Sort by Format">
+            <SortableHeader column="printedFormat" title="Sort by Format">
               Format
             </SortableHeader>
 
-            <SortableHeader column="isOngoing" className="ab-col-ongoing" title="Sort by Ongoing">
+            <SortableHeader column="isOngoing" title="Sort by Ongoing">
               Ongoing
             </SortableHeader>
           </>
@@ -224,19 +262,19 @@ export function TorrentHeader({
       case "games":
         return (
           <>
-            <SortableHeader column="gameType" className="ab-col-game-type" title="Sort by Type">
+            <SortableHeader column="gameType" title="Sort by Type">
               Type
             </SortableHeader>
 
-            <SortableHeader column="platform" className="ab-col-platform" title="Sort by Platform">
+            <SortableHeader column="platform" title="Sort by Platform">
               Platform
             </SortableHeader>
 
-            <SortableHeader column="gameRegion" className="ab-col-game-region" title="Sort by Region">
+            <SortableHeader column="gameRegion" title="Sort by Region">
               Region
             </SortableHeader>
 
-            <SortableHeader column="isArchived" className="ab-col-archived" title="Sort by Archived">
+            <SortableHeader column="isArchived" title="Sort by Archived">
               Archived
             </SortableHeader>
           </>
@@ -245,23 +283,23 @@ export function TorrentHeader({
       case "music":
         return (
           <>
-            <SortableHeader column="musicCodec" className="ab-col-music-codec" title="Sort by Codec">
+            <SortableHeader column="musicCodec" title="Sort by Codec">
               Codec
             </SortableHeader>
 
-            <SortableHeader column="bitrate" className="ab-col-bitrate" title="Sort by Bitrate">
+            <SortableHeader column="bitrate" title="Sort by Bitrate">
               Bitrate
             </SortableHeader>
 
-            <SortableHeader column="media" className="ab-col-media" title="Sort by Media">
+            <SortableHeader column="media" title="Sort by Media">
               Media
             </SortableHeader>
 
-            <SortableHeader column="hasLog" className="ab-col-log" title="Sort by Log">
+            <SortableHeader column="hasLog" title="Sort by Log">
               Log
             </SortableHeader>
 
-            <SortableHeader column="hasCue" className="ab-col-cue" title="Sort by Cue">
+            <SortableHeader column="hasCue" title="Sort by Cue">
               Cue
             </SortableHeader>
           </>
@@ -274,7 +312,7 @@ export function TorrentHeader({
 
   return (
     <thead>
-      <tr className="ab-modern-header">
+      <tr bg="[hsl(218,32%,15%)]" text="white" font="bold">
         {commonHeaderStart}
         {renderTableSpecificHeaders()}
         {commonHeaderEnd}

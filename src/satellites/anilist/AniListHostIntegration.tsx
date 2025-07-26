@@ -33,7 +33,7 @@ export function AniListHostIntegration() {
       try {
         // Create container for our button
         const container = document.createElement("div");
-        container.className = "ab-anilist-button-container";
+        // container.className = "ab-anilist-button-container";
 
         // Prepend to sidebar
         sidebar.insertBefore(container, sidebar.firstChild);

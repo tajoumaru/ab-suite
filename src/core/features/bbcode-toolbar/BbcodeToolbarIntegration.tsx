@@ -1,7 +1,7 @@
 import { render } from "preact";
 import { useEffect, useRef } from "preact/hooks";
-import { log } from "@/lib/utils/logging";
 import { useSettingsStore } from "@/lib/state/settings";
+import { log } from "@/lib/utils/logging";
 import { EnhancedBbcodeToolbar } from "./EnhancedBbcodeToolbar";
 
 export function BbcodeToolbarIntegration() {
@@ -29,7 +29,7 @@ export function BbcodeToolbarIntegration() {
 
         // Create container for enhanced toolbar
         const container = document.createElement("div");
-        container.className = "ab-enhanced-bbcode-container";
+        // container.className = "ab-enhanced-bbcode-container";
 
         // Insert the enhanced toolbar container after the original
         bbcodeToolbar.parentNode?.insertBefore(container, bbcodeToolbar.nextSibling);

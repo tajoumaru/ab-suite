@@ -1,7 +1,49 @@
-/**
- * Type definitions for external API responses
- */
+// Shared types for the AB-Suite
 
+// SeaDex types
+export interface SeaDexEntry {
+  alID: string;
+  notes: string;
+  comparison: string[];
+  isBest: boolean;
+}
+
+export interface SeaDexResponse {
+  items: {
+    alID: string;
+    notes: string;
+    comparison: string;
+    expand: {
+      trs: {
+        url: string;
+        isBest: boolean;
+      }[];
+    };
+  }[];
+}
+
+// General utility types
+export interface FormatMap {
+  anime: Record<string, string[]>;
+  manga: Record<string, string[]>;
+}
+
+export interface TorrentInfo {
+  torrentId: string;
+  element: HTMLAnchorElement;
+  separator: string;
+}
+
+export interface RequestOptions {
+  method?: string;
+  timeout?: number;
+  headers?: Record<string, string>;
+}
+
+export type MediaType = "anime" | "manga" | "music";
+export type Domain = "anilist.co" | "animebytes.tv" | "releases.moe";
+
+// External API types
 // TMDB API types
 export interface TMDBVideo {
   id: string;

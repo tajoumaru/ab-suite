@@ -12,7 +12,7 @@ export function ExternalLinksBar({ mediaInfo }: ExternalLinksBarProps) {
   const { externalLinks, searchTitle } = mediaInfo;
 
   return (
-    <span className="ab-external-links">
+    <span>
       {externalLinks.map((link: { name: string; url: string }) => (
         <span key={link.name}>
           <span> | </span>

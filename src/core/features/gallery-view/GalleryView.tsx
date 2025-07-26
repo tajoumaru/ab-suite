@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "preact/hooks";
-import { err, log } from "@/lib/utils/logging";
+import { DescriptionRenderer } from "@/core/features/descriptions/DescriptionRenderer";
 import { useDescriptionStore } from "@/core/shared/descriptions";
 import { useSettingsStore } from "@/lib/state/settings";
+import { err, log } from "@/lib/utils/logging";
 import { formatTagName, getTagStyle } from "@/utils/tags";
-import { DescriptionRenderer } from "@/core/features/descriptions/DescriptionRenderer";
 
 interface GalleryItem {
   id: string;
@@ -101,26 +101,101 @@ function GalleryItem({ item }: { item: GalleryItem }) {
     : item.coverImageUrl;
 
   return (
-    <div className="ab-gallery-item">
-      <a href={item.torrentPageUrl} title={item.title} className="ab-gallery-item-clickable-area">
-        <img src={fallbackImageUrl} alt={item.title} className="ab-gallery-cover-image" onError={handleImageError} />
-        <div className="ab-gallery-title-container">
-          <span className="ab-gallery-title-text">{item.title}</span>
+    <div
+      size-w-240px
+      bg="#282828"
+      rounded="8px"
+      shadow="[0_4px_12px_rgba(0,0,0,0.4)]"
+      transition="transform-out, box-shadow-out"
+      flex="~ col"
+      position="relative"
+      overflow="hidden"
+      hover="shadow-[0_6px_18px_rgba(0,0,0,0.6)]"
+      className="group ab-gallery-item"
+    >
+      <a
+        href={item.torrentPageUrl}
+        title={item.title}
+        text-color="inherit"
+        un-decoration="none"
+        flex="~ col"
+        position="relative z-2"
+        className="ab-gallery-item-clickable-area"
+      >
+        <img
+          src={fallbackImageUrl}
+          alt={item.title}
+          size-w="full"
+          size-h-375px
+          un-object="cover"
+          block
+          bg="#333"
+          onError={handleImageError}
+        />
+        <div
+          p="[10px_8px]"
+          bg="[rgba(0,0,0,0.6)]"
+          text="white center 0.9em"
+          min-h="55px"
+          flex
+          items="center"
+          justify="center"
+          box="border"
+        >
+          <span line-clamp="̛3" overflow="hidden" text="ellipsis" line-height="[1.3]">
+            {item.title}
+          </span>
         </div>
       </a>
-      <div className="ab-gallery-tags-container">
+      <div
+        p="[8px_8px_4px_8px]"
+        text-align="center"
+        bg="#303030"
+        border-t="1 solid #444"
+        min-h="28px"
+        size-h="full"
+        position="relative z-1"
+      >
         {item.tags.length > 0 ? (
           item.tags.map((tag) => (
-            <span key={tag} className="ab-gallery-tag" style={enhancedTagStylingEnabled ? getTagStyle(tag) : {}}>
+            <span
+              key={tag}
+              inline-block
+              bg="#4a5568"
+              text="#e2e8f0 capitalize 0.78em"
+              p="[3px_7px]"
+              m="2px"
+              rounded="4px"
+              line-height="[1.2]"
+              style={enhancedTagStylingEnabled ? getTagStyle(tag) : {}}
+            >
               {enhancedTagStylingEnabled ? formatTagName(tag) : tag}
             </span>
           ))
         ) : (
-          <span className="ab-gallery-no-tags">No tags</span>
+          <span>No tags</span>
         )}
       </div>
-      <div className="ab-gallery-description-on-hover">
-        <DescriptionRenderer torrentLink={item.torrentPageUrl} className="torrent_desc" />
+      <div
+        position="absolute bottom-0 left-0 right-0 z-3"
+        op="0"
+        invisible
+        transition="custom-opacity_0.25s_ease-out/translate_0.25s_ease-out/visibility_0s_linear_delay-0.25s"
+        translate-y="full"
+        group-hover="translate-y-0 visible op-100 delay-[.1s,.1s,.1s]"
+        bg="[rgba(25,25,25,0.97)]"
+        text="#e8e8e8"
+        p="12px"
+        box="border"
+        max-h="75%"
+        overflow-y="auto"
+        text-size="0.82em"
+        line-height="[1.45]"
+        border-t="1 solid #555"
+      >
+        <div className="torrent_desc" data-torrent-link={item.torrentPageUrl}>
+          <DescriptionRenderer torrentLink={item.torrentPageUrl} />
+        </div>
       </div>
     </div>
   );
@@ -201,13 +276,31 @@ export function GalleryView({ className }: GalleryViewProps) {
 
   return (
     <div className={className}>
-      <button id="ab-gallery-toggle-button" onClick={toggleView} className="ab-gallery-toggle-button" type="button">
+      <button
+        id="ab-gallery-toggle-button"
+        onClick={toggleView}
+        block
+        m="[15px_auto_20px]"
+        p="[10px_20px]"
+        text="white 1em"
+        bg="#4a5568"
+        border="none rd-6px"
+        cursor="pointer"
+        transition="background-color-in-out"
+        hover="bg-[#2d3748]"
+        type="button"
+      >
         {isActive ? "Show Original View" : "Show Gallery View"}
       </button>
 
       <div
         ref={containerRef}
-        className={`ab-gallery-container ${isActive ? "ab-gallery-display-control" : "ab-gallery-display-none"}`}
+        className={isActive ? "flex" : "hidden"}
+        flex="wrap"
+        gap="25px"
+        p="20px"
+        justify="center"
+        max-w="full"
       >
         {galleryItems.map((item) => (
           <GalleryItem key={item.id} item={item} />

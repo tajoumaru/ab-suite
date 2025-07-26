@@ -1,17 +1,16 @@
 // ChevronDown, ChevronRight now imported in SectionHeader component
 import { Fragment } from "preact";
 import { useMemo } from "preact/hooks";
-import { log, time, timeEnd } from "@/lib/utils/logging";
 import { useSeaDexStore, useSeaDexUpdates } from "@/core/shared/seadex";
 import { useSettingsStore } from "@/lib/state/settings";
-import type { GroupedTorrents, TorrentTableProps } from "@/types/modern-table";
+import { log, time, timeEnd } from "@/lib/utils/logging";
 import { SectionHeader } from "./components/SectionHeader";
-import { detectTableType, extractGroupedTorrentData } from "./data-extraction";
 import { useRowExpansion } from "./hooks/useRowExpansion";
 import { useSectionManagement } from "./hooks/useSectionManagement";
 import { useTorrentSorting } from "./hooks/useTorrentSorting";
 import { TorrentHeader } from "./TorrentHeader";
 import { TorrentRow } from "./TorrentRow";
+import type { TorrentTableProps } from "./types";
 
 // TorrentTableProps is now imported from types.ts
 
@@ -23,42 +22,16 @@ import { TorrentRow } from "./TorrentRow";
  * It also reactively updates when SeaDex data becomes available.
  * Now supports section headers with group-aware sorting and section collapse/expand.
  */
-export function TorrentTable({ torrents, originalTable, isSeriesPage = false }: TorrentTableProps) {
+export function TorrentTable({ groupedData, tableType = "anime", isSeriesPage = false }: TorrentTableProps) {
   time("TorrentTable component render");
   log("TorrentTable component rendering", {
-    torrentsLength: torrents.length,
-    hasOriginalTable: !!originalTable,
+    sectionsCount: groupedData.sections.length,
+    totalTorrents: groupedData.sections.reduce((sum, s) => sum + s.torrents.length, 0),
+    tableType,
   });
-  const {
-    compactResolutionMode,
-    showRegionColumn,
-    showDualAudioColumn,
-    mediainfoParserEnabled,
-    sectionsCollapsedByDefault,
-  } = useSettingsStore();
+  const { compactResolutionMode, showRegionColumn, showDualAudioColumn, sectionsCollapsedByDefault } =
+    useSettingsStore();
   const seadexStore = useSeaDexStore();
-
-  // Detect table type based on the original table
-  const tableType = useMemo(() => {
-    return detectTableType(originalTable);
-  }, [originalTable]);
-
-  // Extract grouped data if we have the original table, otherwise use flat data
-  const groupedData = useMemo(() => {
-    if (originalTable) {
-      return extractGroupedTorrentData(originalTable, mediainfoParserEnabled);
-    }
-
-    // Fallback: create a single section with all torrents
-    return {
-      sections: [
-        {
-          section: null,
-          torrents: torrents,
-        },
-      ],
-    } as GroupedTorrents;
-  }, [originalTable, torrents, mediainfoParserEnabled]);
 
   // Use custom hooks for state management
   const { collapsedSections, toggleSectionCollapsed, createToggleAllSections } = useSectionManagement(
@@ -130,8 +103,8 @@ export function TorrentTable({ torrents, originalTable, isSeriesPage = false }: 
   }
 
   const result = (
-    <div className="ab-modern-table-container">
-      <table className="ab-modern-torrent-table torrent_table">
+    <div overflow="auto" size-w="full">
+      <table size-w="full" border="1px solid collapse [hsl(0,0%,20%)]">
         <TorrentHeader
           sortColumn={sortColumn}
           sortDirection={sortDirection}

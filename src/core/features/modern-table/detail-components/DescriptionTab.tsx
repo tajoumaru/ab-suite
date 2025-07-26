@@ -1,3 +1,5 @@
+// TODO: HERE
+
 interface DescriptionTabProps {
   description: string;
 }
@@ -7,11 +9,17 @@ interface DescriptionTabProps {
  */
 export function DescriptionTab({ description }: DescriptionTabProps) {
   if (!description) {
-    return <div className="ab-details-tab-content ab-no-content">No description available.</div>;
+    return (
+      <div text="white">
+        <div text="center #888" p="20px">
+          No description available.
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="ab-details-tab-content">
+    <div text="white">
       <blockquote dangerouslySetInnerHTML={{ __html: description }} />
     </div>
   );

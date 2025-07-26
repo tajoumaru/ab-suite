@@ -74,42 +74,88 @@ function SettingItem({ config, value, onChange, disabled }: SettingItemProps) {
   };
 
   return (
-    <div className={`ab-settings-option ${disabled ? "disabled" : ""}`}>
-      <div className="ab-settings-option-content">
-        <div className="ab-settings-option-header">
-          <strong>{config.label}</strong>
+    <div
+      p="16px"
+      border="1 solid [hsl(0,0%,25%)]"
+      rounded="6px"
+      bg="[hsl(0,0%,18%)]"
+      flex
+      justify="between"
+      items="start"
+      gap="16px"
+      transition="border-color"
+      hover={disabled ? "border-[hsl(0,0%,25%)]" : "border-[hsl(0,0%,35%)]"}
+      op={disabled ? "50" : "100"}
+    >
+      <div flex="1">
+        <div flex items="center" gap="8px" mb="4px">
+          <strong text="white" text-size="14px">
+            {config.label}
+          </strong>
           {config.helpUrl && (
             <a
               href={config.helpUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="ab-settings-help-link"
+              text-color="[hsl(213,85%,60%)]"
+              un-decoration="none"
+              inline-flex
+              items="center"
+              transition="color"
+              hover="text-[hsl(213,85%,70%)]"
               aria-label={`Get help for ${config.label}`}
             >
               <ExternalLinkIcon />
             </a>
           )}
         </div>
-        <div className="ab-settings-option-description">{config.description}</div>
+        <div text-color="[hsl(0,0%,67%)]" text-size="12px" line-height="[1.4]">
+          {config.description}
+        </div>
         {config.type === "string" && (
           <input
             type="text"
             placeholder={config.placeholder}
             value={(value as string) || ""}
             onChange={handleStringChange}
-            className="ab-settings-input"
+            size-w="full"
+            p="[8px_12px]"
+            mt="8px"
+            bg="[hsl(0,0%,10%)]"
+            border="1 solid [hsl(0,0%,30%)]"
+            rounded="4px"
+            text="white"
+            text-size="0.9em"
+            box="border"
+            focus="outline-none border-[hsl(336,87%,50%)] shadow-[0_0_0_2px_hsla(336,87%,50%,0.2)]"
             disabled={disabled}
           />
         )}
       </div>
       {config.type === "boolean" && (
         <button
-          className={`ab-settings-toggle ${value ? "active" : ""}`}
+          position="relative"
+          size-w-50px
+          size-h-24px
+          bg={value ? "[hsl(336,87%,50%)]" : "[hsl(0,0%,80%)]"}
+          rounded="12px"
+          cursor="pointer"
+          transition="background 300"
+          border="none"
           onClick={handleToggle}
           aria-label={`Toggle ${config.label} ${value ? "off" : "on"}`}
           type="button"
           disabled={disabled}
-        />
+        >
+          <div
+            size-20px
+            position="absolute top-2px left-2px"
+            transform={value ? "translate-x-26px" : "translate-x-0"}
+            bg="white"
+            rounded="50%"
+            transition="transform 300"
+          />
+        </button>
       )}
     </div>
   );
@@ -197,7 +243,16 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
   return (
     <div
-      className={`ab-settings-modal ${isClosing ? "ab-fade-out" : "ab-fade-in"}`}
+      fixed
+      position="fixed top-0 left-0 z-10000"
+      size-w="full"
+      size-h="full"
+      bg="[rgba(0,0,0,0.8)]"
+      flex
+      items="center"
+      justify="center"
+      cursor="default"
+      animate="[ab-fade-in-out]"
       onClick={handleBackdropClick}
       onKeyDown={handleBackdropKeyDown}
       role="dialog"
@@ -205,39 +260,101 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       aria-labelledby="ab-settings-title"
       tabIndex={-1}
     >
-      <div className="ab-settings-content">
-        <div className="ab-settings-header">
-          <h3 id="ab-settings-title">animebytes Suite Settings</h3>
-          <button className="ab-settings-close" onClick={handleClose} aria-label="Close settings" type="button">
+      <div
+        bg="[hsl(0,0%,16%)]"
+        p="0"
+        rounded="8px"
+        size-w="full"
+        min-w="800px"
+        max-w="1200px"
+        size-h-800px
+        grid
+        areas="header_header/search_search/sidebar_main/footer_footer"
+        grid-cols="[280px_1fr]"
+        grid-rows="[auto_auto_1fr_auto]"
+      >
+        <div grid-area="[header]" flex justify="between" items="center" p="20px" border-b="1 solid [hsl(0,0%,20%)]">
+          <h3 id="ab-settings-title" m="0" text="white">
+            animebytes Suite Settings
+          </h3>
+          <button
+            bg="[none]"
+            border="none"
+            text-size="20px"
+            cursor="pointer"
+            text-color="[hsl(0,0%,67%)]"
+            hover="text-white"
+            onClick={handleClose}
+            aria-label="Close settings"
+            type="button"
+          >
             <CloseIcon />
           </button>
         </div>
 
-        <div className="ab-settings-search">
+        <div grid-area="[search]" p="[15px_20px]" border-b="1 solid [hsl(0,0%,20%)]">
           <input
             type="text"
             placeholder="Search settings..."
             value={searchQuery}
             onChange={(e) => setSearchQuery((e.target as HTMLInputElement).value)}
-            className="ab-settings-search-input"
+            size-w="full"
+            p="[8px_12px]"
+            bg="[hsl(0,0%,10%)]"
+            border="1 solid [hsl(0,0%,25%)]"
+            rounded="4px"
+            text="white"
+            text-size="14px"
+            box="border"
+            focus="outline-none border-[hsl(213,85%,60%)]"
             aria-label="Search settings"
           />
         </div>
 
-        <div className="ab-settings-main">
-          <nav className="ab-settings-sidebar" aria-label="Settings categories">
+        <div min-h="0" grid="~ row-3 col-span-full" grid-areas="[sidebar_main]" grid-cols="[280px_1fr]">
+          <nav
+            grid-area="[sidebar]"
+            bg="[hsl(0,0%,14%)]"
+            border-r="1 solid [hsl(0,0%,20%)]"
+            p="[16px_0]"
+            overflow-y="auto"
+            flex="~ col"
+            gap="2px"
+            aria-label="Settings categories"
+          >
             {filteredCategories.map(({ category, settings }) => (
               <button
                 key={category.id}
-                className={`ab-settings-sidebar-item ${activeCategory === category.id ? "active" : ""}`}
+                bg={activeCategory === category.id ? "[hsl(213,85%,15%)]" : "[none]"}
+                border={activeCategory === category.id ? "none r-3px r-solid r-[hsl(213,85%,60%)]" : "none"}
+                p="[12px_20px]"
+                text="left"
+                cursor="pointer"
+                transition="background"
+                flex
+                items="center"
+                gap="12px"
+                text-color={activeCategory === category.id ? "white" : "[hsl(0,0%,70%)]"}
+                size-w="full"
+                hover={
+                  activeCategory === category.id ? "bg-[hsl(213,85%,18%)] text-white" : "bg-[hsl(0,0%,18%)] text-white"
+                }
                 onClick={() => setActiveCategory(category.id)}
                 type="button"
                 aria-label={`View ${category.label} settings`}
               >
-                <span className="ab-settings-sidebar-icon">{category.icon}</span>
-                <div className="ab-settings-sidebar-content">
-                  <div className="ab-settings-sidebar-title">{category.label}</div>
-                  <div className="ab-settings-sidebar-count">
+                <span text-size="18px" flex="shrink-0" size-w-24px text-align="center">
+                  {category.icon}
+                </span>
+                <div flex="1" min-w="0">
+                  <div text-size="14px" font="600" mb="2px" line-height="[1.2]">
+                    {category.label}
+                  </div>
+                  <div
+                    text-size="11px"
+                    text-color={activeCategory === category.id ? "[hsl(213,85%,70%)]" : "[hsl(0,0%,50%)]"}
+                    line-height="[1]"
+                  >
                     {settings.length} setting{settings.length !== 1 ? "s" : ""}
                   </div>
                 </div>
@@ -245,16 +362,20 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             ))}
           </nav>
 
-          <div className="ab-settings-panel">
+          <div grid-area="[main]" p="20px" overflow-y="auto" bg="[hsl(0,0%,16%)]">
             {activeCategoryData && (
               <>
-                <div className="ab-settings-panel-header">
-                  <h4>
+                <div mb="24px" pb="16px" border-b="1 solid [hsl(0,0%,25%)]">
+                  <h4 m="[0_0_8px_0]" text="white" text-size="20px" font="600" flex items="center" gap="8px">
                     {activeCategoryData.category.icon} {activeCategoryData.category.label}
                   </h4>
-                  {activeCategoryData.category.description && <p>{activeCategoryData.category.description}</p>}
+                  {activeCategoryData.category.description && (
+                    <p m="0" text-color="[hsl(0,0%,67%)]" text-size="14px" line-height="[1.4]">
+                      {activeCategoryData.category.description}
+                    </p>
+                  )}
                 </div>
-                <div className="ab-settings-panel-content">
+                <div flex="~ col" gap="16px">
                   {activeCategoryData.settings.map((setting) => (
                     <SettingItem
                       key={setting.key}
@@ -270,9 +391,31 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           </div>
         </div>
 
-        <div className="ab-settings-footer">
-          <p>Some changes may require refreshing the page to take effect.</p>
-          <button className="ab-settings-reset" onClick={() => settingsStore.resetToDefaults()} type="button">
+        <div
+          grid-area="[footer]"
+          flex
+          justify="between"
+          items="center"
+          p="[15px_20px]"
+          border-t="1 solid [hsl(0,0%,20%)]"
+          bg="[hsl(0,0%,14%)]"
+        >
+          <p m="0" text-color="[hsl(0,0%,60%)]" text-size="12px">
+            Some changes may require refreshing the page to take effect.
+          </p>
+          <button
+            p="[6px_12px]"
+            bg="[hsl(0,91%,40%)]"
+            border="none"
+            rounded="4px"
+            text="white"
+            cursor="pointer"
+            text-size="12px"
+            transition="background"
+            hover="bg-[hsl(0,91%,50%)]"
+            onClick={() => settingsStore.resetToDefaults()}
+            type="button"
+          >
             Reset to Defaults
           </button>
         </div>
@@ -287,7 +430,13 @@ export function SettingsButton() {
   return (
     <>
       <button
-        className="ab-settings-btn"
+        bg="[none]"
+        border="none"
+        text="white"
+        position="relative top-0 right-0 z-9999"
+        cursor="pointer"
+        align="middle"
+        hover="text-[hsl(0,0%,88%)]"
         onClick={() => setIsModalOpen(true)}
         type="button"
         aria-label="Open animebytes Suite settings"

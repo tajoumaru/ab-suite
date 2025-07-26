@@ -1,6 +1,6 @@
 import { apiRequest } from "@/lib/api";
+import type { SeaDexEntry, SeaDexResponse, TorrentInfo } from "@/lib/types";
 import { err } from "@/lib/utils/logging";
-import type { SeaDexEntry, SeaDexResponse, TorrentInfo } from "@/types";
 
 interface AutocompleteResult {
   id: string;

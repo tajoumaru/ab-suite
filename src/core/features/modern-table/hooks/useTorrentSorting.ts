@@ -1,5 +1,5 @@
 import { useMemo, useState } from "preact/hooks";
-import type { GroupedTorrents, SortColumn, SortDirection } from "@/types/modern-table";
+import type { GroupedTorrents, SortColumn, SortDirection } from "../types";
 import { sortTorrents } from "../utils/sorting";
 
 export function useTorrentSorting(enhancedGroupedData: GroupedTorrents) {

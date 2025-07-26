@@ -1,10 +1,10 @@
 import { useEffect, useState } from "preact/hooks";
+import type { AnimeApiResponse, MediaInfo } from "@/core/shared/hooks/useMediaInfo";
 import { useAsync } from "@/lib/hooks/useAsync";
+import { useSettingsStore } from "@/lib/state/settings";
 import { err } from "@/lib/utils/logging";
 import { aniListService } from "@/services/anilist";
 import { fetchAllTrailers, type Trailer, type TrailerCollection } from "@/services/trailers";
-import { useSettingsStore } from "@/lib/state/settings";
-import type { AnimeApiResponse, MediaInfo } from "@/core/shared/hooks/useMediaInfo";
 
 interface TrailersProps {
   apiData: AnimeApiResponse;
@@ -143,7 +143,9 @@ export function Trailers({ apiData, mediaInfo }: TrailersProps) {
           <select
             name="trailers"
             id="abtexr-trailer-selection"
-            className="ab-trailer-select"
+            ml="10px"
+            p="2px"
+            max-w="90%"
             value={selectedTrailerIndex}
             onChange={handleTrailerChange}
           >
@@ -155,16 +157,29 @@ export function Trailers({ apiData, mediaInfo }: TrailersProps) {
           </select>
         )}
       </div>
-      <div className="body ab-trailer-body">
+      <div flex justify="center" min-h="430px" items="center" className="body">
         {!hasInitialized || trailersAsync.loading ? (
-          <div className="ab-trailer-loading">
-            <div className="ab-trailer-placeholder" />
-            <div className="ab-trailer-loading-text">Loading trailers...</div>
+          <div flex="~ col" items="center" justify="center">
+            <div
+              size-w-693px
+              size-h-390px
+              bg="[linear-gradient(90deg,#333_25%,#444_50%,#333_75%)]"
+              animate="[shimmer]"
+              rounded="4px"
+              bg-size="[200%_100%]"
+            />
+            <div text-align="center" mt="20px" text="#888">
+              Loading trailers...
+            </div>
           </div>
         ) : trailersAsync.error ? (
-          <div className="ab-trailer-error">Failed to load trailers</div>
+          <div text-align="center" p="20px" text="#ef4444">
+            Failed to load trailers
+          </div>
         ) : trailerData.trailers.length === 0 ? (
-          <div className="ab-trailer-no-results">No trailers available</div>
+          <div text-align="center" p="20px" text="#888">
+            No trailers available
+          </div>
         ) : (
           <div
             ref={(el) => {
@@ -172,11 +187,16 @@ export function Trailers({ apiData, mediaInfo }: TrailersProps) {
                 setIframeContainer(el);
               }
             }}
-            className="ab-trailer-iframe-container"
+            size-w-693px
+            size-h-390px
           />
         )}
       </div>
-      {trailersAsync.error && <span className="ab-trailer-error-message">{trailersAsync.error}</span>}
+      {trailersAsync.error && (
+        <span text="red" block p="10px">
+          {trailersAsync.error}
+        </span>
+      )}
     </div>
   );
 }

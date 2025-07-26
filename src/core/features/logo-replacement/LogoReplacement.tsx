@@ -18,8 +18,8 @@ export function LogoReplacement() {
       const svgElement = svgDoc.documentElement as unknown as SVGSVGElement;
 
       // Apply proper dimensions
-      svgElement.setAttribute("width", "200");
-      svgElement.setAttribute("height", "23");
+      // svgElement.setAttribute("width", "200");
+      // svgElement.setAttribute("height", "23");
       svgElement.style.display = "block";
 
       // Apply colors to the paths based on their classes

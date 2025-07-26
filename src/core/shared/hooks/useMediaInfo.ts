@@ -1,8 +1,8 @@
 import { useEffect, useState } from "preact/hooks";
 import { apiRequest } from "@/lib/api";
+import { useSettingsStore } from "@/lib/state/settings";
 import { cachedApiCall } from "@/lib/utils/cache";
 import { err, log } from "@/lib/utils/logging";
-import { useSettingsStore } from "@/lib/state/settings";
 import { PRINTED_MEDIA_TYPES } from "@/utils/format-mapping";
 
 type StringNull = string | null;

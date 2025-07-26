@@ -1,5 +1,5 @@
 import { ChevronDown, ChevronRight } from "lucide-preact";
-import type { GroupHeader, TableSection } from "@/types/modern-table";
+import type { GroupHeader, TableSection } from "../types";
 
 interface SectionHeaderProps {
   section: TableSection | GroupHeader;
@@ -12,32 +12,36 @@ interface SectionHeaderProps {
  * Section header component with expand/collapse functionality
  */
 export function SectionHeader({ section, isCollapsed, onToggle, isOddSection }: SectionHeaderProps) {
-  // Group headers use their own class, section headers use alternating colors
-  const headerClass =
-    section.type === "group"
-      ? "ab-group-header"
-      : isOddSection
-        ? "ab-section-header ab-group-odd"
-        : "ab-section-header";
+  // Determine background color based on section type and group
+  const getBackgroundColor = () => {
+    if (section.type === "group") {
+      return "[hsl(219,100%,10%)]";
+    }
+    return isOddSection ? "[hsl(218,32%,10%)]" : "[hsl(218,32%,15%)]";
+  };
 
   return (
-    <tr className={`${headerClass} ab-section-header-clickable`} onClick={onToggle}>
-      <td colSpan={100}>
+    <tr cursor="pointer" onClick={onToggle}>
+      <td
+        colSpan={100}
+        p="[4px_8px]"
+        border="1px solid [hsl(0,0%,20%)]"
+        text="white 12px left"
+        font="bold"
+        un-align="middle"
+        style={{ backgroundColor: getBackgroundColor() }}
+      >
         {section.type === "group" && section.fullHtml ? (
           // Render full HTML content for group headers
-          <div className="ab-section-content-container">
-            <div className="ab-section-chevron-container">
-              {isCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
-            </div>
+          <div flex items="start" gap="8px">
+            <div mt="4px">{isCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}</div>
             <div dangerouslySetInnerHTML={{ __html: section.fullHtml }} />
           </div>
         ) : (
           // Simple text display for section headers with newline support
-          <div className="ab-section-content-container">
-            <div className="ab-section-chevron-container-text">
-              {isCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
-            </div>
-            <strong className="ab-section-title-preformatted">{section.title}</strong>
+          <div flex items="start" gap="8px">
+            <div mt="2px">{isCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}</div>
+            <strong un-ws="pre-line">{section.title}</strong>
           </div>
         )}
       </td>

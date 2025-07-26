@@ -1,5 +1,5 @@
 import { useEffect, useState } from "preact/hooks";
-import type { SeaDexEntry } from "@/types";
+import type { SeaDexEntry } from "@/lib/types";
 
 interface SeaDexData {
   [torrentId: string]: SeaDexEntry;

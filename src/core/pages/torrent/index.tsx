@@ -1,15 +1,22 @@
 import { render } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
-import { err, log } from "@/lib/utils/logging";
-import { useSeaDexUpdates } from "@/core/shared/seadex";
-import { useSettingsStore } from "@/lib/state/settings";
+import { EnhancedCharacterCards, processCharacterData } from "@/core/features/character-cards";
 import { ExternalLinksBar } from "@/core/features/external-links/ExternalLinksBar";
 import { GalleryView } from "@/core/features/gallery-view";
-import { type AnimeApiResponse, clearMediaInfoCache, useMediaInfo } from "@/core/shared/hooks/useMediaInfo";
-import { detectTableType, extractTorrentData, type ParsedTorrentRow, TorrentTable } from "@/core/features/modern-table";
+import {
+  detectTableType,
+  extractGroupedTorrentData,
+  type GroupedTorrents,
+  TorrentTable,
+} from "@/core/features/modern-table";
 import { Ratings } from "@/core/features/ratings/Ratings";
 import { RelationsBox } from "@/core/features/relations-box";
 import { Trailers } from "@/core/features/trailers/Trailers";
+import { type AnimeApiResponse, clearMediaInfoCache, useMediaInfo } from "@/core/shared/hooks/useMediaInfo";
+import { useSeaDexUpdates } from "@/core/shared/seadex";
+import { useSettingsStore } from "@/lib/state/settings";
+import { err, log } from "@/lib/utils/logging";
+import { type AniListMediaData, aniListService } from "@/services/anilist";
 
 // Default empty AnimeApiResponse for when no data is available
 const DEFAULT_API_DATA: AnimeApiResponse = {
@@ -56,19 +63,22 @@ export function TorrentGroupPage() {
     tableRestructureEnabled,
     mediainfoParserEnabled,
     anilistIntegrationEnabled,
+    aniListMetadataEnabled,
     RatingsEnabled,
     TrailersEnabled,
     galleryViewEnabled,
     relationsBoxEnabled,
   } = useSettingsStore();
-  const [torrents, setTorrents] = useState<ParsedTorrentRow[]>([]);
+  const [groupedData, setGroupedData] = useState<GroupedTorrents | null>(null);
+  const [tableType, setTableType] = useState<"anime" | "printed_media" | "games" | "music">("anime");
   const [isInitialized, setIsInitialized] = useState(false);
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const headerContainerRef = useRef<HTMLSpanElement>(null);
   const sectionsContainerRef = useRef<HTMLDivElement>(null);
   const galleryContainerRef = useRef<HTMLDivElement>(null);
-  const originalTableRef = useRef<HTMLTableElement | null>(null);
   const [plotSynopsisHtml, setPlotSynopsisHtml] = useState<string | null>(null);
+  const [aniListData, setAniListData] = useState<AniListMediaData | null>(null);
+  const [characterOriginalContent, setCharacterOriginalContent] = useState<string | null>(null);
   const mediaInfo = useMediaInfo();
 
   // Clear media info cache when URL changes to prevent stale data
@@ -78,6 +88,31 @@ export function TorrentGroupPage() {
       clearMediaInfoCache();
     };
   }, [window.location.href]);
+
+  // Fetch AniList data when conditions are met
+  useEffect(() => {
+    if (!aniListMetadataEnabled || !mediaInfo?.apiData?.anilist || aniListData) {
+      return;
+    }
+
+    const fetchAniListData = async () => {
+      if (!mediaInfo?.apiData?.anilist) return;
+
+      try {
+        log(`Fetching AniList metadata for ID: ${mediaInfo.apiData.anilist}`);
+        const data = await aniListService.fetchMediaData(mediaInfo.apiData.anilist);
+
+        if (data) {
+          setAniListData(data);
+          log("Successfully fetched AniList metadata for character cards");
+        }
+      } catch (error) {
+        err("Failed to fetch AniList metadata for character cards:", error);
+      }
+    };
+
+    fetchAniListData();
+  }, [aniListMetadataEnabled, mediaInfo?.apiData?.anilist, aniListData]);
 
   const initializeTorrentGroupPage = () => {
     // Find the original torrent table (our anchor)
@@ -89,17 +124,21 @@ export function TorrentGroupPage() {
 
     try {
       // Detect table type and extract data from the original table
-      const tableType = detectTableType(originalTable);
-      const extractedTorrents = extractTorrentData(originalTable, mediainfoParserEnabled, tableType);
+      const detectedTableType = detectTableType(originalTable);
+      const extractedGroupedData = extractGroupedTorrentData(originalTable, mediainfoParserEnabled, detectedTableType);
 
-      if (extractedTorrents.length === 0) {
+      // Calculate total torrents
+      const totalTorrents = extractedGroupedData.sections.reduce((sum: number, s) => sum + s.torrents.length, 0);
+
+      if (totalTorrents === 0) {
         return;
       }
 
-      log(`Detected table type '${tableType}' for torrent group page`);
+      log(`Detected table type '${detectedTableType}' for torrent group page with ${totalTorrents} torrents`);
 
-      // Store reference to original table for re-extraction
-      originalTableRef.current = originalTable;
+      // Store the extracted data
+      setGroupedData(extractedGroupedData);
+      setTableType(detectedTableType);
 
       // Hide the original table
       originalTable.style.display = "none";
@@ -120,11 +159,10 @@ export function TorrentGroupPage() {
         galleryContainerRef.current = galleryContainer;
       }
 
-      // Set the extracted data and mark as initialized
-      setTorrents(extractedTorrents);
+      // Mark as initialized
       setIsInitialized(true);
 
-      log("Torrent group page initialized with", extractedTorrents.length, "torrents");
+      log("Torrent group page initialized with", totalTorrents, "torrents");
     } catch (error) {
       err("Failed to initialize torrent group page", error);
     }
@@ -144,19 +182,10 @@ export function TorrentGroupPage() {
     initializeTorrentGroupPage();
   }, [tableRestructureEnabled, mediainfoParserEnabled, isInitialized]);
 
-  // Listen for SeaDex updates and re-extract data to pick up SeaDex classes
+  // Listen for SeaDex updates
+  // The TorrentTable component will handle SeaDex updates internally now
   useSeaDexUpdates(() => {
-    if (!isInitialized || !originalTableRef.current) return;
-
-    log("SeaDex processing complete, re-extracting torrent data");
-
-    try {
-      const tableType = detectTableType(originalTableRef.current);
-      const updatedTorrents = extractTorrentData(originalTableRef.current, mediainfoParserEnabled, tableType);
-      setTorrents(updatedTorrents);
-    } catch (error) {
-      err("Failed to re-extract torrent data after SeaDex update", error);
-    }
+    log("SeaDex processing complete, table will update automatically");
   });
 
   // Handle external links integration
@@ -220,14 +249,21 @@ export function TorrentGroupPage() {
       modernTable.parentNode?.insertBefore(sectionsContainer, modernTable);
       sectionsContainerRef.current = sectionsContainer;
 
-      // Extract plot synopsis HTML and hide original
+      // Extract plot synopsis HTML and character listing HTML, hide originals
       const boxes = document.querySelectorAll("div.box");
       for (const box of boxes) {
         const head = box.querySelector("div.head");
-        if (head?.textContent?.includes("Plot Synopsis")) {
+        const headText = head?.textContent;
+
+        if (headText?.includes("Plot Synopsis")) {
           setPlotSynopsisHtml(box.outerHTML);
           (box as HTMLElement).style.display = "none";
-          break;
+        } else if (headText?.includes("Character and Seiyuu Listing")) {
+          const bodyElement = box.querySelector(".body") as HTMLElement;
+          const originalContent = bodyElement ? bodyElement.innerHTML : "";
+          setCharacterOriginalContent(originalContent);
+          (box as HTMLElement).style.display = "none";
+          log("Extracted character listing content for processing");
         }
       }
 
@@ -239,13 +275,13 @@ export function TorrentGroupPage() {
 
   // Render the components into their containers when we have data
   useEffect(() => {
-    if (isInitialized && tableContainerRef.current && torrents.length > 0) {
+    if (isInitialized && tableContainerRef.current && groupedData) {
       render(
-        <TorrentTable torrents={torrents} originalTable={originalTableRef.current || undefined} isSeriesPage={false} />,
+        <TorrentTable groupedData={groupedData} tableType={tableType} isSeriesPage={false} />,
         tableContainerRef.current,
       );
     }
-  }, [isInitialized, torrents]);
+  }, [isInitialized, groupedData, tableType]);
 
   // Render external links when we have media info
   useEffect(() => {
@@ -274,6 +310,33 @@ export function TorrentGroupPage() {
       render(<SectionsContainer />, sectionsContainerRef.current);
     }
   }, [TrailersEnabled, RatingsEnabled, relationsBoxEnabled, mediaInfo, plotSynopsisHtml, isInitialized]);
+
+  // Handle character cards integration in the placeholder
+  useEffect(() => {
+    if (!aniListMetadataEnabled || !aniListData) {
+      return;
+    }
+
+    const charactersPlaceholder = document.querySelector("#ab-characters-placeholder");
+    if (!charactersPlaceholder) {
+      return;
+    }
+
+    const charactersWithLinks = characterOriginalContent
+      ? processCharacterData(aniListData, characterOriginalContent)
+      : processCharacterData(aniListData);
+
+    if (charactersWithLinks && charactersWithLinks.length > 0) {
+      render(
+        <EnhancedCharacterCards
+          characters={charactersWithLinks}
+          originalContent={characterOriginalContent || undefined}
+          showToggle={!!characterOriginalContent}
+        />,
+        charactersPlaceholder,
+      );
+    }
+  }, [aniListMetadataEnabled, aniListData, characterOriginalContent]);
 
   // Render gallery view when enabled
   useEffect(() => {

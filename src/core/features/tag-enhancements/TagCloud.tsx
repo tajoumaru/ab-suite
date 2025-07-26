@@ -1,6 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
-import { log } from "@/lib/utils/logging";
 import { useSettingsStore } from "@/lib/state/settings";
+import { log } from "@/lib/utils/logging";
 import { formatTagName, getTagStyle } from "@/utils/tags";
 
 interface TagCloudTag {
@@ -47,7 +47,37 @@ function TagCloudItem({ tag }: { tag: TagCloudTag }) {
   return (
     <a
       href={tag.href}
-      className={`ab-tag-cloud-item ${enhancedTagStylingEnabled ? "ab-enhanced-tag" : ""} level_${tag.level}`}
+      inline-block
+      p={
+        tag.level === 5
+          ? "5px 14px"
+          : tag.level === 4
+            ? "4px 13px"
+            : tag.level === 3
+              ? "4px 12px"
+              : tag.level === 2
+                ? "3px 11px"
+                : "3px 10px"
+      }
+      m="2px"
+      rounded="6px"
+      un-decoration="none"
+      text-size={
+        tag.level === 5
+          ? "1.3em"
+          : tag.level === 4
+            ? "1.2em"
+            : tag.level === 3
+              ? "1.1em"
+              : tag.level === 2
+                ? "1em"
+                : "0.9em"
+      }
+      font={tag.level >= 4 ? "600" : tag.level >= 2 ? "500" : "400"}
+      line-height="[1.4]"
+      transition="all"
+      un-ws="nowrap"
+      hover="shadow-[0_3px_8px_rgba(0,0,0,0.3)] decoration-none"
       style={style}
       data-level={tag.level}
     >
@@ -102,7 +132,7 @@ export function TagCloud({ className }: TagCloudProps) {
   }
 
   return (
-    <div id="ab-browse-nav-tags" className={`ab-tag-cloud ${className || ""}`}>
+    <div id="ab-browse-nav-tags" flex="~ wrap" gap="6px" items="center" line-height="[1.6]" className={className || ""}>
       {tags.map((tag) => (
         <TagCloudItem key={tag.name} tag={tag} />
       ))}

@@ -249,12 +249,24 @@ export function useSettingsStore<K extends keyof Settings>(keys?: K[]): Settings
     if (keys && keys.length > 0) {
       // Use selective subscription for specific keys
       return settingsStore.subscribeToKeys(keys, () => {
-        forceUpdate({});
+        // Ensure the forceUpdate only happens during valid render contexts
+        try {
+          forceUpdate({});
+        } catch {
+          // Ignore hook errors if called outside render context
+          console.warn("Settings update ignored - component may have unmounted");
+        }
       });
     } else {
       // Use general subscription for all changes (backward compatibility)
       return settingsStore.subscribe(() => {
-        forceUpdate({});
+        // Ensure the forceUpdate only happens during valid render contexts
+        try {
+          forceUpdate({});
+        } catch {
+          // Ignore hook errors if called outside render context
+          console.warn("Settings update ignored - component may have unmounted");
+        }
       });
     }
   }, [keys]);

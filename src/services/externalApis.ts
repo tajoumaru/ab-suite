@@ -311,7 +311,19 @@ export async function fetchYouTubeVideosInfo(
 
         try {
           // First get video details for all videos in batch
-          const data = await apiRequest<any>({
+          const data = await apiRequest<{
+            items: Array<{
+              id: string;
+              snippet: {
+                channelId: string;
+                title: string;
+                description: string;
+                publishedAt: string;
+                thumbnails: Record<string, { url: string }>;
+              };
+              status: { embeddable: boolean; privacyStatus: string };
+            }>;
+          }>({
             method: "GET",
             url: `https://www.googleapis.com/youtube/v3/videos?id=${batch.join(",")}&part=snippet,status&key=${youtubeApiKey}`,
             responseType: "json",
@@ -329,10 +341,7 @@ export async function fetchYouTubeVideosInfo(
             privacyStatus: string;
           }
 
-          const videoMap = new Map<
-            string,
-            { id: string; snippet: YouTubeVideoSnippet; status: YouTubeVideoStatus }
-          >();
+          const videoMap = new Map<string, { id: string; snippet: YouTubeVideoSnippet; status: YouTubeVideoStatus }>();
 
           // Process video data
           if (data.items && Array.isArray(data.items)) {
@@ -351,10 +360,10 @@ export async function fetchYouTubeVideosInfo(
           // Now get captions for all videos in one request
           const videosWithData = Array.from(videoMap.keys());
           const captionsMap = new Map<string, YouTubeVideoInfo["captions"]>();
-          
+
           if (videosWithData.length > 0) {
             try {
-              const captionsData = await apiRequest<import("@/types/external-apis").YouTubeCaptionsResponse>({
+              const captionsData = await apiRequest<import("@/lib/types").YouTubeCaptionsResponse>({
                 method: "GET",
                 url: `https://www.googleapis.com/youtube/v3/captions?videoId=${videosWithData.join(",")}&part=snippet&key=${youtubeApiKey}`,
                 responseType: "json",
@@ -412,7 +421,7 @@ export async function fetchYouTubeVideosInfo(
       {
         ttl: 7 * 24 * 60 * 60 * 1000, // 7 days - video info changes rarely
         apiKey: "youtube",
-      }
+      },
     );
 
     // Merge batch results into main results
@@ -439,7 +448,19 @@ export async function fetchYouTubeVideoInfo(videoId: string, youtubeApiKey: stri
     cacheKey,
     async () => {
       // First get video details
-      const videoData = await apiRequest<any>({
+      const videoData = await apiRequest<{
+        items: Array<{
+          id: string;
+          snippet: {
+            channelId: string;
+            title: string;
+            description: string;
+            publishedAt: string;
+            thumbnails: Record<string, { url: string }>;
+          };
+          status: { embeddable: boolean; privacyStatus: string };
+        }>;
+      }>({
         method: "GET",
         url: `https://www.googleapis.com/youtube/v3/videos?id=${videoId}&part=snippet,status&key=${youtubeApiKey}`,
         responseType: "json",
@@ -456,7 +477,7 @@ export async function fetchYouTubeVideoInfo(videoId: string, youtubeApiKey: stri
       // Now get captions info
       let captions: YouTubeVideoInfo["captions"] = [];
       try {
-        const captionsData = await apiRequest<import("@/types/external-apis").YouTubeCaptionsResponse>({
+        const captionsData = await apiRequest<import("@/lib/types").YouTubeCaptionsResponse>({
           method: "GET",
           url: `https://www.googleapis.com/youtube/v3/captions?videoId=${videoId}&part=snippet&key=${youtubeApiKey}`,
           responseType: "json",

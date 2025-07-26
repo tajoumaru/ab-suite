@@ -201,7 +201,7 @@ export function deduplicateTrailers(trailers: Trailer[]): Trailer[] {
   return result;
 }
 
-import type { MALPromo, MALResponse, TMDBVideo, TMDBVideosResponse } from "@/types/external-apis";
+import type { MALPromo, MALResponse, TMDBVideo, TMDBVideosResponse } from "@/lib/types";
 
 // Convert TMDB video data to trailers
 export function tmdbVideosToTrailers(tmdbData: TMDBVideosResponse, tmdbId: number): TMDBTrailer[] {

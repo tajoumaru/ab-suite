@@ -1,7 +1,7 @@
 import { render } from "preact";
 import { useEffect } from "preact/hooks";
-import { log } from "@/lib/utils/logging";
 import { useSettingsStore } from "@/lib/state/settings";
+import { log } from "@/lib/utils/logging";
 import { applyTagStyling } from "@/utils/tags";
 import { TagCloud } from "./TagCloud";
 
@@ -105,6 +105,9 @@ export function EnhancedTagStyling() {
 
       // Insert after the original tag cloud
       originalTagCloud.parentNode?.insertBefore(container, originalTagCloud.nextSibling);
+
+      // Hide original tag cloud
+      originalTagCloud.style.display = "none";
 
       // Render our TagCloud component
       render(<TagCloud />, container);

@@ -1,6 +1,6 @@
 import { useEffect } from "preact/hooks";
-import { err, log } from "@/lib/utils/logging";
 import { useSettingsStore } from "@/lib/state/settings";
+import { err, log } from "@/lib/utils/logging";
 
 export function YouTubeIntegration() {
   const settings = useSettingsStore(["youtubeOverlayHidingEnabled"]);

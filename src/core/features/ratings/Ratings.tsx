@@ -1,7 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
+import type { AnimeApiResponse, MediaInfo } from "@/core/shared/hooks/useMediaInfo";
 import { useRatings } from "@/core/shared/hooks/useRatings";
 import { useSettingsStore } from "@/lib/state/settings";
-import type { AnimeApiResponse, MediaInfo } from "@/core/shared/hooks/useMediaInfo";
 
 interface RatingsProps {
   apiData: AnimeApiResponse;
@@ -154,41 +154,50 @@ Each vote is weighted by the platform's authority, creating a natural balance be
   const isInitialLoading = !hasInitialized || ratings.every((r) => r.loading);
 
   return (
-    <div className="ab-ratings box">
+    <div className="box">
       <div className="head">Ratings</div>
-      <div className="ab-ratings-grid body">
+      <div justify="center" gap="18px" flex="~ wrap" items="start" className="body">
         {isInitialLoading ? (
           // Show loading cards to maintain layout during initial load
           ["MyAnimeList", "AniList", "AniDB", "Kitsu", "TMDb", "IMDb"].map((platform) => (
-            <div key={`loading-${platform}`} className="ab-rating-card">
-              <div className="ab-rating-header">
-                <div className="ab-rating-platform-skeleton" />
+            <div key={`loading-${platform}`} flex items="center" gap="5px">
+              <div>
+                <div
+                  size-w-54px
+                  size-h-54px
+                  rounded="25%"
+                  bg="size-[200%_100%] [linear-gradient(90deg,#333_25%,#444_50%,#333_75%)]"
+                  animate="[shimmer]"
+                />
               </div>
-              <div className="ab-rating-content">
-                <div className="ab-rating-loading">Loading...</div>
+              <div>
+                <div>Loading...</div>
               </div>
             </div>
           ))
         ) : finalRatings.length === 0 ? (
-          <div className="ab-ratings-empty">No ratings available</div>
+          <div text-align="center" text="#999" font="italic" p="20px">
+            No ratings available
+          </div>
         ) : (
           finalRatings.map((rating) => {
             const iconSrc = PLATFORM_ICONS[rating.platform as keyof typeof PLATFORM_ICONS];
             const isWeightedAverage = rating.platform === "Weighted Average";
 
             return (
-              <div key={rating.platform} className="ab-rating-card">
-                <div className="ab-rating-header">
+              <div key={rating.platform} flex items="center" gap="5px">
+                <div>
                   {rating.detailsUrl ? (
                     <a
                       href={rating.detailsUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="ab-rating-details-link"
                       title={`View detailed ${rating.platform} statistics`}
                     >
                       <img
-                        className="ab-rating-platform-icon"
+                        size-w-54px
+                        size-h-54px
+                        rounded="25%"
                         src={iconSrc}
                         alt={rating.platform}
                         title={isWeightedAverage ? weightedAverageTooltip : undefined}
@@ -198,14 +207,16 @@ Each vote is weighted by the platform's authority, creating a natural balance be
                           target.style.display = "none";
                           const fallbackSpan = document.createElement("span");
                           fallbackSpan.textContent = rating.platform;
-                          fallbackSpan.className = "ab-platform-name-fallback";
+                          // fallbackSpan.className = "ab-platform-name-fallback";
                           target.parentNode?.appendChild(fallbackSpan);
                         }}
                       />
                     </a>
                   ) : (
                     <img
-                      className="ab-rating-platform-icon"
+                      size-w-54px
+                      size-h-54px
+                      rounded="25%"
                       src={iconSrc}
                       alt={rating.platform}
                       title={isWeightedAverage ? weightedAverageTooltip : undefined}
@@ -215,25 +226,30 @@ Each vote is weighted by the platform's authority, creating a natural balance be
                         target.style.display = "none";
                         const fallbackSpan = document.createElement("span");
                         fallbackSpan.textContent = rating.platform;
-                        fallbackSpan.className = "ab-platform-name-fallback";
+                        // fallbackSpan.className = "ab-platform-name-fallback";
                         target.parentNode?.appendChild(fallbackSpan);
                       }}
                     />
                   )}
                 </div>
-                <div className="ab-rating-content">
+                <div>
                   {rating.loading ? (
-                    <div className="ab-rating-loading">Loading...</div>
+                    <div>Loading...</div>
                   ) : rating.error ? (
-                    <div className="ab-rating-error">Error</div>
+                    <div>Error</div>
                   ) : (
                     <>
-                      <div className="ab-rating-score" title={isWeightedAverage ? weightedAverageTooltip : undefined}>
-                        <span className="ab-score-value">{formatScore(rating.score)}</span>
-                        <span className="ab-score-max"> / 10</span>
+                      <div
+                        font="bold"
+                        text-size="13px"
+                        text="white"
+                        title={isWeightedAverage ? weightedAverageTooltip : undefined}
+                      >
+                        <span>{formatScore(rating.score)}</span>
+                        <span> / 10</span>
                       </div>
-                      <div className="ab-rating-details">
-                        <div className="ab-rating-votes">{formatVotesDisplay(rating.votes)}</div>
+                      <div>
+                        <div>{formatVotesDisplay(rating.votes)}</div>
                       </div>
                     </>
                   )}

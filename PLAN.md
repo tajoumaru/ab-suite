@@ -129,9 +129,9 @@ We will adopt **UnoCSS**, the instant on-demand atomic CSS engine, to create a m
 // After (with UnoCSS Attributify Mode, no .css file needed)
 function CharacterCard() {
   return (
-    <div display="flex" bg={someFlag ? "blue" : "yellow"} text={`sm ${someFlag ? "red" : "green"}`}>
+    <div flex bg={someFlag ? "blue" : "yellow"} text={`sm ${someFlag ? "red" : "green"}`}>
       <div flex-shrink="0" p="y-2 x-4">
-        <img w="full" h="full" object="cover" />
+        <img size-w="full" size-h="full" object="cover" />
       </div>
       <div p="2">...</div>
     </div>

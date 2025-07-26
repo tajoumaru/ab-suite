@@ -254,7 +254,7 @@ export function AutocompleteEnhancedInput({ originalInput, searchType }: Autocom
   };
 
   return (
-    <div className="ab-autocomplete-wrapper">
+    <div position="relative" size-w="full">
       <input
         type="text"
         value={state.query}
@@ -263,7 +263,7 @@ export function AutocompleteEnhancedInput({ originalInput, searchType }: Autocom
         onFocus={handleFocus}
         onBlur={handleBlur}
         autoComplete="off"
-        className={`ab-autocomplete-input ${originalAttribs.className || ""}`}
+        className={originalAttribs.className || ""}
         name={originalAttribs.name}
         placeholder={originalAttribs.placeholder}
         size={originalAttribs.size}
@@ -271,11 +271,35 @@ export function AutocompleteEnhancedInput({ originalInput, searchType }: Autocom
       />
 
       {state.isVisible && (
-        <ul className="ab-autocomplete-container ab-visible">
-          {state.isLoading && <li className="ab-autocomplete-loading">Loading...</li>}
+        <ul
+          position="absolute z-1000"
+          bg="[var(--input-bg,hsl(0,0%,10%))]"
+          text-color="[hsl(0,0%,60%)]"
+          overflow="hidden"
+          size-w="auto"
+          max-w="888px"
+          min-w="unset"
+          p="0!"
+          m="0"
+          text-align="left"
+          text-size="0.723rem"
+          list="none"
+          block
+          max-h="300px"
+          overflow-y="auto"
+          border="1 solid [rgba(78,78,78,0.31)]"
+          shadow="[0_2px_8px_rgba(0,0,0,0.2)]"
+        >
+          {state.isLoading && (
+            <li block="!" p="8px" text-align="center" font="italic" text-color="[hsl(0,0%,40%)]">
+              Loading...
+            </li>
+          )}
 
           {!state.isLoading && state.results.length === 0 && state.query && (
-            <li className="ab-autocomplete-no-results">No results found</li>
+            <li block="!" p="8px" text-align="center" font="italic" text-color="[hsl(0,0%,40%)]">
+              No results found
+            </li>
           )}
 
           {state.results.slice(0, 10).map((result, index) => {
@@ -283,10 +307,23 @@ export function AutocompleteEnhancedInput({ originalInput, searchType }: Autocom
             const yearText = result.year === "0" ? "" : ` [${result.year}]`;
 
             return (
-              <li key={result.id} className={index === state.selectedIndex ? "ab-selected" : ""}>
+              <li key={result.id} bg={index === state.selectedIndex ? "[rgba(255,255,255,0.1)]" : "inherit"}>
                 <button
                   type="button"
-                  className="ab-autocomplete-item"
+                  block="!"
+                  size-w="full"
+                  border="none b-[1px_solid_rgba(78,78,78,0.31)]"
+                  p="[4px_8px]"
+                  un-ws="nowrap"
+                  cursor="pointer"
+                  bg="inherit"
+                  text="inherit"
+                  font="inherit"
+                  text-align="left"
+                  transition="background-color"
+                  outline-offset="-1px"
+                  hover="bg-[rgba(255,255,255,0.1)]"
+                  focus="outline-[1px_dotted_hsl(0,0%,80%)]"
                   onClick={() => handleResultClick(result)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {

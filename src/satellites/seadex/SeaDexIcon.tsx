@@ -1,5 +1,5 @@
 import { useSettingsStore } from "@/lib/state/settings";
-import type { SeaDexEntry } from "@/types";
+import type { SeaDexEntry } from "@/lib/types";
 
 interface SeaDexIconProps {
   entry: SeaDexEntry;
@@ -42,13 +42,19 @@ export function SeaDexIcon({ entry, separator = " | " }: SeaDexIconProps) {
       {separator}
       <button
         type="button"
-        className="ab-seadex-icon"
+        bg="[none]"
+        border="none"
+        p="0"
+        cursor="pointer"
+        align="middle"
+        ml="2px"
+        hover="opacity-80"
         onClick={handleClick}
         onKeyDown={handleKeyDown}
         title={tooltip}
         aria-label={`Open SeaDex entry for ${entry.alID}${entry.isBest ? " (Best Choice)" : ""}`}
       >
-        <img src={iconSrc} alt={entry.isBest ? "SeaDex Best Choice" : "SeaDex Alt"} />
+        <img src={iconSrc} alt={entry.isBest ? "SeaDex Best Choice" : "SeaDex Alt"} block />
       </button>
     </>
   );

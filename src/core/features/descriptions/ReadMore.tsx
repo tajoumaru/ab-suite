@@ -1,6 +1,6 @@
-import { err } from "@/lib/utils/logging";
 import { useDescriptionStore } from "@/core/shared/descriptions";
 import { useSettingsStore } from "@/lib/state/settings";
+import { err } from "@/lib/utils/logging";
 
 interface ReadMoreProps {
   torrentLink: string;
@@ -36,7 +36,16 @@ export function ReadMore({ torrentLink }: ReadMoreProps) {
   };
 
   return (
-    <button onClick={handleReadMore} className="ab-read-more-button" type="button">
+    <button
+      onClick={handleReadMore}
+      text="#007bff decoration-none 0.9em"
+      cursor="pointer"
+      ml="4px"
+      bg="[none]"
+      border="none"
+      p="0"
+      type="button"
+    >
       {isLoading ? "Loading..." : "Read all"}
     </button>
   );
